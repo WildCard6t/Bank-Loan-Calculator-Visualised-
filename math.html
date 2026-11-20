@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f111a" id="themeColor">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Finance Vis">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>
+/* colour theme: Auto (follows the phone), Light or Dark. Shared by both pages, remembered in this browser. Runs before the page paints. */
+(function(){var K='loanTheme',r=document.documentElement,v='dark';
+ if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){if(e.source!==window.parent||e.origin!==location.origin)return;var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loanSettings)window.loanTheme.refresh();if(d.loan==='reloadAll')location.reload();if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})};if(window.loanEmbed)document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('toTracker');if(b)b.textContent='Send this loan to the Tracker →'})
+ var KS='loanSettings.v1',sc='indigo';
+ function cfg(){try{return JSON.parse(localStorage.getItem(KS))||{}}catch(e){return {}}}
+ var REG={AU:['en-AU','$'],NZ:['en-NZ','$'],UK:['en-GB','£'],US:['en-US','$'],CA:['en-CA','$']},c0=cfg(),cc=REG[c0.country]?c0.country:'AU';
+ window.loanRegion={country:cc,locale:REG[cc][0],sym:REG[cc][1],mdy:cc==='US'};
+ function bar(){var m=document.getElementById('themeColor');if(m)m.content=getComputedStyle(r).getPropertyValue('--bg').trim()||'#f4f3f0'}
+ function apply(){try{v=localStorage.getItem(K)||v}catch(e){}if(v==='light'||v==='dark')r.dataset.theme=v;else delete r.dataset.theme;sc=cfg().scheme||sc;if(sc!=='indigo')r.dataset.scheme=sc;else delete r.dataset.scheme;bar()}
+ function fire(){window.dispatchEvent(new Event('themechange'))}
+ apply();
+ window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){v=t;try{localStorage.setItem(K,t)}catch(e){};apply();fire()},setScheme:function(s){sc=s;var o=cfg();o.scheme=s;try{localStorage.setItem(KS,JSON.stringify(o))}catch(e){};apply();fire()},refresh:function(){apply();fire()},bar:bar};
+ addEventListener('storage',function(e){if(e.key===K||e.key===KS)window.loanTheme.refresh()});
+ document.addEventListener('DOMContentLoaded',bar);
+ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){bar();fire()})}catch(e){}
+})();
+</script>
+<title>Math Visualizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mathjs@15.2.0/lib/browser/math.js"></script>
+<style>
+/* Math Visualizer (Early Preview): type maths, see a picture. Every keystroke and slider redraws live.
+   Pipeline: text -> (LaTeX converter) -> math.js parse -> Scene {kind, fn, params} -> renderer. */
+:root{color-scheme:light;--bg:#f4f3f0;--panel:#fff;--ink:#1a1c29;--mute:#5d6074;--line:#e3e1db;--acc:#4f46e5;--soft:#efeefd;--grid:rgba(0,0,0,.07);--axis:rgba(0,0,0,.35);--bad:#d1342f;--shadow:0 1px 2px rgba(26,28,41,.06),0 4px 16px rgba(26,28,41,.06)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--soft:#22224a;--grid:rgba(255,255,255,.06);--axis:rgba(255,255,255,.35);--bad:#ff6b63;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--soft:#22224a;--grid:rgba(255,255,255,.06);--axis:rgba(255,255,255,.35);--bad:#ff6b63;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Geist,system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:1180px;margin:0 auto;padding:max(clamp(16px,3vw,32px),env(safe-area-inset-top)) max(4vw,16px) calc(56px + env(safe-area-inset-bottom));position:relative}
+h1{font-size:clamp(28px,4vw,40px);line-height:1.1;margin:6px 0 6px;font-weight:600;letter-spacing:-.02em}
+h1 small{font-size:12px;font-weight:600;color:var(--acc);text-transform:uppercase;letter-spacing:.06em;vertical-align:middle;margin-left:8px;border:1px solid var(--acc);border-radius:99px;padding:2px 8px}
+.sub{color:var(--mute);margin:0 0 16px;max-width:68ch}
+.homeL{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:2px 10px 2px 4px;margin:0 0 2px -4px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px}
+.homeL img{width:26px;height:26px;border-radius:7px}.homeL:hover{background:var(--soft);color:var(--acc)}
+#topSw{position:absolute;top:max(clamp(16px,3vw,32px),env(safe-area-inset-top));right:max(4vw,16px);display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+#topSw a,#topSw button{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none}
+#topSw a:hover,#topSw button:hover{color:var(--ink);border-color:var(--acc)}
+@media(max-width:860px){#topSw{position:static;margin:4px 0 8px;justify-content:flex-start}}
+.grid{display:grid;grid-template-columns:minmax(280px,380px) 1fr;gap:16px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:1fr}.plot{order:-1}}
+.card{background:var(--panel);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+label.h{display:block;font-size:13px;color:var(--mute);font-weight:500;margin:0 0 6px}
+select,textarea,button.b{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px}
+select{width:100%;padding:8px 10px;margin-bottom:10px}
+textarea{width:100%;min-height:120px;padding:10px;font-family:"Geist Mono",ui-monospace,monospace;font-size:15px;resize:vertical}
+textarea:focus,select:focus{outline:2px solid var(--acc);outline-offset:1px}
+.note{font-size:13px;color:var(--mute);margin:8px 0 0}
+.note .row{display:flex;gap:8px;align-items:baseline;margin:2px 0}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;transform:translateY(1px)}
+.err{color:var(--bad)}
+.sl{margin-top:12px}.sl .s{display:grid;grid-template-columns:28px 1fr 64px;gap:8px;align-items:center;margin:6px 0}
+.sl b{font-family:"Geist Mono",monospace}.sl output{font-variant-numeric:tabular-nums;text-align:right;font-size:14px}
+input[type=range]{width:100%;accent-color:var(--acc)}
+.pre{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pre button,button.b{padding:6px 10px;font-size:13px;cursor:pointer;border-radius:99px}
+.pre button{border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:13px;padding:5px 10px;border-radius:99px;cursor:pointer}
+.pre button:hover,button.b:hover{border-color:var(--acc)}
+.plot{position:relative;padding:0;overflow:hidden}
+canvas{display:block;width:100%;height:min(70vh,620px);touch-action:none;cursor:grab}
+.plot .hint{position:absolute;left:12px;bottom:8px;font-size:12px;color:var(--mute);pointer-events:none}
+.plot .ctl{position:absolute;right:10px;top:10px;display:flex;gap:6px}
+.plot .ctl button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:18px;cursor:pointer}
+</style>
+<link rel="stylesheet" href="settings.css">
+<script src="settings.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="homeL" href="index.html" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Finance Visualised</span></a>
+  <div id="topSw"><a href="graph.html">Loan Graph</a><a href="tracker.html">Loan Tracker</a><a href="cashflow.html">Cash-Flow</a><button type="button" onclick="window.loanSettings&&loanSettings.open()">⚙ Settings</button></div>
+  <h1>Math Visualizer <small>Early Preview</small></h1>
+  <p class="sub">Type an equation and watch it draw. Any extra letter (like <b>a</b> or <b>k</b>) becomes a Slider you can drag.</p>
+  <div class="grid">
+    <div class="card">
+      <label class="h" for="lang">Language</label>
+      <select id="lang">
+        <option value="plain">Plain Maths (y = sin(x))</option>
+        <option value="latex">LaTeX (y = \frac{1}{x})</option>
+        <option disabled>JavaScript (Coming Soon)</option>
+        <option disabled>Python (Coming Soon)</option>
+      </select>
+      <label class="h" for="src">Equations, one per line</label>
+      <textarea id="src" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+      <div class="note" id="info"></div>
+      <div class="sl" id="sliders"></div>
+      <label class="h" style="margin-top:14px">Examples</label>
+      <div class="pre" id="examples"></div>
+      <label class="h" style="margin-top:14px">My Presets</label>
+      <div class="pre" id="mine"></div>
+      <div class="pre"><button class="b" id="save" type="button">＋ Save Preset</button></div>
+    </div>
+    <div class="card plot">
+      <canvas id="cv"></canvas>
+      <div class="ctl"><button id="zin" type="button" title="Zoom in">+</button><button id="zout" type="button" title="Zoom out">−</button><button id="zre" type="button" title="Reset view">⟲</button></div>
+      <div class="hint">Drag to move · pinch or scroll to zoom</div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+const M = math, $ = id => document.getElementById(id);
+const COLS = ['#ff5d6c','#ff9d3d','#ffd43b','#35d07f','#4da3ff','#a78bfa','#f472b6'];
+const KNOWN = new Set(['x','y','t','theta','e','pi','i','tau','phi']);
+const EXAMPLES = {
+  'Sine Wave':'y = a*sin(b*x)', 'Rose Curve':'r = cos(k*theta)', 'Circle':'x^2 + y^2 = r0^2',
+  'Heart':'(x^2 + y^2 - 1)^3 = x^2*y^3', 'Spiral':'r = 0.3*theta', 'Damped Wave':'y = e^(-x/d)*cos(4x)',
+  'Lissajous':'(sin(a*t), sin(b*t))', 'Sigmoid':'y = 1/(1 + e^(-k*x))', 'Parabola Family':'y = a*x^2 + b*x + c',
+  'LaTeX Demo':'y = \\frac{\\sin x}{x}'
+};
+const DEF = {a:1,b:1,c:0,k:3,d:3,r0:3};
+
+/* ---------- LaTeX -> plain maths (tested 4/4 in groundwork) ---------- */
+const FN = 'sin|cos|tan|ln|log|exp|arcsin|arccos|arctan|sinh|cosh|tanh|sec|csc|cot';
+function brace(s,i){let d=0;for(let j=i;j<s.length;j++){if(s[j]=='{')d++;else if(s[j]=='}'&&--d==0)return j;}return -1}
+function tex(s){
+  s=s.replace(/\\left|\\right|\\,|\\;|\\!|\\quad/g,'').replace(/\\cdot|\\times/g,'*').replace(/\\(pi|theta|alpha|beta|tau|phi)/g,' $1 ')
+     .replace(new RegExp('\\\\('+FN+')\\s*([a-z0-9]+)(?![(a-z])','g'),'$1($2)').replace(new RegExp('\\\\('+FN+')','g'),'$1')
+     .replace(/\\arc(sin|cos|tan)/g,'a$1');
+  let k; while((k=s.search(/\\frac\{|\\sqrt\{/))>=0){const isF=s.startsWith('\\frac',k),a=s.indexOf('{',k),b=brace(s,a);
+    if(b<0)break;
+    if(isF){const c=b+1,d=brace(s,c);if(d<0)break;s=s.slice(0,k)+'(('+s.slice(a+1,b)+')/('+s.slice(c+1,d)+'))'+s.slice(d+1);}
+    else s=s.slice(0,k)+'sqrt('+s.slice(a+1,b)+')'+s.slice(b+1);}
+  return s.replace(/\{/g,'(').replace(/\}/g,')').replace(/\barc(sin|cos|tan)\b/g,'a$1');
+}
+
+/* ---------- text -> Scene ---------- */
+function symbols(node){const out=new Set();node.traverse((n,path,parent)=>{if(n.isSymbolNode&&!(parent&&parent.isFunctionNode&&parent.fn===n)&&!(n.name in M&&typeof M[n.name]==='function'))out.add(n.name)});return out}
+function compile(txt){const n=M.parse(txt);return {node:n,fn:n.compile(),syms:symbols(n)}}
+function classify(line){
+  line=line.trim(); if(!line||line.startsWith('#'))return null;
+  line=line.replace(/θ/g,'theta').replace(/π/g,'pi').replace(/²/g,'^2').replace(/·|×/g,'*');
+  const m = line.match(/^\((.*),(.*)\)$/);
+  if(m && !line.includes('=')){const X=compile(m[1]),Y=compile(m[2]);return {kind:'param',fx:X.fn,fy:Y.fn,syms:new Set([...X.syms,...Y.syms]),say:'Parametric curve: (x, y) traced as t goes from 0 to 2π.'}}
+  const parts=line.split('=');
+  if(parts.length>2)throw new Error('Too many = signs');
+  if(parts.length===1){const E=compile(parts[0]);
+    if(E.syms.has('theta'))return {kind:'polar',f:E.fn,syms:E.syms,say:'Read as r = …, a Polar curve (θ from 0 to 4π).'};
+    if(E.syms.has('y'))return {kind:'implicit',f:E.fn,syms:E.syms,say:'Has x and y, drawn where it equals 0.'};
+    return {kind:'fx',f:E.fn,syms:E.syms,say:'Read as y = … against x.'};}
+  const L=parts[0].trim(), R=compile(parts[1]);
+  if(L==='y'&&!R.syms.has('y'))return {kind:'fx',f:R.fn,syms:R.syms,say:'Graph of y against x.'};
+  if(L==='r'&&!R.syms.has('r'))return {kind:'polar',f:R.fn,syms:R.syms,say:'Polar curve: distance r at each angle θ (0 to 4π).'};
+  if(L==='x'&&!R.syms.has('x')&&R.syms.has('y'))return {kind:'fy',f:R.fn,syms:R.syms,say:'Graph of x against y.'};
+  if(/^[a-z]\w*\(x\)$/.test(L))return {kind:'fx',f:R.fn,syms:R.syms,say:'Function of x, graphed as y.'};
+  const D=compile('('+parts[0]+')-('+parts[1]+')');
+  return {kind:'implicit',f:D.fn,syms:D.syms,say:'An equation in x and y: drawn where both sides are equal.'};
+}
+
+/* ---------- state ---------- */
+let scenes=[], params={}, view={cx:0,cy:0,s:40};
+const cv=$('cv'), ctx=cv.getContext('2d');
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+
+function rebuild(){
+  const lang=$('lang').value, lines=$('src').value.split('\n');
+  scenes=[]; const info=[], need=new Set();
+  lines.forEach((raw,i)=>{
+    if(!raw.trim())return;
+    try{const s=classify(lang==='latex'?tex(raw):raw); if(!s)return; s.col=COLS[scenes.length%COLS.length]; s.src=raw; scenes.push(s);
+      s.syms.forEach(v=>{if(!KNOWN.has(v))need.add(v)});
+      info.push(`<div class="row"><span class="dot" style="background:${s.col}"></span><span>${esc(s.say)}</span></div>`);
+    }catch(e){info.push(`<div class="row err">Line ${i+1}: ${esc(e.message)}</div>`)}
+  });
+  if(!scenes.length&&!info.length)info.push('<div class="row">Type something like <b>y = x^2</b>.</div>');
+  $('info').innerHTML=info.join('');
+  // sliders: keep values for letters already present
+  const np={}; need.forEach(v=>np[v]=params[v]||{v:DEF[v]??1,min:v==='r0'?0.5:-5,max:v==='r0'?8:5});
+  params=np; drawSliders(); draw();
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function drawSliders(){
+  const box=$('sliders'); box.innerHTML='';
+  Object.keys(params).forEach(k=>{const p=params[k],d=document.createElement('div');d.className='s';
+    d.innerHTML=`<b>${esc(k)}</b><input type="range" min="${p.min}" max="${p.max}" step="0.01" value="${p.v}" aria-label="Slider ${esc(k)}"><output>${p.v.toFixed(2)}</output>`;
+    const r=d.querySelector('input'),o=d.querySelector('output');
+    r.oninput=()=>{p.v=+r.value;o.textContent=p.v.toFixed(2);draw()};
+    box.appendChild(d);});
+}
+function scope(extra){const s={};for(const k in params)s[k]=params[k].v;return Object.assign(s,extra)}
+function ev(f,sc){try{const v=f.evaluate(sc);return typeof v==='number'?v:(v&&v.re!==undefined&&Math.abs(v.im)<1e-9?v.re:NaN)}catch(e){return NaN}}
+
+/* ---------- renderer ---------- */
+function size(){const r=cv.getBoundingClientRect(),d=devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);draw()}
+function W(){return cv.width/(devicePixelRatio||1)} function H(){return cv.height/(devicePixelRatio||1)}
+const X=x=>W()/2+(x-view.cx)*view.s, Y=y=>H()/2-(y-view.cy)*view.s;
+const iX=px=>(px-W()/2)/view.s+view.cx, iY=py=>-(py-H()/2)/view.s+view.cy;
+function nice(step){const p=Math.pow(10,Math.floor(Math.log10(step))),m=step/p;return (m<2?2:m<5?5:10)*p}
+function axes(){
+  const w=W(),h=H(),st=nice(60/view.s);ctx.lineWidth=1;ctx.strokeStyle=css('--grid');ctx.beginPath();
+  for(let x=Math.ceil(iX(0)/st)*st;x<iX(w);x+=st){ctx.moveTo(X(x),0);ctx.lineTo(X(x),h)}
+  for(let y=Math.ceil(iY(h)/st)*st;y<iY(0);y+=st){ctx.moveTo(0,Y(y));ctx.lineTo(w,Y(y))}
+  ctx.stroke();ctx.strokeStyle=css('--axis');ctx.beginPath();ctx.moveTo(X(0),0);ctx.lineTo(X(0),h);ctx.moveTo(0,Y(0));ctx.lineTo(w,Y(0));ctx.stroke();
+  ctx.fillStyle=css('--mute');ctx.font='11px Geist,system-ui';const fy=Math.min(Math.max(Y(0)+14,14),h-4),fx=Math.min(Math.max(X(0)+4,4),w-30);
+  const lab=v=>+v.toPrecision(6)+'';
+  for(let x=Math.ceil(iX(0)/st)*st;x<iX(w);x+=st)if(Math.abs(x)>st/2)ctx.fillText(lab(x),X(x)+3,fy);
+  for(let y=Math.ceil(iY(h)/st)*st;y<iY(0);y+=st)if(Math.abs(y)>st/2)ctx.fillText(lab(y),fx,Y(y)-3);
+}
+function stroke(col,fnPts){ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.shadowColor=col;ctx.shadowBlur=8;ctx.beginPath();let pen=false,last=null;
+  fnPts((px,py)=>{if(!isFinite(px)||!isFinite(py)||Math.abs(py)>1e5||Math.abs(px)>1e5){pen=false;return}
+    if(pen&&last&&Math.abs(py-last)>H()*1.5){pen=false}
+    if(pen)ctx.lineTo(px,py);else ctx.moveTo(px,py);pen=true;last=py});
+  ctx.stroke();ctx.shadowBlur=0}
+function draw(){
+  const w=W(),h=H();ctx.clearRect(0,0,w,h);axes();
+  scenes.forEach(s=>{
+    if(s.kind==='fx')stroke(s.col,P=>{for(let px=0;px<=w;px+=1){const x=iX(px);P(px,Y(ev(s.f,scope({x}))))}});
+    else if(s.kind==='fy')stroke(s.col,P=>{for(let py=0;py<=h;py+=1){const y=iY(py);P(X(ev(s.f,scope({y}))),py)}});
+    else if(s.kind==='polar')stroke(s.col,P=>{for(let i=0;i<=2000;i++){const t=i/2000*4*Math.PI,r=ev(s.f,scope({theta:t,t}));P(X(r*Math.cos(t)),Y(r*Math.sin(t)))}});
+    else if(s.kind==='param')stroke(s.col,P=>{for(let i=0;i<=2000;i++){const t=i/2000*2*Math.PI,sc=scope({t});P(X(ev(s.fx,sc)),Y(ev(s.fy,sc)))}});
+    else if(s.kind==='implicit')implicit(s);
+  });
+}
+/* marching squares: find where f(x,y) changes sign on a grid, join the crossings */
+function implicit(s){
+  const w=W(),h=H(),c=6,nx=Math.ceil(w/c)+1,ny=Math.ceil(h/c)+1,g=new Float64Array(nx*ny);
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)g[j*nx+i]=ev(s.f,scope({x:iX(i*c),y:iY(j*c)}));
+  ctx.strokeStyle=s.col;ctx.lineWidth=2.5;ctx.shadowColor=s.col;ctx.shadowBlur=8;ctx.beginPath();
+  const L=(a,b)=>a/(a-b);
+  for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){
+    const a=g[j*nx+i],b=g[j*nx+i+1],d=g[(j+1)*nx+i],e=g[(j+1)*nx+i+1];
+    if(![a,b,d,e].every(isFinite))continue;
+    const p=[];
+    if((a>0)!==(b>0))p.push([i*c+L(a,b)*c,j*c]);
+    if((b>0)!==(e>0))p.push([(i+1)*c,j*c+L(b,e)*c]);
+    if((d>0)!==(e>0))p.push([i*c+L(d,e)*c,(j+1)*c]);
+    if((a>0)!==(d>0))p.push([i*c,j*c+L(a,d)*c]);
+    // skip jumps across asymptotes (huge values both sides)
+    if(p.length>=2&&Math.max(Math.abs(a),Math.abs(b),Math.abs(d),Math.abs(e))<1e6){ctx.moveTo(p[0][0],p[0][1]);ctx.lineTo(p[1][0],p[1][1]);if(p.length===4){ctx.moveTo(p[2][0],p[2][1]);ctx.lineTo(p[3][0],p[3][1])}}
+  }
+  ctx.stroke();ctx.shadowBlur=0;
+}
+
+/* ---------- pan & zoom ---------- */
+const pts=new Map();let pinch=null;
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.offsetX,y:e.offsetY});cv.style.cursor='grabbing'});
+cv.addEventListener('pointermove',e=>{const p=pts.get(e.pointerId);if(!p)return;
+  if(pts.size===1){view.cx-=(e.offsetX-p.x)/view.s;view.cy+=(e.offsetY-p.y)/view.s}
+  else if(pts.size===2){const [A,B]=[...pts.values()],d0=Math.hypot(A.x-B.x,A.y-B.y);p.x=e.offsetX;p.y=e.offsetY;const [A2,B2]=[...pts.values()],d1=Math.hypot(A2.x-B2.x,A2.y-B2.y);if(d0>0)zoomAt((A2.x+B2.x)/2,(A2.y+B2.y)/2,d1/d0);return}
+  p.x=e.offsetX;p.y=e.offsetY;draw()});
+const up=e=>{pts.delete(e.pointerId);cv.style.cursor='grab'};
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+cv.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.offsetX,e.offsetY,Math.exp(-e.deltaY*0.0015))},{passive:false});
+function zoomAt(px,py,f){const x=iX(px),y=iY(py);view.s=Math.min(Math.max(view.s*f,0.5),5000);view.cx=x-(px-W()/2)/view.s;view.cy=y+(py-H()/2)/view.s;draw()}
+$('zin').onclick=()=>zoomAt(W()/2,H()/2,1.4);$('zout').onclick=()=>zoomAt(W()/2,H()/2,1/1.4);
+$('zre').onclick=()=>{view={cx:0,cy:0,s:Math.min(W(),H())/16};draw()};
+
+/* ---------- presets ---------- */
+const KEY='mathVisualizer.presets.v1';
+function mine(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
+function load(src,lang){$('lang').value=lang||(src.includes('\\')?'latex':'plain');$('src').value=src;params={};rebuild()}
+function chips(){
+  const ex=$('examples');ex.innerHTML='';for(const n in EXAMPLES){const b=document.createElement('button');b.type='button';b.textContent=n;b.onclick=()=>load(EXAMPLES[n]);ex.appendChild(b)}
+  const m=$('mine'),p=mine();m.innerHTML='';const names=Object.keys(p);
+  if(!names.length)m.innerHTML='<span class="note" style="margin:0">None yet.</span>';
+  names.forEach(n=>{const b=document.createElement('button');b.type='button';b.textContent=n;b.onclick=()=>{load(p[n].src,p[n].lang);for(const k in p[n].params||{})if(params[k])params[k].v=p[n].params[k];drawSliders();draw()};
+    b.oncontextmenu=e=>{e.preventDefault();if(confirm('Delete preset "'+n+'"?')){const q=mine();delete q[n];localStorage.setItem(KEY,JSON.stringify(q));chips()}};m.appendChild(b)});
+}
+$('save').onclick=()=>{const n=(prompt('Name this Preset')||'').trim();if(!n)return;const q=mine(),pv={};for(const k in params)pv[k]=params[k].v;
+  q[n]={src:$('src').value,lang:$('lang').value,params:pv};try{localStorage.setItem(KEY,JSON.stringify(q))}catch(e){alert('Could not save: browser storage is full or blocked.')}chips()};
+
+$('src').addEventListener('input',rebuild);$('lang').addEventListener('change',rebuild);
+addEventListener('resize',size);addEventListener('themechange',draw);
+chips();$('src').value='y = a*sin(b*x)\nr = cos(k*theta)';
+size();view.s=Math.min(W(),H())/16;rebuild();
+window.mathVisualizer={tex,classify,get scenes(){return scenes}};
+})();
+</script>
+</body>
+</html>
