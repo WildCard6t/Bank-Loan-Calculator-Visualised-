@@ -36,7 +36,7 @@
 <style>
 /* HOME: a bento grid of tool tiles. Each tile opens one tool, nothing else.
    To add a tool: copy one <a class="tile ..."> block in the grid below, give it a colour (--c) and a size class:
-   s-hero (big), s-tall, s-wide, s-sq. The grid packs tiles of mixed sizes tightly ("dense"), so a new
+   s-hero (the biggest, for the main tool), s-main, s-pay. The grid packs tiles of mixed sizes tightly ("dense"), so a new
    tile finds its own gap. Keep the "More tools coming soon" tile last. */
 :root{color-scheme:light;--bg:#f4f3f0;--panel:#ffffff;--ink:#1a1c29;--mute:#5d6074;--line:#e3e1db;--acc:#4f46e5;--acc-ink:#ffffff;--soft:#efeefd;--shadow:0 1px 2px rgba(26,28,41,.06),0 6px 20px rgba(26,28,41,.06);--fade:var(--panel)}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}}
@@ -65,11 +65,8 @@ a.tile:active{transform:translateY(-1px) scale(.99)}
 .tile b{font-size:22px;line-height:1.2;letter-spacing:-.01em;z-index:2}
 .tile .d{color:var(--mute);font-size:14px;max-width:36ch;z-index:2}
 .tile em{position:absolute;top:16px;right:18px;z-index:2;font-style:normal;font-size:11px;font-weight:600;color:var(--c);text-transform:uppercase;letter-spacing:.06em}
-.s-hero{grid-column:span 7;grid-row:span 3}
-.s-tall{grid-column:span 5;grid-row:span 4}
-.s-wide{grid-column:span 4;grid-row:span 2}
-.s-sq{grid-column:span 3;grid-row:span 2}
-.s-cg{grid-column:span 5;grid-row:span 2}
+.s-hero{grid-column:span 7;grid-row:span 4}
+.s-main{grid-column:span 5;grid-row:span 2}
 .s-pay{grid-column:span 7;grid-row:span 2}
 .soon{grid-column:span 5;grid-row:span 1;box-shadow:none;background:transparent;border:2px dashed var(--line);justify-content:center;color:var(--mute)}
 .soon::before,.soon::after{display:none}
@@ -78,12 +75,11 @@ a.tile:active{transform:translateY(-1px) scale(.99)}
  .tiles{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:84px;gap:12px}
  .tile{padding:16px;border-radius:18px}
  .tile b{font-size:19px}.tile .d{font-size:13px}
- .s-hero{grid-column:span 2;grid-row:span 3}
- .s-tall{grid-column:span 1;grid-row:span 4}
- .s-wide,.s-sq{grid-column:span 1;grid-row:span 2}
- .s-cg,.s-pay{grid-column:span 2;grid-row:span 2}
+ .s-hero{grid-column:span 2;grid-row:span 4}
+ .s-main{grid-column:span 1;grid-row:span 2}
+ .s-pay{grid-column:span 2;grid-row:span 2}
  .soon{grid-column:span 2;grid-row:span 1}
- .s-sq::after,.s-wide::after,.s-tall::after{background:linear-gradient(to top,var(--fade) 42%,transparent 80%)}
+ .s-main::after{background:linear-gradient(to top,var(--fade) 42%,transparent 80%)}
 }
 @media (prefers-reduced-motion:reduce){.tile{transition:none}a.tile:hover,a.tile:focus-visible,a.tile:active{transform:none}}
 </style>
@@ -100,7 +96,17 @@ a.tile:active{transform:translateY(-1px) scale(.99)}
   <p class="sub">Pick a tool. Tap the logo at the top of any page to come back here.</p>
 
   <nav class="tiles" aria-label="Tools">
-    <a class="tile s-hero" href="graph.html" style="--c:#ff9d3d">
+    <a class="tile s-hero" href="cashflow.html" style="--c:#35d07f">
+      <svg class="art" viewBox="0 0 400 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true" fill="none">
+        <defs><linearGradient id="hp" x1="0" x2="1"><stop offset="0" stop-color="#ff5d6c"/><stop offset=".35" stop-color="#ffd43b"/><stop offset=".7" stop-color="#35d07f"/><stop offset="1" stop-color="#4da3ff"/></linearGradient></defs>
+        <rect x="30" y="40" width="340" height="10" rx="5" fill="url(#hp)" opacity=".9" style="filter:drop-shadow(0 0 8px rgba(167,139,250,.6))"/>
+        <g stroke-width="5" stroke-linecap="round" opacity=".8"><path d="M80 50V90" stroke="#ff5d6c"/><path d="M160 50V120" stroke="#ffd43b"/><path d="M240 50V80" stroke="#35d07f"/><path d="M320 50V110" stroke="#4da3ff"/></g>
+        <g stroke-width="2"><rect x="50" y="90" width="60" height="150" rx="8" stroke="#ff5d6c" opacity=".5"/><rect x="130" y="120" width="60" height="120" rx="8" stroke="#ffd43b" opacity=".5"/><rect x="210" y="80" width="60" height="160" rx="8" stroke="#35d07f" opacity=".5"/><rect x="290" y="110" width="60" height="130" rx="8" stroke="#4da3ff" opacity=".5"/></g>
+        <g style="filter:drop-shadow(0 -2px 8px rgba(255,255,255,.18))"><rect x="52" y="170" width="56" height="68" rx="6" fill="#ff5d6c" opacity=".85"/><rect x="132" y="205" width="56" height="33" rx="6" fill="#ffd43b" opacity=".85"/><rect x="212" y="150" width="56" height="88" rx="6" fill="#35d07f" opacity=".85"/><rect x="292" y="195" width="56" height="43" rx="6" fill="#4da3ff" opacity=".85"/></g>
+      </svg>
+      <em>Main</em><b>Cash-Flow</b><span class="d">Plan your pays, bills and goals. See what you can afford, and when.</span>
+    </a>
+    <a class="tile s-main" href="graph.html" style="--c:#ff9d3d">
       <svg class="art" viewBox="0 0 600 330" preserveAspectRatio="xMidYMid slice" aria-hidden="true" fill="none" stroke-width="2.4" stroke-linecap="round">
         <g style="filter:drop-shadow(0 0 4px rgba(255,157,61,.45))">
           <path d="M40 165 C200 60 360 30 580 20" stroke="#ff5d6c"/><path d="M40 165 C200 85 360 62 580 52" stroke="#ff7a52"/><path d="M40 165 C200 108 360 92 580 86" stroke="#ff9d3d"/>
@@ -109,34 +115,9 @@ a.tile:active{transform:translateY(-1px) scale(.99)}
           <path d="M40 165 C200 240 360 290 580 318" stroke="#4da3ff"/>
         </g>
       </svg>
-      <b>Loan Graph</b><span class="d">Every path out of a loan. Turn the knobs and watch them all redraw.</span>
+      <b>Loan Graph</b><span class="d">Every path out of a loan. Turn the knobs and watch them all redraw. Your Loan Tracker is inside it.</span>
     </a>
-    <a class="tile s-tall" href="cashflow.html" style="--c:#35d07f">
-      <svg class="art" viewBox="0 0 400 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true" fill="none">
-        <defs><linearGradient id="hp" x1="0" x2="1"><stop offset="0" stop-color="#ff5d6c"/><stop offset=".35" stop-color="#ffd43b"/><stop offset=".7" stop-color="#35d07f"/><stop offset="1" stop-color="#4da3ff"/></linearGradient></defs>
-        <rect x="30" y="40" width="340" height="10" rx="5" fill="url(#hp)" opacity=".9" style="filter:drop-shadow(0 0 8px rgba(167,139,250,.6))"/>
-        <g stroke-width="5" stroke-linecap="round" opacity=".8"><path d="M80 50V90" stroke="#ff5d6c"/><path d="M160 50V120" stroke="#ffd43b"/><path d="M240 50V80" stroke="#35d07f"/><path d="M320 50V110" stroke="#4da3ff"/></g>
-        <g stroke-width="2"><rect x="50" y="90" width="60" height="150" rx="8" stroke="#ff5d6c" opacity=".5"/><rect x="130" y="120" width="60" height="120" rx="8" stroke="#ffd43b" opacity=".5"/><rect x="210" y="80" width="60" height="160" rx="8" stroke="#35d07f" opacity=".5"/><rect x="290" y="110" width="60" height="130" rx="8" stroke="#4da3ff" opacity=".5"/></g>
-        <g style="filter:drop-shadow(0 -2px 8px rgba(255,255,255,.18))"><rect x="52" y="170" width="56" height="68" rx="6" fill="#ff5d6c" opacity=".85"/><rect x="132" y="205" width="56" height="33" rx="6" fill="#ffd43b" opacity=".85"/><rect x="212" y="150" width="56" height="88" rx="6" fill="#35d07f" opacity=".85"/><rect x="292" y="195" width="56" height="43" rx="6" fill="#4da3ff" opacity=".85"/></g>
-      </svg>
-      <em>New</em><b>Cash-Flow</b><span class="d">Plan your pays, bills and goals. See what you can afford, and when.</span>
-    </a>
-    <a class="tile s-wide" href="tracker.html" style="--c:#4da3ff">
-      <svg class="art" viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true" fill="none" stroke-width="2.4" stroke-linecap="round">
-        <path d="M20 40 C80 44 130 60 190 84" stroke="#ffd43b" style="filter:drop-shadow(0 0 4px rgba(255,212,59,.5))"/>
-        <g stroke-dasharray="5 6"><path d="M190 84 C250 100 320 90 380 70" stroke="#ff7a52"/><path d="M190 84 C250 108 320 120 380 118" stroke="#4da3ff"/><path d="M190 84 C250 118 320 150 380 170" stroke="#35d07f"/></g>
-        <path d="M190 20V150" stroke="#a2a7bd" stroke-width="1.4" opacity=".5"/>
-      </svg>
-      <b>Loan Tracker</b><span class="d">Your real loan, from the day it started.</span>
-    </a>
-    <a class="tile s-sq" href="desktop.html" style="--c:#a78bfa">
-      <svg class="art" viewBox="0 0 300 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true" fill="none" stroke-width="2">
-        <rect x="24" y="24" width="120" height="96" rx="10" stroke="#a78bfa" opacity=".6"/><rect x="156" y="24" width="120" height="96" rx="10" stroke="#4da3ff" opacity=".6"/>
-        <path d="M40 100 C70 60 100 50 128 44" stroke="#ff9d3d"/><path d="M172 98 C200 80 230 70 260 50" stroke="#35d07f"/>
-      </svg>
-      <b>Combined View</b><span class="d">Loan Graph and Loan Tracker side by side. Best on a computer.</span>
-    </a>
-    <a class="tile s-cg" href="compound.html" style="--c:#ffd43b">
+    <a class="tile s-main" href="compound.html" style="--c:#ffd43b">
       <svg class="art" viewBox="0 0 500 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true" fill="none"><g transform="translate(0,-50)">
         <path d="M20 200 L480 200 L480 150 L20 190Z" fill="#4da3ff" opacity=".22"/>
         <path d="M20 190 L480 150 C380 140 300 130 20 188Z" fill="#35d07f" opacity=".22"/>
@@ -144,7 +125,7 @@ a.tile:active{transform:translateY(-1px) scale(.99)}
         <g stroke-width="2" stroke-linecap="round"><path d="M20 190 L480 150" stroke="#4da3ff"/><path d="M20 189 C300 128 380 118 480 100" stroke="#35d07f" opacity=".7"/><path d="M20 189 C300 129 380 125 480 70" stroke="#ffd43b" opacity=".7"/></g>
         <path d="M20 188 C300 130 380 110 480 30" stroke="#ffe066" stroke-width="3" stroke-linecap="round" style="filter:drop-shadow(0 0 6px rgba(255,212,59,.7))"/></g>
       </svg>
-      <em>New</em><b>Compound Growth</b><span class="d">Watch savings and investments snowball. Interest earning interest.</span>
+      <em>Main</em><b>Compound Growth</b><span class="d">Watch savings and investments snowball. Interest earning interest.</span>
     </a>
     <a class="tile s-pay" href="pay.html" style="--c:#ffd43b">
       <svg class="art" viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
