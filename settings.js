@@ -106,7 +106,7 @@
   }
 
   /* ---- backups: one .json file holding every saved key ---- */
-  const KEYS=['loanTracker.v1','loanGraph.v2','loanSettings.v1','loanTheme','loanDevice'],UNDO='loanBackup.undo';
+  const KEYS=['loanTracker.v1','loanGraph.v2','loanSettings.v1','loanTheme','loanDevice','cashFlow.v1'],UNDO='loanBackup.undo';
   const raw=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
   const day=d=>{const x=new Date(d);return isNaN(x)?null:x};
   const ago=d=>{const n=Math.floor((Date.now()-d)/864e5);return n<=0?'today':n===1?'yesterday':n+' days ago'};

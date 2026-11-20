@@ -105,6 +105,9 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-of
 #welcome button:hover,#welcome button.rec{border-color:var(--acc)}
 #welcome button b{font-size:20px}#welcome button span{font-size:14px;color:var(--mute)}
 #welcome button em{position:absolute;top:10px;right:12px;font-style:normal;font-size:11px;font-weight:600;color:var(--acc);text-transform:uppercase;letter-spacing:.06em}
+#welcome a.cfCard{position:relative;display:grid;gap:6px;margin-top:12px;background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:18px 16px;color:var(--ink);text-align:left;text-decoration:none}
+#welcome a.cfCard:hover{border-color:var(--acc)}#welcome a.cfCard b{font-size:20px}#welcome a.cfCard span{font-size:14px;color:var(--mute)}
+#welcome a.cfCard em{position:absolute;top:10px;right:12px;font-style:normal;font-size:11px;font-weight:600;color:var(--acc);text-transform:uppercase;letter-spacing:.06em}
 #welcome small{display:block;margin-top:18px;color:var(--mute);font-size:13px}
 
 /* ---- phone layout ---- */
@@ -164,6 +167,9 @@ html[data-device=phone] .tools{top:2px}
 #topSw a#combSw{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font-size:13px;text-decoration:none;white-space:nowrap}
 #topSw a#combSw:hover{color:var(--ink);border-color:var(--acc)}
 html[data-device=phone] #topSw a#combSw{display:none}
+#topSw a#cfSw{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font-size:13px;text-decoration:none;white-space:nowrap}
+#topSw a#cfSw:hover{color:var(--ink);border-color:var(--acc)}
+html[data-device=phone] #topSw a#cfSw{min-height:36px}
 /* inside the combined desktop view: the frame supplies the header and switches */
 html.embed .wrap{padding:14px 18px 28px}
 html.embed h1{font-size:26px;margin-bottom:4px}
@@ -408,7 +414,7 @@ html[data-device=phone] .nodeEd.min{position:fixed;left:auto!important;right:12p
     o.innerHTML='<div class="box"><h2>Welcome</h2><p>How are you viewing this? Pick the layout that suits your screen.</p><div class="opts">'+
       '<button data-v="phone"'+(guess==='phone'?' class="rec"':'')+'>'+(guess==='phone'?'<em>Suggested</em>':'')+'<b>📱 Phone</b><span>The chart stays pinned at the top while you scroll the controls, with big touch-friendly buttons.</span></button>'+
       '<button data-v="desktop"'+(guess==='desktop'?' class="rec"':'')+'>'+(guess==='desktop'?'<em>Suggested</em>':'')+'<b>🖥️ Computer</b><span>A wide chart with every label, and the controls laid out underneath.</span></button>'+
-      '</div><small>You can switch any time with the button in the top corner.</small></div>';
+      '</div><a class="cfCard" href="cashflow.html"><em>New</em><b>💰 Cash-flow</b><span>Plan your pays, bills and goals. See what you can afford and when.</span></a><small>You can switch any time with the button in the top corner.</small></div>';
     o.addEventListener('click',e=>{const t=e.target.closest('button[data-v]');if(t){apply(t.dataset.v);o.remove()}});
     document.body.appendChild(o);o.querySelector('.rec').focus();
   });
@@ -421,7 +427,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   const box=document.createElement('div');box.id='topSw';dev.replaceWith(box);
   const t=document.createElement('button');t.id='setSw';t.type='button';t.textContent='⚙ Settings';t.title='Colours, layout and country';t.onclick=()=>window.loanSettings&&loanSettings.open();
   const cv=document.createElement('a');cv.id='combSw';cv.href='desktop.html';cv.textContent='⧉ Combined view';cv.title='Graph and Tracker side by side on one screen';
-  box.append(cv,t,dev);
+  const cf=document.createElement('a');cf.id='cfSw';cf.href='cashflow.html';cf.textContent='💰 Cash-flow';cf.title='Plan your pays, bills and goals';
+  box.append(cf,cv,t,dev);
 });
 if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
