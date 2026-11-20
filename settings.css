@@ -111,3 +111,7 @@ html[data-device=phone] .saveCard{display:grid}html[data-device=phone] .saveCard
 .saveCard.slim button{min-height:36px;padding:0 12px;font-size:14px}
 .saveCard.slim .b2{border:0;background:none;color:var(--acc);text-decoration:underline;padding:0 4px}
 html[data-device=phone] .saveCard.slim{display:flex;padding:10px 12px}html[data-device=phone] .saveCard.slim .acts{display:flex}
+
+/* Layout dropdown (phone or computer) */
+.set-sel{display:block;width:100%;min-height:44px;margin:6px 0 2px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit;font-size:15px;cursor:pointer}
+.set-sel:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
