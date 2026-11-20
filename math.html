@@ -105,7 +105,7 @@ canvas{display:block;width:100%;height:min(70vh,620px);touch-action:none;cursor:
     </div>
     <div class="card plot">
       <canvas id="cv"></canvas>
-      <div class="ctl"><button id="zin" type="button" title="Zoom in">+</button><button id="zout" type="button" title="Zoom out">−</button><button id="zre" type="button" title="Zoom to fit">⟲</button></div>
+      <div class="ctl"><button id="zin" type="button" title="Zoom in">+</button><button id="zout" type="button" title="Zoom out">−</button><button id="zre" type="button" title="Zoom to fit">⟲</button><button id="wig" type="button" title="Wiggle: cartoon jiggle" aria-pressed="false" style="width:auto;padding:0 10px;font-size:13px">〰 Wiggle</button></div>
       <div class="hint">Drag to move · pinch or scroll to zoom</div>
     </div>
   </div>
@@ -210,10 +210,14 @@ function axes(){
   for(let x=Math.ceil(iX(0)/st)*st;x<iX(w);x+=st)if(Math.abs(x)>st/2)ctx.fillText(lab(x),X(x)+3,fy);
   for(let y=Math.ceil(iY(h)/st)*st;y<iY(0);y+=st)if(Math.abs(y)>st/2)ctx.fillText(lab(y),fx,Y(y)-3);
 }
+/* Wiggle: classic hand-drawn "line boil". 3 frames, each bends every point by a slightly different smooth wobble. */
+let wig=false,frame=0;const SEEDS=[[0,1.7,3.1],[2.3,0.4,5.2],[4.6,3.9,1.1]];
+function wob(px,py){if(!wig)return [px,py];const k=SEEDS[frame];
+  return [px+1.8*Math.sin(py*0.045+k[0])+0.8*Math.sin(px*0.11+k[2]), py+1.8*Math.sin(px*0.045+k[1])+0.8*Math.sin(py*0.11+k[0])]}
 function stroke(col,fnPts){ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.shadowColor=col;ctx.shadowBlur=8;ctx.beginPath();let pen=false,last=null;
   fnPts((px,py)=>{if(!isFinite(px)||!isFinite(py)||Math.abs(py)>1e5||Math.abs(px)>1e5){pen=false;return}
     if(pen&&last&&Math.abs(py-last)>H()*1.5){pen=false}
-    if(pen)ctx.lineTo(px,py);else ctx.moveTo(px,py);pen=true;last=py});
+    const q=wob(px,py);if(pen)ctx.lineTo(q[0],q[1]);else ctx.moveTo(q[0],q[1]);pen=true;last=py});
   ctx.stroke();ctx.shadowBlur=0}
 function draw(){
   const w=W(),h=H();ctx.clearRect(0,0,w,h);axes();
@@ -240,7 +244,7 @@ function implicit(s){
     if((d>0)!==(e>0))p.push([i*c+L(d,e)*c,(j+1)*c]);
     if((a>0)!==(d>0))p.push([i*c,j*c+L(a,d)*c]);
     // skip jumps across asymptotes (huge values both sides)
-    if(p.length>=2&&Math.max(Math.abs(a),Math.abs(b),Math.abs(d),Math.abs(e))<1e6){ctx.moveTo(p[0][0],p[0][1]);ctx.lineTo(p[1][0],p[1][1]);if(p.length===4){ctx.moveTo(p[2][0],p[2][1]);ctx.lineTo(p[3][0],p[3][1])}}
+    if(p.length>=2&&Math.max(Math.abs(a),Math.abs(b),Math.abs(d),Math.abs(e))<1e6){const w=p.map(q=>wob(q[0],q[1]));ctx.moveTo(w[0][0],w[0][1]);ctx.lineTo(w[1][0],w[1][1]);if(p.length===4){ctx.moveTo(w[2][0],w[2][1]);ctx.lineTo(w[3][0],w[3][1])}}
   }
   ctx.stroke();ctx.shadowBlur=0;
 }
@@ -269,6 +273,8 @@ function fit(){
   view={cx:(x0+x1)/2,cy:(y0+y1)/2,s:Math.min(W()/wx,H()/wy)};draw();
 }
 $('zre').onclick=fit;
+let wigT=null;$('wig').onclick=()=>{wig=!wig;$('wig').setAttribute('aria-pressed',wig);$('wig').style.borderColor=wig?'var(--acc)':'';$('wig').style.color=wig?'var(--acc)':'';
+  clearInterval(wigT);if(wig)wigT=setInterval(()=>{frame=(frame+1)%3;draw()},110);else draw()};
 
 /* ---------- presets ---------- */
 const KEY='mathVisualizer.presets.v1';
