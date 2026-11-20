@@ -30,7 +30,7 @@
  try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){bar();fire()})}catch(e){}
 })();
 </script>
-<title>Live Loan Graph</title>
+<title>Loan Graph</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -404,8 +404,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   const dev=document.getElementById('devSw');if(!dev)return;
   const box=document.createElement('div');box.id='topSw';dev.replaceWith(box);
   const t=document.createElement('button');t.id='setSw';t.type='button';t.textContent='⚙ Settings';t.title='Colours, layout and country';t.onclick=()=>window.loanSettings&&loanSettings.open();
-  const cv=document.createElement('a');cv.id='combSw';cv.href='desktop.html';cv.textContent='⧉ Combined view';cv.title='Graph and Tracker side by side on one screen';
-  const cf=document.createElement('a');cf.id='cfSw';cf.href='cashflow.html';cf.textContent='💰 Cash-flow';cf.title='Plan your pays, bills and goals';
+  const cv=document.createElement('a');cv.id='combSw';cv.href='desktop.html';cv.textContent='⧉ Combined View';cv.title='Graph and Tracker side by side on one screen';
+  const cf=document.createElement('a');cf.id='cfSw';cf.href='cashflow.html';cf.textContent='💰 Cash-Flow';cf.title='Plan your pays, bills and goals';
   box.append(cf,cv,t,dev);
 });
 if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));

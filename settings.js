@@ -60,7 +60,7 @@
         '<label class="set-lab" for="setDev">Phone or computer layout</label>'+
         '<select id="setDev" class="set-sel"><option value="auto"></option><option value="phone">📱 Phone</option><option value="desktop">🖥️ Computer</option></select>'+
         '<p class="set-hint">Automatic picks the layout that suits this screen. Change it only if the pages look wrong.</p>'+
-        (hasLayout?'<a class="set-link" href="desktop.html">⧉ Combined view: graph and Tracker side by side</a>':'')+
+        (hasLayout?'<a class="set-link" href="desktop.html">⧉ Combined View: Loan Graph and Loan Tracker side by side</a>':'')+
       '</section>'+
       '<section><h3>Reset</h3><div class="set-row"><button type="button" class="set-reset">Reset settings</button><button type="button" class="set-reset" data-act="wipe">Erase all my data</button></div>'+
         '<p class="set-hint" id="setWipeH">Reset settings only changes how things look and the country. Erase all my data removes every loan and Tracker log from this device (you get one chance to undo).</p></section>'+
