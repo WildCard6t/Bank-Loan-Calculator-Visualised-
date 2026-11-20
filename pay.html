@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f111a" id="themeColor">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Finance Vis">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>
+/* colour theme: Auto (follows the phone), Light or Dark. Shared by every page, remembered in this browser. Runs before the page paints. */
+(function(){var K='loanTheme',r=document.documentElement,v='dark';
+ if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){if(e.source!==window.parent||e.origin!==location.origin)return;var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loanSettings)window.loanTheme.refresh();if(d.loan==='reloadAll'||d.loan==='reload')location.reload()})}
+ var KS='loanSettings.v1',sc='indigo';
+ function cfg(){try{return JSON.parse(localStorage.getItem(KS))||{}}catch(e){return {}}}
+ var REG={AU:['en-AU','$'],NZ:['en-NZ','$'],UK:['en-GB','£'],US:['en-US','$'],CA:['en-CA','$']},c0=cfg(),cc=REG[c0.country]?c0.country:'AU';
+ window.loanRegion={country:cc,locale:REG[cc][0],sym:REG[cc][1],mdy:cc==='US'};
+ function bar(){var m=document.getElementById('themeColor');if(m)m.content=getComputedStyle(r).getPropertyValue('--bg').trim()||'#f4f3f0'}
+ function apply(){try{v=localStorage.getItem(K)||v}catch(e){}if(v==='light'||v==='dark')r.dataset.theme=v;else delete r.dataset.theme;sc=cfg().scheme||sc;if(sc!=='indigo')r.dataset.scheme=sc;else delete r.dataset.scheme;bar()}
+ function fire(){window.dispatchEvent(new Event('themechange'))}
+ apply();
+ window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){v=t;try{localStorage.setItem(K,t)}catch(e){};apply();fire()},setScheme:function(s){sc=s;var o=cfg();o.scheme=s;try{localStorage.setItem(KS,JSON.stringify(o))}catch(e){};apply();fire()},refresh:function(){apply();fire()},bar:bar};
+ addEventListener('storage',function(e){if(e.key===K||e.key===KS)window.loanTheme.refresh()});
+ document.addEventListener('DOMContentLoaded',bar);
+ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){bar();fire()})}catch(e){}
+ var d=null;try{d=localStorage.getItem('loanDevice')}catch(e){}if(!window.loanEmbed)r.dataset.device=d||((matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<760)?'phone':'desktop');
+})();
+</script>
+<title>Pay Calculator · Finance Visualised</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* PAY CALCULATOR (Australia). Gross pay in, take-home out.
+   The picture is the maths: band widths in the flow are the dollars, and in the "next dollar" chart
+   the coloured area up to your pay is exactly the tax you pay (each column's area = what that slice of income costs). */
+:root{color-scheme:light;--bg:#f4f3f0;--panel:#ffffff;--ink:#1a1c29;--mute:#5d6074;--line:#e3e1db;--acc:#4f46e5;--acc-ink:#ffffff;--soft:#efeefd;--shadow:0 1px 2px rgba(26,28,41,.06),0 6px 20px rgba(26,28,41,.06);
+ --take:#1fa463;--tax:#f0643a;--med:#d9a400;--help:#8b5cf6;--sup:#2f86e8;--glow:.35}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+ --take:#35d07f;--tax:#ff7a52;--med:#ffd43b;--help:#a78bfa;--sup:#4da3ff;--glow:.75}}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+ --take:#35d07f;--tax:#ff7a52;--med:#ffd43b;--help:#a78bfa;--sup:#4da3ff;--glow:.75}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Geist,system-ui,sans-serif;overflow-x:clip}
+.wrap{position:relative;max-width:1180px;margin:0 auto;padding:max(clamp(14px,2.4vw,30px),env(safe-area-inset-top)) max(4vw,16px) calc(48px + env(safe-area-inset-bottom))}
+.homeL{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:2px 10px 2px 4px;margin:0 0 2px -4px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px}
+.homeL img{width:26px;height:26px;border-radius:7px}.homeL:hover{background:var(--soft);color:var(--acc)}
+#topSw{position:absolute;top:max(clamp(14px,2.4vw,30px),env(safe-area-inset-top));right:max(4vw,16px);display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+#topSw a,#topSw button{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+#topSw a:hover,#topSw button:hover{color:var(--ink);border-color:var(--acc)}
+h1{font-size:clamp(28px,4vw,42px);line-height:1.1;margin:14px 0 4px;font-weight:600;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:0 0 18px;max-width:64ch}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px}
+.card h2{margin:0 0 4px;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.grid{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:16px;align-items:start}
+.side{display:grid;gap:16px;position:sticky;top:16px}
+.main{display:grid;gap:16px}
+
+/* inputs */
+.f{display:grid;gap:6px;margin-top:14px}.f[hidden]{display:none}.f:first-of-type{margin-top:8px}
+.lab{font-size:13px;font-weight:500;color:var(--mute);display:flex;justify-content:space-between;gap:8px}
+.amt{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:12px;padding:0 12px;background:var(--bg)}
+.amt span{color:var(--mute);font-size:20px}
+.amt input{flex:1;border:0;background:none;color:var(--ink);font:inherit;font-size:28px;font-weight:600;min-height:54px;width:100%;letter-spacing:-.01em}
+.amt input:focus{outline:none}.amt:focus-within{border-color:var(--acc)}
+input[type=range]{width:100%;accent-color:var(--acc);margin:4px 0 0;height:28px}
+.seg{display:flex;background:var(--bg);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;min-height:40px;border:0;border-radius:8px;background:none;color:var(--ink);font:inherit;font-size:13.5px;cursor:pointer;padding:0 4px}
+.per button{flex:none;padding:0 12px}
+.seg button.on{background:var(--acc);color:var(--acc-ink);font-weight:600}
+.hrs{display:flex;align-items:center;gap:10px}.hrs input{width:90px;min-height:42px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:16px;padding:0 10px}
+.tg{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:50px;padding:6px 0;border-top:1px solid var(--line);cursor:pointer}
+.tg:first-of-type{margin-top:12px}
+.tg b{display:block;font-weight:500;font-size:15px}.tg small{display:block;color:var(--mute);font-size:12.5px;line-height:1.35}
+.tg input{appearance:none;-webkit-appearance:none;flex:none;width:46px;height:28px;border-radius:99px;background:var(--line);position:relative;cursor:pointer;transition:background .2s;margin:0}
+.tg input::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.tg input:checked{background:var(--c,var(--acc))}.tg input:checked::after{transform:translateX(18px)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:1px;background:var(--c);box-shadow:0 0 8px color-mix(in srgb,var(--c) calc(var(--glow)*100%),transparent)}
+
+/* headline + picture */
+.head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px}
+.big{font-size:clamp(30px,5vw,46px);font-weight:600;letter-spacing:-.02em;line-height:1.05;color:var(--take);text-shadow:0 0 calc(var(--glow)*22px) color-mix(in srgb,var(--take) 45%,transparent)}
+.big small{font-size:15px;font-weight:500;color:var(--mute);text-shadow:none;letter-spacing:0;margin-left:4px}
+.kept{color:var(--mute);font-size:14px}
+.per{margin-top:12px}
+#flow,#marg{display:block;width:100%;overflow:visible}
+#flow text,#marg text{font-family:Geist,system-ui,sans-serif}
+.band{transition:opacity .2s}
+.legendNote{font-size:13px;color:var(--mute);margin:8px 0 0}
+.next{margin:10px 0 0;font-size:14.5px}
+.next b{font-weight:600}
+
+/* take-home in every period */
+.tiles4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:10px}
+.t4{padding:10px 12px;border-radius:12px;background:var(--bg);border:1px solid var(--line)}
+.t4 span{display:block;font-size:12px;color:var(--mute)}.t4 b{font-size:18px;font-weight:600;letter-spacing:-.01em}
+.t4.on{border-color:var(--take);box-shadow:0 0 0 1px var(--take) inset}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14.5px;font-variant-numeric:tabular-nums}
+td,th{padding:8px 4px;border-top:1px solid var(--line);text-align:right}th{font-weight:500;color:var(--mute);font-size:12.5px}
+td:first-child,th:first-child{text-align:left}
+tr.tot td{font-weight:600}
+.send{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
+.send button{min-height:46px;padding:0 18px;border-radius:12px;border:1px solid var(--acc);background:var(--acc);color:var(--acc-ink);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.send span{font-size:13px;color:var(--mute);flex:1 1 200px}
+.fine{font-size:12.5px;color:var(--mute);line-height:1.5}
+.fine p{margin:0 0 6px}.fine a{color:var(--acc)}
+#selftest{font-size:12.5px;margin-top:8px}#selftest.good{color:var(--take)}#selftest.bad{color:var(--tax);font-weight:600}
+.warn{margin:0 0 14px;padding:10px 14px;border-radius:12px;background:color-mix(in srgb,#f59e0b 16%,var(--panel));font-size:14px}
+
+@media(max-width:860px){
+ .grid{grid-template-columns:1fr}
+ .side{position:static;order:2}
+ .main{display:contents}
+ #picCard{order:1;position:sticky;top:0;z-index:5;border-radius:0 0 18px 18px;margin:0 calc(-1 * max(4vw,16px));padding:12px max(4vw,16px) 8px;border-width:0 0 1px}
+ #inCard{order:2}#margCard{order:3}#outCard{order:4}#fineCard{order:5}
+ .tiles4{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #topSw{position:static;justify-content:flex-start;margin:6px 0 0}
+ .big small{font-size:13px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<link rel="stylesheet" href="settings.css">
+<script src="settings.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="homeL" href="index.html" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Finance Visualised</span></a>
+  <div id="topSw"><a href="cashflow.html">Cash-Flow</a><a href="graph.html">Loan Graph</a><button id="setSw" type="button" title="Colours, layout and country" onclick="window.loanSettings&&loanSettings.open()">⚙ Settings</button></div>
+  <h1>Pay Calculator</h1>
+  <p class="sub">Put in your pay and watch it split into what you keep and where the rest goes. Australian tax, Medicare, HELP and super.</p>
+  <div class="warn" id="ctyWarn" hidden>This calculator uses Australian tax rules only, whatever country is chosen in Settings.</div>
+
+  <div class="grid">
+    <div class="side">
+      <section class="card" id="inCard" aria-label="Your pay">
+        <h2>Your pay</h2>
+        <div class="f">
+          <span class="lab">I'm paid by the</span>
+          <div class="seg" id="period" role="group" aria-label="Pay period"><button type="button" data-v="hour">Hour</button><button type="button" data-v="week">Week</button><button type="button" data-v="fortnight">Fortnight</button><button type="button" data-v="month">Month</button><button type="button" data-v="year">Year</button></div>
+        </div>
+        <div class="f">
+          <label class="lab" for="amt"><span id="amtLab">Pay before tax, per year</span></label>
+          <div class="amt"><span>$</span><input id="amt" type="text" inputmode="decimal" autocomplete="off" aria-describedby="amtLab"></div>
+          <input id="amtR" type="range" aria-label="Pay amount slider">
+        </div>
+        <div class="f" id="hrsF" hidden>
+          <label class="lab" for="hrs">Hours per week</label>
+          <div class="hrs"><input id="hrs" type="number" min="1" max="100" step="0.5" inputmode="decimal"><span class="kept" id="hrsNote"></span></div>
+        </div>
+        <div class="f">
+          <span class="lab">Super (12%)</span>
+          <div class="seg" id="super" role="group" aria-label="Super"><button type="button" data-v="top">On top of my pay</button><button type="button" data-v="incl">Included in it</button></div>
+        </div>
+        <label class="tg" style="--c:var(--tax)"><span><b>Tax-free threshold</b><small>Claim it from one job only. Off for a second job.</small></span><input type="checkbox" id="tft"></label>
+        <label class="tg" style="--c:var(--med)"><span><b><span class="dot" style="--c:var(--med)"></span>Medicare levy</b><small>2%, less or none on a low income.</small></span><input type="checkbox" id="med"></label>
+        <label class="tg" style="--c:var(--help)"><span><b><span class="dot" style="--c:var(--help)"></span>HELP / study loan</b><small>HECS-HELP, VET, Apprenticeship and similar loans.</small></span><input type="checkbox" id="help"></label>
+        <div class="f">
+          <span class="lab">Tax year</span>
+          <div class="seg" id="year" role="group" aria-label="Tax year"><button type="button" data-v="2025-26">2025–26</button><button type="button" data-v="2026-27">2026–27 (now)</button></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="main">
+      <section class="card" id="picCard" aria-label="Where your pay goes">
+        <div class="head">
+          <div><div class="big" id="bigTake">$0</div><div class="kept" id="kept"></div></div>
+          <div class="seg per" id="show" role="group" aria-label="Show amounts per"><button type="button" data-v="week">Week</button><button type="button" data-v="fortnight">Fortnight</button><button type="button" data-v="month">Month</button><button type="button" data-v="year">Year</button></div>
+        </div>
+        <svg id="flow" role="img" aria-label="Your pay splitting into take-home, tax, Medicare, HELP and super"></svg>
+      </section>
+
+      <section class="card" id="margCard" aria-label="What each dollar costs">
+        <h2>Where each dollar goes</h2>
+        <p class="legendNote">Left to right is your yearly pay. Height is how many cents of each extra dollar go to tax. The coloured area up to your pay <b>is</b> your tax, to the cent. The green above it is what you keep.</p>
+        <svg id="marg" role="img" aria-label="Tax brackets: cents taken from each dollar at every income"></svg>
+        <p class="next" id="next"></p>
+      </section>
+
+      <section class="card" id="outCard" aria-label="Take-home pay">
+        <h2>Take-home pay</h2>
+        <div class="tiles4" id="t4"></div>
+        <table id="tbl"></table>
+        <div class="send"><button type="button" id="sendCF">Send to Cash-Flow</button><span id="sendNote"></span></div>
+      </section>
+
+      <section class="card fine" id="fineCard">
+        <p><b>A rough estimate, not tax advice.</b> It works out a full year as an Australian resident on one steady wage. Your real pay slips use the ATO's withholding tables, so each pay can differ by a few dollars, and tax time settles the rest.</p>
+        <p>Rates: ATO resident tax rates for 2025–26 and 2026–27 (<a href="https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents" target="_blank" rel="noopener">ato.gov.au, updated 13 Aug 2026</a>), low income tax offset up to $700 (<a href="https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/low-income-tax-offset" target="_blank" rel="noopener">ato.gov.au</a>), Medicare levy 2% with the 2025–26 low-income thresholds of $28,011 and $35,013 (<a href="https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-for-low-income-earners" target="_blank" rel="noopener">ato.gov.au</a>; the 2026–27 ones aren't published yet, so they're used for both years), and study loan repayment rates for each year (<a href="https://ato.gov.au/tax-rates-and-codes/study-and-training-support-loans-rates-and-repayment-thresholds" target="_blank" rel="noopener">ato.gov.au</a>). Super guarantee 12%.</p>
+        <p>Not included: deductions, other income, the Medicare levy surcharge, family thresholds, seniors' offsets, salary sacrifice and the super cap on very high pay. Without the tax-free threshold it shows roughly what an employer would hold back; you get the extra back at tax time if this is your only job.</p>
+        <div id="selftest"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= THE MATHS (pure, no page needed) ================= */
+window.PayAU=(function(){
+  'use strict';
+  /* tax bands: [from, cents per $1 above "from"] */
+  const YEARS={
+    '2025-26':{tax:[[0,0],[18200,.16],[45000,.30],[135000,.37],[190000,.45]],
+      help:{t1:67000,t2:125000,base2:8700,t3:179285}},
+    '2026-27':{tax:[[0,0],[18200,.15],[45000,.30],[135000,.37],[190000,.45]],
+      help:{t1:69528,t2:129717,base2:9028,t3:186050}}
+  };
+  const MED={rate:.02,lower:28011,upper:35013,shade:.10}, SG=.12;
+  const FACT={hour:null,week:52,fortnight:26,month:12,year:1};
+  const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+  /* income tax before offsets */
+  function baseTax(y,yr,tft){
+    let b=YEARS[yr].tax; if(!tft)b=[[0,b[1][1]]].concat(b.slice(2)); /* no tax-free threshold: the first rate starts at $1 */
+    let t=0; for(let i=0;i<b.length;i++){const lo=b[i][0],hi=i+1<b.length?b[i+1][0]:Infinity; if(y>lo)t+=(Math.min(y,hi)-lo)*b[i][1]}
+    return t}
+  /* low income tax offset: $700, less 5c per $ over 37,500, then 1.5c per $ over 45,000 (gone at 66,667) */
+  const lito=y=>Math.max(0,700-.05*clamp(y-37500,0,7500)-.015*clamp(y-45000,0,21667));
+  const incomeTax=(y,o)=>Math.max(0,baseTax(y,o.year,o.tft)-(o.tft?lito(y):0));
+  const medicare=(y,o)=>!o.med||y<=MED.lower?0:Math.min(MED.rate*y,MED.shade*(y-MED.lower));
+  function help(y,o){ if(!o.help)return 0; const h=YEARS[o.year].help;
+    if(y<=h.t1)return 0; if(y<=h.t2)return .15*(y-h.t1); if(y<=h.t3)return h.base2+.17*(y-h.t2); return .10*y }
+  /* gross in any period -> a full year */
+  function annual(o){ const a=Math.max(0,+o.amount||0); return o.period==='hour'?a*Math.max(0,+o.hours||0)*52:a*(FACT[o.period]||1) }
+  function calc(o){
+    const pay=annual(o), salary=o.superMode==='incl'?pay/(1+SG):pay, sup=salary*SG;
+    const tax=incomeTax(salary,o), med=medicare(salary,o), hp=help(salary,o), take=salary-tax-med-hp;
+    return {salary,super:sup,package:salary+sup,tax,med,help:hp,take,kept:salary>0?take/salary:1}}
+  const parts={tax:incomeTax,med:medicare,help};
+  /* the cents taken from each extra dollar between a and b: the column's area is exactly what that slice of pay costs */
+  const slope=(k,a,b,o)=>b>a?(parts[k](b,o)-parts[k](a,o))/(b-a):0;
+  function selfTest(){
+    const r=[],ok=(n,c)=>r.push([n,!!c]),near=(a,b,t)=>Math.abs(a-b)<=(t==null?.01:t);
+    const o=(x)=>Object.assign({year:'2025-26',tft:true,med:true,help:false},x||{});
+    ok('2025–26 tax on $45,000 is $4,288 (ATO table)',near(baseTax(45000,'2025-26',true),4288));
+    ok('2025–26 tax on $135,000 is $31,288 and on $190,000 is $51,638 (ATO table)',near(baseTax(135000,'2025-26',true),31288)&&near(baseTax(190000,'2025-26',true),51638));
+    ok('2026–27 (15% rate) tax on $45,000 is $4,020, $135,000 is $31,020, $190,000 is $51,370 (ATO table)',near(baseTax(45000,'2026-27',true),4020)&&near(baseTax(135000,'2026-27',true),31020)&&near(baseTax(190000,'2026-27',true),51370));
+    ok('Low income tax offset: $700 at $37,500, $325 at $45,000, nil at $66,667 (ATO)',near(lito(37500),700)&&near(lito(45000),325)&&near(lito(66667),0,.01));
+    ok('Medicare: nil at $28,011, full 2% from $35,013, no jump in between (ATO)',medicare(28011,o())===0&&near(medicare(35013,o()),700.26,.1)&&near(medicare(35000,o()),698.9));
+    ok('HELP 2025–26: nil at $67,000, $8,700 at $125,000, $8,700 + 17c above (ATO)',help(67000,o({help:true}))===0&&near(help(125000,o({help:true})),8700)&&near(help(130000,o({help:true})),9550));
+    ok('HELP 2026–27: $9,028 at $129,717, 10% of all income above $186,050, no big jump (ATO)',near(help(129717,o({year:'2026-27',help:true})),9028,.5)&&near(help(200000,o({year:'2026-27',help:true})),20000)&&near(help(186050,o({year:'2026-27',help:true})),help(186051,o({year:'2026-27',help:true})),1));
+    const ex=calc(o({amount:60000,period:'year',superMode:'top'}));
+    ok('Worked example, $60,000 in 2025–26: tax $8,688 after the $100 offset, Medicare $1,200, take-home $50,112',near(ex.tax,8688)&&near(ex.med,1200)&&near(ex.take,50112));
+    ok('Super: a $112,000 package with super included is $100,000 pay + $12,000 super',(()=>{const c=calc(o({amount:112000,period:'year',superMode:'incl'}));return near(c.salary,100000)&&near(c.super,12000)})());
+    ok('Hourly: $40 an hour for 38 hours a week is $79,040 a year',near(annual({amount:40,period:'hour',hours:38}),79040));
+    ok('Every dollar is accounted for: take-home + tax + Medicare + HELP = pay',[18000,45000,90000,150000,250000].every(y=>{const c=calc(o({amount:y,period:'year',superMode:'top',help:true}));return near(c.take+c.tax+c.med+c.help,c.salary)}));
+    ok('The picture is the maths: the coloured area up to your pay equals your tax, Medicare and HELP',[52000,140000].every(y=>{const oo=o({help:true}),n=300;let a={tax:0,med:0,help:0};
+      for(let i=0;i<n;i++){const x0=y*i/n,x1=y*(i+1)/n;for(const k in a)a[k]+=slope(k,x0,x1,oo)*(x1-x0)}
+      return near(a.tax,incomeTax(y,oo),.001)&&near(a.med,medicare(y,oo),.001)&&near(a.help,help(y,oo),.001)}));
+    return r}
+  return {YEARS,MED,SG,FACT,annual,calc,slope,incomeTax,medicare,help,lito,baseTax,selfTest};
+})();
+
+/* ================= THE PAGE ================= */
+(function(){
+'use strict';
+const P=window.PayAU,$=id=>document.getElementById(id),KEY='payCalc.v1';
+const loc=()=>window.loanRegion?loanRegion.locale:'en-AU';
+const money=(v,dp)=>'$'+(Math.abs(v)<.005?0:v).toLocaleString(loc(),{minimumFractionDigits:dp?2:0,maximumFractionDigits:dp?2:0});
+const short=v=>v>=1e6?'$'+(v/1e6).toFixed(1).replace(/\.0$/,'')+'m':v>=1000?'$'+Math.round(v/1000)+'k':'$'+Math.round(v);
+const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const WORD={hour:'hour',week:'week',fortnight:'fortnight',month:'month',year:'year'};
+const RANGE={hour:[0,150,.5],week:[0,5000,10],fortnight:[0,10000,20],month:[0,21000,50],year:[0,250000,500]};
+const DEF={amount:85000,period:'year',hours:38,superMode:'top',tft:true,med:true,help:false,year:'2026-27',show:'fortnight'};
+let S=Object.assign({},DEF);try{Object.assign(S,JSON.parse(localStorage.getItem(KEY))||{})}catch(e){}
+if(!P.YEARS[S.year])S.year=DEF.year;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const perYear=k=>k==='hour'?null:P.FACT[k];
+
+/* ---------- inputs ---------- */
+function seg(id,key,after){const el=$(id);el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const prev=S[key];S[key]=b.dataset.v;if(after)after(prev);sync();update()})}
+seg('period','period',prev=>{ /* keep the same yearly pay when the period changes */
+  const yr=P.annual(Object.assign({},S,{period:prev}));const f=S.period==='hour'?(S.hours||38)*52:P.FACT[S.period];const st=RANGE[S.period][2];
+  S.amount=Math.round(yr/f/st)*st; if(S.period!=='hour'&&S.period!=='year')S.show=S.period});
+seg('super','superMode');seg('year','year');seg('show','show');
+['tft','med','help'].forEach(k=>$(k).addEventListener('change',e=>{S[k]=e.target.checked;update()}));
+const num=v=>parseFloat(String(v).replace(/[^0-9.]/g,''))||0;
+$('amt').addEventListener('input',e=>{S.amount=num(e.target.value);$('amtR').value=S.amount;update()});
+$('amt').addEventListener('blur',()=>{$('amt').value=fmtAmt(S.amount)});
+$('amt').addEventListener('focus',e=>{e.target.value=S.amount?String(S.amount):'';e.target.select()});
+$('amtR').addEventListener('input',e=>{S.amount=+e.target.value;$('amt').value=fmtAmt(S.amount);update()});
+$('hrs').addEventListener('input',e=>{S.hours=Math.min(100,Math.max(0,num(e.target.value)));update()});
+const fmtAmt=v=>(+v).toLocaleString(loc(),{maximumFractionDigits:2});
+function sync(){
+  [['period','period'],['super','superMode'],['year','year'],['show','show']].forEach(([id,k])=>$(id).querySelectorAll('button').forEach(b=>{const on=b.dataset.v===S[k];b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)}));
+  const r=RANGE[S.period];Object.assign($('amtR'),{min:r[0],max:r[1],step:r[2]});$('amtR').value=S.amount;
+  if(document.activeElement!==$('amt'))$('amt').value=fmtAmt(S.amount);
+  $('amtLab').textContent=(S.period==='hour'?'Hourly rate':'Pay before tax, per '+WORD[S.period])+(S.superMode==='incl'?', including super':'');
+  $('hrsF').hidden=S.period!=='hour';$('hrs').value=S.hours;
+  ['tft','med','help'].forEach(k=>$(k).checked=!!S[k]);
+  $('ctyWarn').hidden=!window.loanRegion||loanRegion.country==='AU';
+}
+
+/* ---------- the live, smoothly moving numbers ---------- */
+let R=null,cur=null,raf=0;
+const KEYS=['take','tax','med','help','super','salary','xMax'];
+function target(){const c=P.calc(S);c.xMax=niceMax(Math.max(c.salary*1.45,60000));return c}
+function niceMax(v){const s=v>150000?50000:v>60000?20000:10000;return Math.ceil(v/s)*s}
+function update(){R=P.calc(S);save();numbers();const t=target();
+  if(!cur||reduced()){cur={};KEYS.forEach(k=>cur[k]=t[k]);draw();return}
+  if(!raf)raf=requestAnimationFrame(step)}
+function step(){raf=0;const t=target();let moving=false;
+  KEYS.forEach(k=>{const d=t[k]-cur[k];if(Math.abs(d)>Math.max(.01,Math.abs(t[k])*1e-5)){cur[k]+=d*.2;moving=true}else cur[k]=t[k]});
+  draw();if(moving)raf=requestAnimationFrame(step)}
+
+/* ---------- words and tables (exact numbers, not the moving ones) ---------- */
+const per=(v,k)=>v/P.FACT[k];
+function numbers(){const c=R,k=S.show;
+  $('bigTake').innerHTML=money(per(c.take,k),k!=='year')+'<small>take-home a '+WORD[k]+'</small>';
+  $('kept').textContent=c.salary>0?'You keep '+Math.round(c.kept*100)+'c of every dollar on average':'Enter your pay to begin';
+  $('hrsNote').textContent=S.hours?'= '+money(c.salary/52,true)+' a week':'';
+  $('t4').innerHTML=['week','fortnight','month','year'].map(p=>'<div class="t4'+(p===k?' on':'')+'"><span>Per '+p+'</span><b>'+money(per(c.take,p),p!=='year')+'</b></div>').join('');
+  const rows=[['Pay before tax',c.salary,null],['Income tax',-c.tax,'--tax'],['Medicare levy',-c.med,'--med']].concat(S.help?[['HELP repayment',-c.help,'--help']]:[]).concat([['Take-home',c.take,'--take','tot'],['Super (paid into your fund)',c.super,'--sup']]);
+  $('tbl').innerHTML='<tr><th></th><th>Per '+k+'</th>'+(k!=='year'?'<th>Per year</th>':'')+'</tr>'+rows.map(r=>'<tr class="'+(r[3]||'')+'"><td>'+(r[2]?'<span class="dot" style="--c:var('+r[2]+')"></span>':'')+r[0]+'</td><td>'+(r[1]<0?'−':'')+money(Math.abs(per(r[1],k)),k!=='year')+'</td>'+(k!=='year'?'<td>'+(r[1]<0?'−':'')+money(Math.abs(r[1]))+'</td>':'')+'</tr>').join('');
+  const ev=cfEvery();$('sendCF').textContent='Send '+money(per(c.take,ev.k),true)+' a '+ev.k+' to Cash-Flow';
+  $('sendNote').textContent='Sets your Cash-Flow income to this take-home, paid '+ev.v+'.';
+  const m=nextDollar();$('next').innerHTML=c.salary>0?'Your next dollar: <b style="color:var(--tax)">'+m.tax+'c</b> income tax'+(S.med?', <b style="color:var(--med)">'+m.med+'c</b> Medicare':'')+(S.help?', <b style="color:var(--help)">'+m.help+'c</b> HELP':'')+'. <b style="color:var(--take)">You keep '+(100-m.tax-m.med-m.help)+'c.</b>':'';
+}
+function nextDollar(){const y=R.salary,o=S,f=k=>Math.round(P.slope(k,y,y+100,o)*100);return {tax:f('tax'),med:f('med'),help:f('help')}}
+function cfEvery(){const k=S.show==='year'?'fortnight':S.show;return {k,v:{week:'weekly',fortnight:'fortnightly',month:'monthly'}[k]}}
+$('sendCF').addEventListener('click',()=>{const ev=cfEvery(),cents=Math.round(per(R.take,ev.k)*100);if(!(cents>0))return;location.href='cashflow.html?pay='+cents+'&every='+ev.v});
+
+/* ---------- picture 1: the flow. Your pay is one glowing bar that splits into bands; band height = dollars ---------- */
+const SL=[['take','Take-home','--take'],['tax','Income tax','--tax'],['med','Medicare','--med'],['help','HELP','--help'],['super','Super','--sup']];
+const NS='http://www.w3.org/2000/svg';
+function drawFlow(){const svg=$('flow'),W=svg.clientWidth||600,phone=W<520,k=S.show;
+  const items=SL.filter(s=>s[0]!=='help'||S.help).map(s=>({k:s[0],name:s[1],col:css(s[2]),v:Math.max(0,cur[s[0]])}));
+  const tot=items.reduce((a,b)=>a+b.v,0)||1,H=phone?190:250,pt=8,gap=phone?6:8,lx=4,bw=10,rx=Math.round(W*(phone?.46:.5)),avail=H-pt*2-gap*(items.length-1);
+  let ly=pt+gap*(items.length-1)/2,ry=pt;const lab=[];let h='<defs>';
+  items.forEach(it=>{it.h=Math.max(it.v>0.5?1.5:0,it.v/tot*avail);it.ly=ly;ly+=it.h;it.ry=ry;ry+=it.h+gap;h+='<linearGradient id="fg'+it.k+'" x1="0" x2="1"><stop offset="0" stop-color="'+it.col+'" stop-opacity=".22"/><stop offset="1" stop-color="'+it.col+'" stop-opacity=".9"/></linearGradient>'});
+  h+='</defs>';const gl=+css('--glow')||.5,mx=(lx+bw+rx)/2;
+  /* the pay bar on the left: the whole pay, plus super if it's on top */
+  h+='<rect x="'+lx+'" y="'+(pt+gap*(items.length-1)/2)+'" width="'+bw+'" height="'+(ly-pt-gap*(items.length-1)/2)+'" rx="4" fill="'+css('--ink')+'" opacity=".85"/>';
+  items.forEach(it=>{if(it.h<=0)return;const a=lx+bw,b=rx;
+    h+='<path class="band" d="M'+a+' '+it.ly+'C'+mx+' '+it.ly+' '+mx+' '+it.ry+' '+b+' '+it.ry+'L'+b+' '+(it.ry+it.h)+'C'+mx+' '+(it.ry+it.h)+' '+mx+' '+(it.ly+it.h)+' '+a+' '+(it.ly+it.h)+'Z" fill="url(#fg'+it.k+')" style="filter:drop-shadow(0 0 '+(6*gl)+'px '+it.col+')"/>';
+    h+='<rect x="'+rx+'" y="'+it.ry+'" width="'+bw+'" height="'+Math.max(2,it.h)+'" rx="3" fill="'+it.col+'" style="filter:drop-shadow(0 0 '+(8*gl)+'px '+it.col+')"/>';
+    lab.push({it,y:it.ry+it.h/2})});
+  /* labels: keep them at least a line apart, with a short lead line to their band */
+  const sp=phone?30:36;for(let i=1;i<lab.length;i++)lab[i].y=Math.max(lab[i].y,lab[i-1].y+sp);
+  const maxY=Math.max(H,(lab.length?lab[lab.length-1].y:0)+sp/2);for(let i=lab.length-1;i>=0;i--){const lim=i===lab.length-1?maxY-sp/2+4:lab[i+1].y-sp;lab[i].y=Math.min(lab[i].y,lim)}
+  const tx=rx+bw+(phone?14:20),pc=v=>R&&R.package>0?Math.round(v/(cur.salary+cur.super)*100):0;
+  lab.forEach(l=>{const it=l.it,c=it.ry+it.h/2;h+='<path d="M'+(rx+bw+2)+' '+c+'L'+(tx-4)+' '+l.y+'" stroke="'+it.col+'" stroke-width="1" opacity=".6" fill="none"/>';
+    h+='<text x="'+tx+'" y="'+(l.y-4)+'" font-size="'+(phone?11.5:12.5)+'" fill="'+css('--mute')+'">'+it.name+' · '+pc(it.v)+'%</text>';
+    h+='<text x="'+tx+'" y="'+(l.y+(phone?12:14))+'" font-size="'+(phone?15:17)+'" font-weight="600" fill="'+it.col+'">'+money(per(it.v,k),k!=='year'&&k!=='month')+'</text>'});
+  svg.setAttribute('viewBox','0 0 '+W+' '+maxY);svg.setAttribute('height',maxY);svg.innerHTML=h}
+
+/* ---------- picture 2: the brackets. x = yearly pay, y = cents taken from the next dollar; area = dollars ---------- */
+function drawMarg(){const svg=$('marg'),W=svg.clientWidth||600,phone=W<520,H=phone?210:260,L=34,Rr=8,T=22,B=24,pw=W-L-Rr,ph=H-T-B;
+  const xM=cur.xMax,inc=Math.max(0,cur.salary),X=v=>L+v/xM*pw,Y=c=>T+ph-c*ph,o=S,gl=+css('--glow')||.5;
+  const n=Math.max(60,Math.min(360,Math.round(pw/2)));let xs=[];for(let i=0;i<=n;i++)xs.push(xM*i/n);
+  /* the band edges and your pay are exact column edges, so every step lands where the law says it does */
+  const yr=P.YEARS[o.year],edges=yr.tax.map(b=>b[0]).concat([37500,45000,66667,P.MED.lower,P.MED.upper]).concat(o.help?[yr.help.t1,yr.help.t2,yr.help.t3]:[]);
+  edges.concat([inc]).forEach(e=>{if(e>0&&e<xM)xs.push(e)});xs=[...new Set(xs)].sort((a,b)=>a-b);
+  const cols=[];for(let i=0;i<xs.length-1;i++){const a=xs[i],b=xs[i+1],t=P.slope('tax',a,b,o),m=P.slope('med',a,b,o),hh=P.slope('help',a,b,o);cols.push({a,b,s:[t,t+m,t+m+hh]})}
+  const layer=(lo,hi)=>{let top='',bot='';cols.forEach(c=>{const y1=Y(hi(c)),y0=Y(lo(c));top+='L'+X(c.a)+' '+y1+'L'+X(c.b)+' '+y1;bot=('L'+X(c.b)+' '+y0+'L'+X(c.a)+' '+y0)+bot});return 'M'+X(0)+' '+Y(lo(cols[0]||{s:[0,0,0]}))+top+bot+'Z'};
+  const C={take:css('--take'),tax:css('--tax'),med:css('--med'),help:css('--help'),ink:css('--ink'),mute:css('--mute'),line:css('--line')};
+  let h='<defs><clipPath id="cPaid"><rect x="'+L+'" y="0" width="'+Math.max(0,X(inc)-L)+'" height="'+H+'"/></clipPath><clipPath id="cRest"><rect x="'+X(inc)+'" y="0" width="'+Math.max(0,W-X(inc))+'" height="'+H+'"/></clipPath></defs>';
+  /* the brackets as faint bands, with their rate on top */
+  const tb=yr.tax.map(b=>b.slice());if(!o.tft){tb.splice(1,1);tb[0]=[0,yr.tax[1][1]]}
+  tb.forEach((b,i)=>{const a=b[0],z=i+1<tb.length?tb[i+1][0]:xM;if(a>=xM)return;const x0=X(a),x1=X(Math.min(z,xM));
+    h+='<rect x="'+x0+'" y="'+T+'" width="'+(x1-x0)+'" height="'+ph+'" fill="'+C.tax+'" opacity="'+(0.025+b[1]*0.12)+'"/>';
+    if(a>0)h+='<line x1="'+x0+'" x2="'+x0+'" y1="'+T+'" y2="'+(T+ph)+'" stroke="'+C.mute+'" stroke-dasharray="3 4" opacity=".45"/>';
+    if(x1-x0>26)h+='<text x="'+(x0+x1)/2+'" y="'+(T-7)+'" text-anchor="middle" font-size="11.5" fill="'+C.mute+'">'+Math.round(b[1]*100)+'c</text>'});
+  /* grid */
+  [0,.5,1].forEach(c=>{h+='<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+Y(c)+'" y2="'+Y(c)+'" stroke="'+C.line+'"/><text x="'+(L-6)+'" y="'+(Y(c)+4)+'" text-anchor="end" font-size="11" fill="'+C.mute+'">'+(c*100)+'c</text>'});
+  const step=xM>200000?50000:xM>80000?25000:10000;for(let v=0;v<=xM+1;v+=step)h+='<text x="'+X(v)+'" y="'+(H-6)+'" text-anchor="middle" font-size="11" fill="'+C.mute+'">'+short(v)+'</text>';
+  if(cols.length){
+    const ls=[[c=>c.s[2],()=>1,C.take,.16],[()=>0,c=>c.s[0],C.tax,.85],[c=>c.s[0],c=>c.s[1],C.med,.9],[c=>c.s[1],c=>c.s[2],C.help,.85]];
+    ['cRest','cPaid'].forEach(cp=>{const paid=cp==='cPaid';h+='<g clip-path="url(#'+cp+')" opacity="'+(paid?1:.22)+'">';
+      ls.forEach(l=>{if(l[2]===C.help&&!o.help)return;h+='<path d="'+layer(l[0],l[1])+'" fill="'+l[2]+'" fill-opacity="'+l[3]+'"'+(paid&&l[2]!==C.take?' style="filter:drop-shadow(0 0 '+(5*gl)+'px '+l[2]+')"':'')+'/>'});
+      h+='</g>'});
+  }
+  /* you are here */
+  if(inc>0&&inc<=xM){const x=X(inc);h+='<line x1="'+x+'" x2="'+x+'" y1="'+(T-2)+'" y2="'+(T+ph)+'" stroke="'+C.ink+'" stroke-width="2" style="filter:drop-shadow(0 0 '+(6*gl)+'px '+C.take+')"/>';
+    const lbl=money(inc),right=x+8+lbl.length*7.5<W;h+='<text x="'+(right?x+6:x-6)+'" y="'+(T+14)+'" text-anchor="'+(right?'start':'end')+'" font-size="12.5" font-weight="600" fill="'+C.ink+'">'+lbl+'</text>'}
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.setAttribute('height',H);svg.innerHTML=h}
+
+function draw(){if(!cur)return;drawFlow();drawMarg()}
+addEventListener('resize',()=>{draw()});addEventListener('themechange',()=>{draw()});
+window.addEventListener('storage',e=>{if(e.key==='loanSettings.v1'){sync();numbers();draw()}});
+
+/* ---------- go ---------- */
+sync();update();
+const T=P.selfTest(),bad=T.filter(x=>!x[1]),st=$('selftest');
+st.className=bad.length?'bad':'good';st.textContent=bad.length?'✗ Self-check failed: '+bad.map(x=>x[0]).join('; '):'✓ Self-checks passed ('+T.length+' of '+T.length+'), including the ATO table figures and one worked example';
+st.title=T.map(x=>(x[1]?'✓ ':'✗ ')+x[0]).join('\n');
+if('serviceWorker' in navigator&&location.protocol==='https:')addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+})();
+</script>
+</body>
+</html>

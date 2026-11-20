@@ -513,6 +513,10 @@ S=load();
 const away=CF.advance(S,now());
 last=clone(S);lastGood=CF.assess(S,{today:today()}).verdict;save();fillStatic();
 paint(away?{html:'<b>Welcome back.</b> '+away+(away===1?' payday has':' paydays have')+' come round since you were last here, and the money has been dealt into your pots.'}:null,true);
+/* arriving from the Pay Calculator (cashflow.html?pay=CENTS&every=weekly|fortnightly|monthly): set the income, as if typed in */
+(function(){const q=new URLSearchParams(location.search),c=Math.round(+q.get('pay')),ev=q.get('every');if(!(c>0)||!['weekly','fortnightly','monthly'].includes(ev))return;
+  try{history.replaceState(null,'',location.pathname)}catch(e){}
+  S.income.amount=c;S.income.every=ev;if(commit(true)){fillStatic();paint({html:'<b>Income set from the Pay Calculator:</b> '+money(c)+' take-home each '+perWord()+'.'},true)}})();
 function tick(){const n=CF.advance(S,now());if(n){last=clone(S);save();paint({html:'<b>Payday!</b> The money has been dealt into your pots.'},true);return}updateVessels()}
 setInterval(tick,1000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')tick();else save()});
