@@ -180,6 +180,17 @@ html.embed .fig{min-height:300px}
 .fig.dragmode{touch-action:none;cursor:ew-resize}
 .fig.dragmode canvas{cursor:ew-resize}
 html[data-device=phone] #payLock{top:6px;min-height:34px;font-size:12.5px;padding:0 11px}
+
+/* editable lists: one-off repayments and rate changes */
+.list{display:grid;gap:8px}.list:empty{display:none}
+.lrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px;border-radius:10px;background:var(--bg)}
+.lrow label{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--mute);margin:0}
+.lrow .unit input{width:118px}.lrow label input{width:76px!important;text-align:right}.lrow .unit.post input{width:92px}
+.lrow input{background:var(--panel)!important}
+.xRow{margin-left:auto;width:38px;height:38px;border:0;border-radius:50%;background:none;color:var(--mute);font:inherit;font-size:16px;cursor:pointer}.xRow:hover{color:var(--bad);background:var(--panel)}
+.addRow{justify-self:start;min-height:40px;padding:0 14px;border:1px dashed var(--acc);border-radius:10px;background:none;color:var(--acc);font:inherit;font-size:14px;font-weight:500;cursor:pointer}.addRow:hover{background:var(--soft)}
+#sRateN{white-space:normal}
+html[data-device=phone] .addRow{min-height:44px;width:100%}
 </style>
 <link rel="stylesheet" href="settings.css">
 <script src="settings.js" defer></script>
@@ -198,6 +209,7 @@ html[data-device=phone] #payLock{top:6px;min-height:34px;font-size:12.5px;paddin
     <div class="stat"><span id="sTotL">Total paid</span><b id="sTot">–</b><small id="sTotN"></small></div>
     <div class="stat"><span id="sStdL">vs standard loan</span><b id="sStd">–</b><small id="sStdN"></small></div>
     <div class="stat wide" id="sLumpBox" hidden><span>Your extras save</span><b id="sLump">–</b></div>
+    <div class="stat wide" id="sRateBox" hidden><span>Rate changes</span><b id="sRate">–</b><small id="sRateN"></small></div>
   </div>
 
   <div class="main">
@@ -244,6 +256,10 @@ html[data-device=phone] #payLock{top:6px;min-height:34px;font-size:12.5px;paddin
           <label for="lumpYR"><span>Paid</span><span id="lumpYO"></span></label>
           <input type="range" id="lumpYR" min="0" step="0.25" style="width:100%">
         </div>
+        <div class="ctl"><div class="lab"><span>More one-off repayments</span><span>e.g. a tax refund or bonus</span></div>
+          <div class="list" id="lumpList"></div>
+          <button type="button" class="addRow" id="addLump">+ Add a one-off repayment</button>
+        </div>
         <div class="ctl">
           <label for="recN"><span>Regular extra repayment</span><span>added to every payment</span></label>
           <div class="row"><input type="range" id="recR" min="0" step="10"><span class="unit pre"><i>$</i><input type="text" id="recN" inputmode="numeric" autocomplete="off"></span></div>
@@ -257,6 +273,16 @@ html[data-device=phone] #payLock{top:6px;min-height:34px;font-size:12.5px;paddin
           <div class="row"><input type="range" id="topR" min="0" max="5000" step="50"><span class="unit pre"><i>$</i><input type="text" id="topN" inputmode="numeric" autocomplete="off"></span></div>
         </div>
         <p class="hint">The starting offset cuts the interest on every line. Monthly top-ups and extra repayments only change <em>your</em> line, and the dashed ghost shows your path without them. Already partway through a loan? Enter what you owe today and the years left.</p>
+      </div>
+
+      <div class="grp">
+        <h2>Rate changes</h2>
+        <div class="list" id="rateList"></div>
+        <button type="button" class="addRow" id="addRate">+ Add a future rate change</button>
+        <div class="ctl" id="rateModeBox"><div class="lab">When the rate changes</div>
+          <div class="seg" data-k="rateMode"><button data-v="payment">Keep my payment</button><button data-v="term">Keep my payoff date</button></div>
+        </div>
+        <p class="hint" id="rateHint">Plan for rates going up or down, for example 6.25% after 1 yr 6 mo. <b>Keep my payment</b>: you pay the same, so the payoff date moves. <b>Keep my payoff date</b>: your payment is recalculated at each change, like a bank does. Only <em>your</em> line follows the changes; the fan of other paths stays at today’s rate.</p>
       </div>
 
       <div class="grp">
@@ -330,7 +356,7 @@ if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventLis
 <script>
 {
 const $=id=>document.getElementById(id);
-const DEF={P:300000,rate:6,T:40,freq:12,s:550,mode:'change',dens:'quarterly',cap:1,labels:true,fill:true,beyond:true,off:0,lump:0,lumpY:5,upper:'even',term:30,rec:0,recFrom:0,recTo:0,top:0};
+const DEF={P:300000,rate:6,T:40,freq:12,s:550,mode:'change',dens:'quarterly',cap:1,labels:true,fill:true,beyond:true,off:0,lump:0,lumpY:5,upper:'even',term:30,rec:0,recFrom:0,recTo:0,top:0,lumps:[],rates:[],rateMode:'payment'};
 let S={...DEF},saved=false,showC=false;
 try{const v=JSON.parse(localStorage.getItem('loanGraph.v2'));if(v){S={...DEF,...v};saved=true}}catch(e){}
 S.T=Math.min(40,S.T);
@@ -356,20 +382,27 @@ function exitN(p){
   if(!OFF()){const r=rr();return -Math.log(1-S.P*r/p)/Math.log(1+r)}
   let B=S.P;for(let k=1;k<=200*S.freq;k++){const nb=step(B,p);if(nb<=0)return k-1+B/(B-nb);B=nb}return Infinity}
 /* follow YOUR loan exactly, period by period, for up to 100 years */
-function run(p,withExtra){
+const hasEx=()=>S.lump>0||S.rec>0||S.top>0||(S.lumps||[]).some(l=>l.a>0);
+const rateList=()=>(S.rates||[]).filter(c=>c.y>0&&c.r>0).map(c=>[Math.round(c.y*S.freq),c.r/100/S.freq,c]).sort((a,b)=>a[0]-b[0]);
+const hasRates=()=>rateList().length>0;
+function run(p,withExtra,withRates=withExtra){
   const Tp=TP(),tol=S.P*1e-7,xk=withExtra&&S.lump>0?Math.round(S.lumpY*S.freq):-1;
+  const LS=new Map();if(withExtra)(S.lumps||[]).forEach(l=>{if(l.a>0){const k=Math.max(0,Math.round((l.y||0)*S.freq));LS.set(k,(LS.get(k)||0)+l.a)}});
+  const RC=withRates?rateList():[],base=RC.length&&S.rateMode==='term'?run(p,withExtra,false):null,Nb=base&&base.paid!==null?base.paid:null;
+  let r=rr(),pp=p,ci=0;const pchg=[];
   const rec=withExtra?(S.rec||0):0,rf=(S.recFrom||0)*S.freq,rt=S.recTo>0?S.recTo*S.freq:Infinity,top=withExtra?(S.top||0)*12/S.freq:0;
   let B=S.P,int=0,paid=null,dbl=null,atT=null,tot=0,totT=null;const pts=[[0,0]];
-  if(xk===0){const x=Math.min(B,S.lump);B-=x;tot+=x;pts.push([0,B-S.P])}
+  if(xk===0||LS.has(0)){const x=Math.min(B,(xk===0?S.lump:0)+(LS.get(0)||0));B-=x;tot+=x;pts.push([0,B-S.P])}
   if(B<=tol)paid=0;
   for(let k=1;k<=100*S.freq&&paid===null;k++){
-    const off=OFF()+top*(k-1),i=rr()*Math.max(0,B-off);int+=i;
-    const pay=p+(k-1>=rf&&k-1<rt?rec:0)+(k===xk?S.lump:0);let nb=B+i-pay;tot+=Math.min(pay,B+i);
+    while(ci<RC.length&&RC[ci][0]<=k-1){const nr=RC[ci][1];if(Nb!==null){const n=Nb-(k-1);if(n>0){const A=x=>x>0?x/(1-Math.pow(1+x,-n)):1/n;pp=pp*A(nr)/A(r)}}r=nr;pchg.push([k-1,pp,RC[ci][2].r]);ci++}
+    const off=OFF()+top*(k-1),i=r*Math.max(0,B-off);int+=i;
+    const pay=pp+(k-1>=rf&&k-1<rt?rec:0)+(k===xk?S.lump:0)+(LS.get(k)||0);let nb=B+i-pay;tot+=Math.min(pay,B+i);
     if(nb<=tol){paid=k;if(k-1<Tp)pts.push([k-1+B/(B-nb),-S.P]);nb=0}
     else if(k<=Tp)pts.push([k,nb-S.P]);
     if(dbl===null&&nb>=2*S.P)dbl=k;
     if(k===Tp){atT=nb;totT=tot}B=nb}
-  return{paid,int,dbl,atT:atT===null?0:atT,pts,tot,totT:totT===null?tot:totT}}
+  return{paid,int,dbl,atT:atT===null?0:atT,pts,tot,totT:totT===null?tot:totT,pchg}}
 const money=v=>(v<0?'−':'')+loanRegion.sym+Math.round(Math.abs(v)).toLocaleString(loanRegion.locale);
 const kfmt=a=>{a=Math.abs(a);return loanRegion.sym+(a>=1e6?parseFloat((a/1e6).toFixed(2))+'M':a>=1e4?Math.round(a/1e3)+'k':a>=1e3?parseFloat((a/1e3).toFixed(1))+'k':Math.round(a))};
 const ym=y=>{const m=Math.round(y*12),a=Math.floor(m/12),b=m%12;return (a?a+' yr'+(a>1?'s':''):'')+(b?(a?' ':'')+b+' mo':'')||'0 mo'};
@@ -454,9 +487,16 @@ function draw(){
 
   /* your payment */
   const p=payFromS(S.s),me0=run(p,true);G.me=me0;const me={pts:me0.pts.map(([t,v])=>[t,cl(v)])};
-  if(S.lump>0||S.rec>0||S.top>0){const gh=run(p,false).pts.map(([t,v])=>[t,cl(v)]);x.setLineDash([6,5]);x.beginPath();path(gh,false,true);x.strokeStyle=ink;x.globalAlpha=.55;x.lineWidth=2;x.stroke();x.globalAlpha=1;x.setLineDash([])}
+  if(hasEx()){const gh=run(p,false,true).pts.map(([t,v])=>[t,cl(v)]);x.setLineDash([6,5]);x.beginPath();path(gh,false,true);x.strokeStyle=ink;x.globalAlpha=.55;x.lineWidth=2;x.stroke();x.globalAlpha=1;x.setLineDash([])}
   x.beginPath();path(me.pts,false,true);x.strokeStyle=panel;x.lineWidth=7;x.stroke();x.strokeStyle=ink;x.lineWidth=3;x.stroke();
   const[lt,lv]=me.pts[me.pts.length-1];x.beginPath();x.arc(X(lt),Y(lv),5.5,0,7);x.fillStyle=ink;x.fill();x.strokeStyle=panel;x.lineWidth=2;x.stroke();
+  /* rate-change markers */
+  {let prev=S.rate;x.font=font(narrow?10.5:12);x.textAlign='left';x.textBaseline='top';
+   for(const[k,,c]of rateList()){if(k>Tp)continue;const xx=Math.round(X(k))+.5;x.setLineDash([3,4]);x.strokeStyle=mute;x.lineWidth=1;x.beginPath();x.moveTo(xx,Tm);x.lineTo(xx,Tm+ph);x.stroke();x.setLineDash([]);
+     const lab=(c.r>prev?'▲ ':'▼ ')+c.r+'%';const w=x.measureText(lab).width+10,lx=Math.min(xx+3,L+pw-w);x.fillStyle=panel;x.globalAlpha=.85;const ly=Tm+ph-(narrow?20:23);x.fillRect(lx,ly,w,narrow?16:18);x.globalAlpha=1;x.fillStyle=c.r>prev?'#d1342f':'#15803d';x.fillText(lab,lx+5,ly+2);prev=c.r}}
+  /* one-off repayment markers on your line */
+  {const ks=[];if(S.lump>0)ks.push(Math.round(S.lumpY*S.freq));(S.lumps||[]).forEach(l=>{if(l.a>0)ks.push(Math.round((l.y||0)*S.freq))});
+   for(const k of ks){if(k>lt||k>Tp)continue;let v=me.pts[0][1];for(const[t,val]of me.pts){if(t<=k)v=val;else break}x.beginPath();x.arc(X(k),Y(v),4.5,0,7);x.fillStyle='#15803d';x.fill();x.strokeStyle=panel;x.lineWidth=2;x.stroke()}}
   x.restore();
   x.beginPath();x.moveTo(X(0),Math.round(Y(-P))-.5);x.lineTo(X(Tp),Math.round(Y(-P))-.5);x.strokeStyle=ink;x.lineWidth=1.2;x.stroke();
 
@@ -481,7 +521,7 @@ const PER=new Proxy({52:'week',26:'fortnight',12:'month',4:'quarter',2:'half-yea
 const pct=v=>parseFloat(v.toFixed(v<0.1?4:3))+'%';
 function rateSplit(){$('rateSplit').innerHTML='Periodic rate: <b>'+pct(S.rate/S.freq)+' a '+PER[S.freq]+'</b> (yearly rate ÷ '+S.freq+' payment'+(S.freq>1?'s':'')+' a year)<br>Daily rate: '+pct(S.rate/365)+' a day (yearly rate ÷ 365)'}
 function stats(){rateSplit();
-  const I=IO(),p=payFromS(S.s),f=FL[S.freq],R=run(p,true),EX=S.lump>0||S.rec>0||S.top>0,frozen=Math.abs(p-I)<=I*5e-4&&!EX;
+  const I=IO(),p=payFromS(S.s),f=FL[S.freq],R=run(p,true),EX=hasEx(),frozen=Math.abs(p-I)<=I*5e-4&&!EX;
   const put=(o,l,v)=>{$('sOut').textContent=o;$('sIntL').textContent=l;$('sInt').textContent=v};
   $('sEq').textContent=money(I)+'/'+f;$('sPay').textContent=money(p)+'/'+f;
   if(frozen)put('Balance frozen','Interest each year, forever',money(I*S.freq));
@@ -498,11 +538,19 @@ function stats(){rateSplit();
     if(Math.abs(dI)<1&&Math.abs(dT)<1/24){$('sStd').textContent='Same';$('sStdN').textContent='this is the standard payment'}
     else{$('sStd').textContent=(dI>=0?'Saves ':'Costs ')+money(Math.abs(dI));$('sStdN').textContent=(dT>=0?ym(dT)+' sooner':ym(-dT)+' longer')+' · standard '+money(pStd)+'/'+f}}
   const box=$('sLumpBox');box.hidden=!EX;
-  if(EX){const R0=run(p,false);let t;
+  if(EX){const R0=run(p,false,true);let t;
     if(R.paid!==null&&R0.paid!==null)t=money(R0.int-R.int)+' less interest, '+ym((R0.paid-R.paid)/S.freq)+' sooner';
     else if(R.paid!==null)t='Turns it into a payoff: '+ym(R.paid/S.freq);
     else t=money(R0.atT-R.atT)+' less owed at year '+S.T;
     $('sLump').textContent=t}
+  const RB=$('sRateBox'),HR=hasRates();RB.hidden=!HR;
+  if(HR){const Rn=run(p,true,false),dI=R.int-Rn.int;let t='',n='';
+    const when=R.paid!==null&&Rn.paid!==null?R.paid-Rn.paid:null;
+    t=(dI>=0?'+':'−')+money(Math.abs(dI))+' interest';
+    if(S.rateMode==='payment'){if(when===null)t+=R.paid===null?' · no longer paid off':'';else if(Math.abs(when)>=1)t+=' · paid off '+ym(Math.abs(when)/S.freq)+(when>0?' later':' sooner');else t+=' · same payoff date'}
+    else{const last=R.pchg.length?R.pchg[R.pchg.length-1][1]:p;t+=' · payment '+money(p)+' → '+money(last)+'/'+f}
+    n=R.pchg.map(([k,pp,rt])=>rt+'% after '+ym(k/S.freq)+(S.rateMode==='term'?' ('+money(pp)+'/'+f+')':'')).join(' · ');
+    $('sRate').textContent=t;$('sRateN').textContent=n}
 }
 
 function sync(){
@@ -512,7 +560,7 @@ function sync(){
   $('offR').max=Math.round(S.P*.95);set('offR',OFF());set('offN',grp(OFF()));$('lumpR').max=S.P;set('lumpR',S.lump);set('lumpN',grp(S.lump));$('lumpYR').max=S.T;set('lumpYR',S.lumpY);$('lumpYO').textContent=S.lumpY===0?'at the start':'after '+ym(S.lumpY);
   $('termO').textContent=S.T+' years';set('termLR',S.term);set('termN',S.term);
   const pS=exitPay(S.term*S.freq);$('recR').max=Math.max(500,Math.round(pS/50)*50);set('recR',S.rec);set('recN',grp(S.rec));set('recFrom',S.recFrom);set('recTo',S.recTo);set('topR',S.top);set('topN',grp(S.top));
-  ticks();
+  ticks();lists();
   const isC=showC||!PRESET.includes(S.freq);$('freqCBox').hidden=!isC;$('freqCHint').hidden=!(isC&&S.freq===13);set('freqC',S.freq);
   document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>{const on=g.dataset.k==='freq'?(isC?b.dataset.v==='custom':String(S.freq)===b.dataset.v):String(S[g.dataset.k])===b.dataset.v;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)}));
   $('labels').checked=S.labels;$('fill').checked=S.fill;$('beyond').checked=S.beyond;
@@ -544,6 +592,20 @@ $('freqC').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur()});
 $('offR').addEventListener('input',e=>{S.off=+e.target.value;update()});
 $('offN').addEventListener('input',e=>{const v=num(e.target.value,0,1e9,null);if(v!==null){S.off=v;update()}});
 $('lumpR').addEventListener('input',e=>{S.lump=+e.target.value;update()});
+/* editable lists: more one-offs and rate changes */
+let listSig='';
+function lists(force){
+  const sig=JSON.stringify([S.lumps,S.rates]);if(!force&&sig===listSig)return;
+  const a=document.activeElement;if(!force&&a&&(a.closest('#lumpList')||a.closest('#rateList')))return;listSig=sig;
+  $('lumpList').innerHTML=(S.lumps||[]).map((l,i)=>'<div class="lrow"><span class="unit pre"><i>'+loanRegion.sym+'</i><input type="text" inputmode="numeric" data-l="'+i+'" data-f="a" value="'+(l.a?grp(l.a):'')+'" aria-label="Amount" placeholder="Amount"></span><label>after <input type="number" inputmode="decimal" min="0" max="40" step="0.25" data-l="'+i+'" data-f="y" value="'+l.y+'" aria-label="Paid after how many years"> yrs</label><button type="button" class="xRow" data-l="'+i+'" aria-label="Remove">✕</button></div>').join('');
+  $('rateList').innerHTML=(S.rates||[]).map((c,i)=>'<div class="lrow"><label>after <input type="number" inputmode="decimal" min="0.25" max="40" step="0.25" data-r="'+i+'" data-f="y" value="'+c.y+'" aria-label="After how many years"> yrs</label><span class="unit post"><input type="number" inputmode="decimal" min="0.1" max="25" step="0.05" data-r="'+i+'" data-f="r" value="'+c.r+'" aria-label="New rate"><i>%</i></span><button type="button" class="xRow" data-r="'+i+'" aria-label="Remove">✕</button></div>').join('');
+  $('rateModeBox').hidden=!(S.rates||[]).length}
+$('addLump').addEventListener('click',()=>{burstT=0;S.lumps=[...(S.lumps||[]),{a:5000,y:Math.min(S.T,(S.lumps||[]).length+2)}];lists(true);update();const ins=$('lumpList').querySelectorAll('input[data-f=a]');ins[ins.length-1].focus()});
+$('addRate').addEventListener('click',()=>{burstT=0;const rs=S.rates||[],lastR=rs.length?rs[rs.length-1].r:S.rate,lastY=rs.length?rs[rs.length-1].y:0;S.rates=[...rs,{y:Math.min(S.T,lastY+1),r:Math.round((lastR+0.25)*100)/100}];lists(true);update()});
+for(const id of['lumpList','rateList'])$(id).addEventListener('input',e=>{const t=e.target,isL=t.dataset.l!==undefined,i=+(isL?t.dataset.l:t.dataset.r),f=t.dataset.f;
+  const v=f==='a'?num(t.value,0,1e9,0):num(t.value,0,f==='r'?25:100,0);const arr=isL?[...S.lumps]:[...S.rates];arr[i]={...arr[i],[f]:v};if(isL)S.lumps=arr;else S.rates=arr;listSig=JSON.stringify([S.lumps,S.rates]);update()});
+for(const id of['lumpList','rateList'])$(id).addEventListener('click',e=>{const b=e.target.closest('.xRow');if(!b)return;burstT=0;if(b.dataset.l!==undefined)S.lumps=S.lumps.filter((_,j)=>j!==+b.dataset.l);else S.rates=S.rates.filter((_,j)=>j!==+b.dataset.r);lists(true);update()});
+for(const id of['lumpList','rateList'])$(id).addEventListener('focusout',()=>setTimeout(()=>lists(),0));
 $('lumpN').addEventListener('input',e=>{const v=num(e.target.value,0,1e9,null);if(v!==null){S.lump=v;update()}});
 $('lumpYR').addEventListener('input',e=>{S.lumpY=+e.target.value;update()});
 $('termLR').addEventListener('input',e=>{S.term=+e.target.value;update()});
@@ -630,7 +692,7 @@ update();
   lock.addEventListener('click',e=>{e.stopPropagation();unlocked=!unlocked;paint();if(unlocked){arm();if(typeof pin!=='undefined'){pin=null;hide()}}});
   function exitAt(p){const R=run(p,true);if(R.paid===null)return Infinity;const l=R.pts[R.pts.length-1];return l[1]<=-S.P+1e-6?l[0]:R.paid}
   function solve(n){
-    if(!(S.lump>0||S.rec>0||S.top>0))return exitPay(n);
+    if(!(hasEx()||hasRates()))return exitPay(n);
     if(exitAt(0)<=n)return 0;let lo=0,hi=S.P*(1+rr())+1;
     for(let i=0;i<50;i++){const m=(lo+hi)/2;if(exitAt(m)<=n)hi=m;else lo=m}return hi}
   function target(px,py){
