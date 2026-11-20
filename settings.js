@@ -91,7 +91,7 @@
         return}
       if(e.target.closest('.set-reset')){
         const s=get(),cty=s.country;delete s.scheme;delete s.country;put(s);
-        loanTheme.setScheme('indigo');loanTheme.set('auto');frames({loanSettings:1});
+        loanTheme.setScheme('indigo');loanTheme.set('dark');frames({loanSettings:1});
         if(cty&&cty!=='AU'){frames({loan:'reloadAll'});sessionStorage.setItem('loanSettingsOpen','1');location.reload();return}
         sync()}
     });
