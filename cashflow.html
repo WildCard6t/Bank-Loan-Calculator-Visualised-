@@ -233,6 +233,8 @@ body{background-color:var(--bg);background-image:radial-gradient(ellipse 60% 50%
       <label class="f">Is it steady?<select data-i="reliable"><option value="1">Reliable</option><option value="0">Varies</option></select></label>
     </div>
     <p class="hint" id="varyHint"></p>
+    <p class="hint" id="payList"></p>
+    <div class="acts" style="margin:4px 0 6px"><button type="button" class="btn" id="myPay">Use my pay: every 2nd Tuesday from 24 Nov 2026</button></div>
 
     <h2 style="margin-top:18px">Safety buffer and spare money</h2>
     <label class="chk"><input type="checkbox" data-b="auto"> Use the default buffer: 2 weeks of your firm repeating pots</label>
@@ -423,6 +425,9 @@ function paintStatic(){
   document.querySelectorAll('#reward button').forEach(b=>{const on=b.dataset.v===S.settings.reward;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
   $('modeHint').textContent=mode()==='guided'?'Guided: if a change would make a firm pot miss its date, I will warn you and undo it, and valves are held to the spare income. Flexible pots can slip, and I will say which.':'Free: you can do anything. If the money runs out I will show a hint and one suggested fix, but I will not stop you.';
   $('bAmtL').hidden=S.settings.bufferAuto!==false;$('iDaysL').hidden=S.income.every!=='custom';
+  {const u=CF.upcomingPays(S,5),M=CF.MY_PAY,on=S.income.every==='fortnightly'&&S.income.next===CF.payCycleNext(M.anchor,today());
+   $('payList').textContent=u.length?'Coming paydays: '+u.map(x=>dstr(CF.parseDate(x))).join(', ')+'. After that it keeps going every '+(S.income.every==='fortnightly'?'14 days':'pay')+', forever.':'';
+   $('myPay').textContent=on?'\u2713 On your pay rhythm (every 2nd Tuesday from 24 Nov 2026)':'Use my pay: every 2nd Tuesday from 24 Nov 2026';$('myPay').classList.toggle('pri',!on)}
   $('varyHint').textContent=S.income.reliable===false?'Because your pay varies, the plan uses 85% of this amount to stay safe.':'';
 }
 function fillStatic(){
@@ -461,6 +466,7 @@ document.addEventListener('click',e=>{
   const mb=e.target.closest('#mode button');if(mb){S.settings.mode=mb.dataset.v;dismissed='';last=clone(S);save();paint(null,true);return}
   const rb=e.target.closest('#reward button');if(rb){S.settings.reward=rb.dataset.v;last=clone(S);save();paintStatic();return}
   if(e.target.id==='addPot'){const p={id:nid(),name:'New pot',price:0,due:CF.fmtISO(CF.addMonths(today(),6)),repeat:'none',priority:3,firm:false,saved:0,valveRate:null,payFreq:'pay',createdAt:now(),startSaved:0,lastDeal:null,status:'active'};S.pots.push(p);open.add(p.id);CF.reconcile(last,S,now());last=clone(S);save();paint(null,true);return}
+  if(e.target.id==='myPay'){const M=CF.MY_PAY,n=CF.payCycleNext(M.anchor,today());S.income.every='fortnightly';S.income.days=M.days;S.income.next=n;S.income.anchor=n;fillStatic();commit(true);return}
   if(e.target.id==='example'){if(confirm('Replace everything on this page with the example budget?')){S=CF.newState(today());last=clone(S);lastGood='none';open.clear();adding.clear();save();fillStatic();paint(null,true)}return}
   if(!a)return;const act=a.dataset.act;
   if(act==='edit'){if(a.closest('.vessel')){$('panel').open=true;open.add(id);renderPots();const t=document.querySelector('#pots [data-id="'+id+'"]');if(t)t.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'center'});return}
