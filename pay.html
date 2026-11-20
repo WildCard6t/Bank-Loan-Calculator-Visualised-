@@ -138,29 +138,29 @@ tr.tot td{font-weight:600}
   <div class="grid">
     <div class="side">
       <section class="card" id="inCard" aria-label="Your pay">
-        <h2>Your pay</h2>
+        <h2>Your Pay</h2>
         <div class="f">
-          <span class="lab">I'm paid by the</span>
+          <span class="lab">I'm Paid by the</span>
           <div class="seg" id="period" role="group" aria-label="Pay period"><button type="button" data-v="hour">Hour</button><button type="button" data-v="week">Week</button><button type="button" data-v="fortnight">Fortnight</button><button type="button" data-v="month">Month</button><button type="button" data-v="year">Year</button></div>
         </div>
         <div class="f">
-          <label class="lab" for="amt"><span id="amtLab">Pay before tax, per year</span></label>
+          <label class="lab" for="amt"><span id="amtLab">Pay Before Tax, per Year</span></label>
           <div class="amt"><span>$</span><input id="amt" type="text" inputmode="decimal" autocomplete="off" aria-describedby="amtLab"></div>
           <input id="amtR" type="range" aria-label="Pay amount slider">
         </div>
         <div class="f" id="hrsF" hidden>
-          <label class="lab" for="hrs">Hours per week</label>
+          <label class="lab" for="hrs">Hours per Week</label>
           <div class="hrs"><input id="hrs" type="number" min="1" max="100" step="0.5" inputmode="decimal"><span class="kept" id="hrsNote"></span></div>
         </div>
         <div class="f">
           <span class="lab">Super (12%)</span>
-          <div class="seg" id="super" role="group" aria-label="Super"><button type="button" data-v="top">On top of my pay</button><button type="button" data-v="incl">Included in it</button></div>
+          <div class="seg" id="super" role="group" aria-label="Super"><button type="button" data-v="top">On Top of My Pay</button><button type="button" data-v="incl">Included in it</button></div>
         </div>
-        <label class="tg" style="--c:var(--tax)"><span><b>Tax-free threshold</b><small>Claim it from one job only. Off for a second job.</small></span><input type="checkbox" id="tft"></label>
-        <label class="tg" style="--c:var(--med)"><span><b><span class="dot" style="--c:var(--med)"></span>Medicare levy</b><small>2%, less or none on a low income.</small></span><input type="checkbox" id="med"></label>
-        <label class="tg" style="--c:var(--help)"><span><b><span class="dot" style="--c:var(--help)"></span>HELP / study loan</b><small>HECS-HELP, VET, Apprenticeship and similar loans.</small></span><input type="checkbox" id="help"></label>
+        <label class="tg" style="--c:var(--tax)"><span><b>Tax-Free Threshold</b><small>Claim it from one job only. Off for a second job.</small></span><input type="checkbox" id="tft"></label>
+        <label class="tg" style="--c:var(--med)"><span><b><span class="dot" style="--c:var(--med)"></span>Medicare Levy</b><small>2%, less or none on a low income.</small></span><input type="checkbox" id="med"></label>
+        <label class="tg" style="--c:var(--help)"><span><b><span class="dot" style="--c:var(--help)"></span>HELP / Study Loan</b><small>HECS-HELP, VET, Apprenticeship and similar loans.</small></span><input type="checkbox" id="help"></label>
         <div class="f">
-          <span class="lab">Tax year</span>
+          <span class="lab">Tax Year</span>
           <div class="seg" id="year" role="group" aria-label="Tax year"><button type="button" data-v="2025-26">2025–26</button><button type="button" data-v="2026-27">2026–27 (now)</button></div>
         </div>
       </section>
@@ -176,14 +176,14 @@ tr.tot td{font-weight:600}
       </section>
 
       <section class="card" id="margCard" aria-label="What each dollar costs">
-        <h2>Where each dollar goes</h2>
+        <h2>Where Each Dollar Goes</h2>
         <p class="legendNote">Left to right is your yearly pay. Height is how many cents of each extra dollar go to tax. The coloured area up to your pay <b>is</b> your tax, to the cent. The green above it is what you keep.</p>
         <svg id="marg" role="img" aria-label="Tax brackets: cents taken from each dollar at every income"></svg>
         <p class="next" id="next"></p>
       </section>
 
       <section class="card" id="outCard" aria-label="Take-home pay">
-        <h2>Take-home pay</h2>
+        <h2>Take-Home Pay</h2>
         <div class="tiles4" id="t4"></div>
         <table id="tbl"></table>
         <div class="send"><button type="button" id="sendCF">Send to Cash-Flow</button><span id="sendNote"></span></div>
@@ -290,7 +290,7 @@ function sync(){
   [['period','period'],['super','superMode'],['year','year'],['show','show']].forEach(([id,k])=>$(id).querySelectorAll('button').forEach(b=>{const on=b.dataset.v===S[k];b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)}));
   const r=RANGE[S.period];Object.assign($('amtR'),{min:r[0],max:r[1],step:r[2]});$('amtR').value=S.amount;
   if(document.activeElement!==$('amt'))$('amt').value=fmtAmt(S.amount);
-  $('amtLab').textContent=(S.period==='hour'?'Hourly rate':'Pay before tax, per '+WORD[S.period])+(S.superMode==='incl'?', including super':'');
+  $('amtLab').textContent=(S.period==='hour'?'Hourly rate':'Pay Before Tax, per '+WORD[S.period])+(S.superMode==='incl'?', including super':'');
   $('hrsF').hidden=S.period!=='hour';$('hrs').value=S.hours;
   ['tft','med','help'].forEach(k=>$(k).checked=!!S[k]);
   $('ctyWarn').hidden=!window.loanRegion||loanRegion.country==='AU';
@@ -314,9 +314,9 @@ function numbers(){const c=R,k=S.show;
   $('bigTake').innerHTML=money(per(c.take,k),k!=='year')+'<small>take-home a '+WORD[k]+'</small>';
   $('kept').textContent=c.salary>0?'You keep '+Math.round(c.kept*100)+'c of every dollar on average':'Enter your pay to begin';
   $('hrsNote').textContent=S.hours?'= '+money(c.salary/52,true)+' a week':'';
-  $('t4').innerHTML=['week','fortnight','month','year'].map(p=>'<div class="t4'+(p===k?' on':'')+'"><span>Per '+p+'</span><b>'+money(per(c.take,p),p!=='year')+'</b></div>').join('');
-  const rows=[['Pay before tax',c.salary,null],['Income tax',-c.tax,'--tax'],['Medicare levy',-c.med,'--med']].concat(S.help?[['HELP repayment',-c.help,'--help']]:[]).concat([['Take-home',c.take,'--take','tot'],['Super (paid into your fund)',c.super,'--sup']]);
-  $('tbl').innerHTML='<tr><th></th><th>Per '+k+'</th>'+(k!=='year'?'<th>Per year</th>':'')+'</tr>'+rows.map(r=>'<tr class="'+(r[3]||'')+'"><td>'+(r[2]?'<span class="dot" style="--c:var('+r[2]+')"></span>':'')+r[0]+'</td><td>'+(r[1]<0?'−':'')+money(Math.abs(per(r[1],k)),k!=='year')+'</td>'+(k!=='year'?'<td>'+(r[1]<0?'−':'')+money(Math.abs(r[1]))+'</td>':'')+'</tr>').join('');
+  $('t4').innerHTML=['week','fortnight','month','year'].map(p=>'<div class="t4'+(p===k?' on':'')+'"><span>Per '+p.charAt(0).toUpperCase()+p.slice(1)+'</span><b>'+money(per(c.take,p),p!=='year')+'</b></div>').join('');
+  const rows=[['Pay Before Tax',c.salary,null],['Income Tax',-c.tax,'--tax'],['Medicare Levy',-c.med,'--med']].concat(S.help?[['HELP repayment',-c.help,'--help']]:[]).concat([['Take-Home',c.take,'--take','tot'],['Super (Paid into Your Fund)',c.super,'--sup']]);
+  $('tbl').innerHTML='<tr><th></th><th>Per '+k+'</th>'+(k!=='year'?'<th>Per Year</th>':'')+'</tr>'+rows.map(r=>'<tr class="'+(r[3]||'')+'"><td>'+(r[2]?'<span class="dot" style="--c:var('+r[2]+')"></span>':'')+r[0]+'</td><td>'+(r[1]<0?'−':'')+money(Math.abs(per(r[1],k)),k!=='year')+'</td>'+(k!=='year'?'<td>'+(r[1]<0?'−':'')+money(Math.abs(r[1]))+'</td>':'')+'</tr>').join('');
   const ev=cfEvery();$('sendCF').textContent='Send '+money(per(c.take,ev.k),true)+' a '+ev.k+' to Cash-Flow';
   $('sendNote').textContent='Sets your Cash-Flow income to this take-home, paid '+ev.v+'.';
   const m=nextDollar();$('next').innerHTML=c.salary>0?'Your next dollar: <b style="color:var(--tax)">'+m.tax+'c</b> income tax'+(S.med?', <b style="color:var(--med)">'+m.med+'c</b> Medicare':'')+(S.help?', <b style="color:var(--help)">'+m.help+'c</b> HELP':'')+'. <b style="color:var(--take)">You keep '+(100-m.tax-m.med-m.help)+'c.</b>':'';
@@ -326,7 +326,7 @@ function cfEvery(){const k=S.show==='year'?'fortnight':S.show;return {k,v:{week:
 $('sendCF').addEventListener('click',()=>{const ev=cfEvery(),cents=Math.round(per(R.take,ev.k)*100);if(!(cents>0))return;location.href='cashflow.html?pay='+cents+'&every='+ev.v});
 
 /* ---------- picture 1: the flow. Your pay is one glowing bar that splits into bands; band height = dollars ---------- */
-const SL=[['take','Take-home','--take'],['tax','Income tax','--tax'],['med','Medicare','--med'],['help','HELP','--help'],['super','Super','--sup']];
+const SL=[['take','Take-Home','--take'],['tax','Income Tax','--tax'],['med','Medicare','--med'],['help','HELP','--help'],['super','Super','--sup']];
 const NS='http://www.w3.org/2000/svg';
 function drawFlow(){const svg=$('flow'),W=svg.clientWidth||600,phone=W<520,k=S.show;
   const items=SL.filter(s=>s[0]!=='help'||S.help).map(s=>({k:s[0],name:s[1],col:css(s[2]),v:Math.max(0,cur[s[0]])}));

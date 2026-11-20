@@ -192,7 +192,7 @@ body{background-color:var(--bg);background-image:radial-gradient(ellipse 60% 50%
 <div class="wrap">
   <a class="homeL" href="index.html" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Finance Visualised</span></a>
   <div id="topSw"><a href="graph.html">Loan Graph</a><a href="tracker.html">Loan Tracker</a><a href="compound.html">Compound Growth</a><button id="setSw" type="button" title="Colours, layout and country" onclick="window.loanSettings&&loanSettings.open()">⚙ Settings</button><button id="devSw" type="button" aria-haspopup="true" aria-expanded="false" title="Choose how the page is laid out"></button></div>
-  <div class="boardHead"><div><h1>Cash-Flow board</h1>
+  <div class="boardHead"><div><h1>Cash-Flow Board</h1>
   <p class="sub">Pin pieces where you like. Bigger reservoirs for bigger goals. Money flows in on payday, and the valve on each one sets how much it gets.</p></div>
   <div class="boardStat"><span id="flow"></span><div class="chip" id="chip" aria-live="polite"></div></div></div>
   <div class="bar2"><span></span>
@@ -201,12 +201,12 @@ body{background-color:var(--bg);background-image:radial-gradient(ellipse 60% 50%
 
   <div class="board">
     <aside class="side">
-      <div class="card"><div class="k">Next payday</div><div class="payDate" id="nextPay"></div><div class="payBig" id="spareBig"></div></div>
-      <div class="card"><div class="wTop"><b>Wish list</b><button type="button" data-act="newWish" aria-label="Add a wish" title="Add a wish">+</button></div>
+      <div class="card"><div class="k">Next Payday</div><div class="payDate" id="nextPay"></div><div class="payBig" id="spareBig"></div></div>
+      <div class="card"><div class="wTop"><b>Wish List</b><button type="button" data-act="newWish" aria-label="Add a wish" title="Add a wish">+</button></div>
         <div id="wishes"></div>
         <button type="button" class="wAdd" data-act="newWish">+ Add a wish: name, cost, needed by, how flexible</button>
         <div class="k">Plan for</div>
-        <div class="seg" id="planFor" role="group" aria-label="Plan for"><button type="button" data-v="cheap">Cheapest route</button><button type="button" data-v="emergency">Emergency</button></div>
+        <div class="seg" id="planFor" role="group" aria-label="Plan for"><button type="button" data-v="cheap">Cheapest Route</button><button type="button" data-v="emergency">Emergency</button></div>
         <p class="planHint" id="planHint"></p></div>
     </aside>
     <div class="card hero">
@@ -217,35 +217,37 @@ body{background-color:var(--bg);background-image:radial-gradient(ellipse 60% 50%
 
   <div class="card" id="shelfCard" hidden><h2>Achieved</h2><div id="shelf"></div></div>
 
-  <details class="card" id="panel"><summary>Inputs, list and numbers</summary>
+  <details class="card" id="panel"><summary>Inputs, List and Numbers</summary>
     <div class="verdict" id="verdict" aria-live="polite" style="margin-top:14px"></div>
-    <h2>Pots, in order of priority</h2>
+    <h2>Pots, in Order of Priority</h2>
     <p class="hint" style="margin:0 0 6px">A pot is anything you need money for: a bill, a goal, a holiday. A bill is just a firm pot that repeats. Tap + Add to move money into or out of a pot yourself.</p>
     <div id="pots"></div>
-    <div class="acts" style="margin:10px 0 18px"><button type="button" class="btn pri" id="addPot">+ New pot</button><button type="button" class="btn" id="example">Reset to the example budget</button></div>
+    <div class="acts" style="margin:10px 0 18px"><button type="button" class="btn pri" id="addPot">+ New Pot</button><button type="button" class="btn" id="example">Reset to the Example Budget</button></div>
 
     <h2>Income</h2>
     <div class="grid">
-      <label class="f">Amount each pay<input type="number" inputmode="decimal" step="0.01" min="0" data-i="amount"></label>
-      <label class="f">How often<select data-i="every"><option value="weekly">Weekly</option><option value="fortnightly">Fortnightly</option><option value="monthly">Monthly</option><option value="custom">Every … days</option></select></label>
-      <label class="f" id="iDaysL" hidden>Days between pays<input type="number" inputmode="numeric" min="1" max="365" data-i="days"></label>
-      <label class="f">Next payday<input type="date" data-i="next"></label>
+      <label class="f">Amount Each Pay<input type="number" inputmode="decimal" step="0.01" min="0" data-i="amount"></label>
+      <label class="f">How Often<select data-i="every"><option value="weekly">Weekly</option><option value="fortnightly">Fortnightly</option><option value="monthly">Monthly</option><option value="custom">Every … Days</option></select></label>
+      <label class="f" id="iDaysL" hidden>Days Between Pays<input type="number" inputmode="numeric" min="1" max="365" data-i="days"></label>
+      <label class="f">Next Payday<input type="date" data-i="next"></label>
       <label class="f">Is it steady?<select data-i="reliable"><option value="1">Reliable</option><option value="0">Varies</option></select></label>
     </div>
     <p class="hint" id="varyHint"></p>
+    <p class="hint" id="payList"></p>
+    <div class="acts" style="margin:4px 0 6px"><button type="button" class="btn" id="myPay">Use my pay: every 2nd Tuesday from 24 Nov 2026</button></div>
 
-    <h2 style="margin-top:18px">Safety buffer and spare money</h2>
+    <h2 style="margin-top:18px">Safety Buffer and Spare Money</h2>
     <label class="chk"><input type="checkbox" data-b="auto"> Use the default buffer: 2 weeks of your firm repeating pots</label>
-    <div class="grid"><label class="f" id="bAmtL">Buffer target<input type="number" inputmode="decimal" step="0.01" min="0" data-b="amount"></label>
-      <label class="f">Already in the buffer<input type="number" inputmode="decimal" step="0.01" min="0" data-b="saved"></label>
-      <label class="f">Unassigned money now<input type="number" inputmode="decimal" step="0.01" data-b="spare"></label></div>
+    <div class="grid"><label class="f" id="bAmtL">Buffer Target<input type="number" inputmode="decimal" step="0.01" min="0" data-b="amount"></label>
+      <label class="f">Already in the Buffer<input type="number" inputmode="decimal" step="0.01" min="0" data-b="saved"></label>
+      <label class="f">Unassigned Money Now<input type="number" inputmode="decimal" step="0.01" data-b="spare"></label></div>
     <p class="hint" id="bHint"></p>
 
-    <h2 style="margin-top:18px">Harvest effect</h2>
+    <h2 style="margin-top:18px">Harvest Effect</h2>
     <div class="seg" id="reward" role="group" aria-label="Harvest effect"><button type="button" data-v="subtle">Subtle</button><button type="button" data-v="celebratory">Celebratory</button></div>
 
-    <h2 style="margin-top:18px">The numbers</h2><div class="tot" id="tot"></div>
-    <h2 style="margin-top:18px">Pot by pot</h2><div class="tw"><table><thead><tr><th>Pot</th><th class="n">Still needed</th><th>Due</th><th class="n">Set aside each pay</th><th>Full on</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    <h2 style="margin-top:18px">The Numbers</h2><div class="tot" id="tot"></div>
+    <h2 style="margin-top:18px">Pot by Pot</h2><div class="tw"><table><thead><tr><th>Pot</th><th class="n">Still Needed</th><th>Due</th><th class="n">Set Aside Each Pay</th><th>Full on</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
     <h2 style="margin-top:18px">History</h2><div class="tw"><table><tbody id="hist"></tbody></table></div>
     <p class="hint" id="modeHint"></p>
   </details>
@@ -264,7 +266,7 @@ const dstr=d=>d==null?'not within 5 years':new Date(d*DAY).toLocaleDateString(lo
 const dollars=c=>c?(c/100).toFixed(2).replace(/\.00$/,''):'';
 const toC=v=>Math.round((parseFloat(v)||0)*100);
 const WORD={weekly:'week',fortnightly:'fortnight',monthly:'month',custom:'pay'};
-const REPS=[['none','Does not repeat'],['weekly','Weekly'],['fortnightly','Fortnightly'],['monthly','Monthly'],['quarterly','Quarterly'],['yearly','Yearly']];
+const REPS=[['none','Does Not Repeat'],['weekly','Weekly'],['fortnightly','Fortnightly'],['monthly','Monthly'],['quarterly','Quarterly'],['yearly','Yearly']];
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clone=o=>JSON.parse(JSON.stringify(o));
 const now=()=>Date.now(),today=()=>CF.localDay(now());
@@ -325,7 +327,7 @@ function vesselHTML(r,p){
     '<div class="add" hidden>'+addHTML(p)+'</div></div>';
 }
 function bufferVesselHTML(){
-  return '<div class="vessel buf" data-id="buffer"><div class="vName"><b>Safety buffer</b></div><div class="tank"><div class="liq"></div><div class="acc"></div></div><div class="vLvl"></div><div class="vLeft"></div><div class="vMeta"><span class="vSpeed"></span></div></div>';
+  return '<div class="vessel buf" data-id="buffer"><div class="vName"><b>Safety Buffer</b></div><div class="tank"><div class="liq"></div><div class="acc"></div></div><div class="vLvl"></div><div class="vLeft"></div><div class="vMeta"><span class="vSpeed"></span></div></div>';
 }
 function renderVessels(){
   const box=$('vessels');box.innerHTML='';
@@ -390,17 +392,17 @@ function editHTML(p){
   const o=(arr,v)=>arr.map(([k,n])=>'<option value="'+k+'"'+(k===v?' selected':'')+'>'+n+'</option>').join('');
   return '<div class="grid"><label class="f">Name<input type="text" data-f="name" value="'+esc(p.name)+'"></label>'+
     '<label class="f">Price<input type="number" inputmode="decimal" step="0.01" min="0" data-f="price" value="'+dollars(p.price)+'"></label>'+
-    '<label class="f">Due date<input type="date" data-f="due" value="'+esc(p.due||'')+'"></label>'+
+    '<label class="f">Due Date<input type="date" data-f="due" value="'+esc(p.due||'')+'"></label>'+
     '<label class="f">Repeats<select data-f="repeat">'+o(REPS,p.repeat||'none')+'</select></label>'+
     '<label class="f">Priority (1 = first)<select data-f="priority">'+o([1,2,3,4,5].map(n=>[n,n]),p.priority)+'</select></label>'+
-    '<label class="f">Firm or flexible<select data-f="firm"><option value="1"'+(p.firm?' selected':'')+'>Firm (must be paid on time)</option><option value="0"'+(p.firm?'':' selected')+'>Flexible (can slip)</option></select></label>'+
-    '<label class="f">Banked so far<input type="number" inputmode="decimal" step="0.01" min="0" data-f="saved" value="'+dollars(p.saved)+'"></label>'+
-    '<label class="f">Pay into it<select data-f="payFreq">'+o([['pay','Every payday'],['weekly','Weekly'],['fortnightly','Fortnightly'],['monthly','Monthly']],p.payFreq||'pay')+'</select></label></div>'+
-    '<div class="acts" style="margin-top:10px"><button type="button" class="btn del" data-act="del">Delete this pot</button></div>'}
+    '<label class="f">Firm or Flexible<select data-f="firm"><option value="1"'+(p.firm?' selected':'')+'>Firm (Must Be Paid on Time)</option><option value="0"'+(p.firm?'':' selected')+'>Flexible (Can Slip)</option></select></label>'+
+    '<label class="f">Banked So Far<input type="number" inputmode="decimal" step="0.01" min="0" data-f="saved" value="'+dollars(p.saved)+'"></label>'+
+    '<label class="f">Pay into It<select data-f="payFreq">'+o([['pay','Every Payday'],['weekly','Weekly'],['fortnightly','Fortnightly'],['monthly','Monthly']],p.payFreq||'pay')+'</select></label></div>'+
+    '<div class="acts" style="margin-top:10px"><button type="button" class="btn del" data-act="del">Delete This Pot</button></div>'}
 function addHTML(p){
   return '<div class="grid"><label class="f">Amount<input type="number" inputmode="decimal" step="0.01" min="0" data-a="amt" placeholder="0.00"></label>'+
-    '<label class="f">Direction<select data-a="dir"><option value="in">Put in</option><option value="out">Take out</option></select></label>'+
-    '<label class="f">Source<select data-a="src"><option value="spare">Unassigned money</option><option value="buffer">Buffer</option></select></label></div>'+
+    '<label class="f">Direction<select data-a="dir"><option value="in">Put in</option><option value="out">Take Out</option></select></label>'+
+    '<label class="f">Source<select data-a="src"><option value="spare">Unassigned Money</option><option value="buffer">Buffer</option></select></label></div>'+
     '<div class="acts" style="margin-top:10px"><button type="button" class="btn pri" data-act="doAdd">Go</button><button type="button" class="btn" data-act="cancelAdd">Cancel</button></div><p class="hint" data-a="msg"></p>'}
 function renderPots(){
   const box=$('pots');box.innerHTML='';
@@ -413,16 +415,19 @@ function renderNumbers(){
   document.querySelectorAll('#pots .pot').forEach(d=>{const r=res.rows.find(x=>x.id===d.dataset.id);if(r)d.querySelector('.sum').innerHTML=sumHTML(r)});
   $('tbody').innerHTML=res.rows.filter(r=>!r.invalid).map(r=>{const st=status(r);return '<tr><td>'+esc(r.name)+'</td><td class="n">'+money(r.remaining)+'</td><td>'+dstr(r.due)+'</td><td class="n">'+money(r.perPay)+' / '+perWord()+'</td><td>'+(r.repeat!=='none'?'(repeats) ':'')+dstr(r.fullOn)+'</td><td><span class="badge '+st+'">'+STX[st]+'</span></td></tr>'}).join('')||'<tr><td colspan="6">Nothing yet</td></tr>';
   const t=res.totals,w=perWord();
-  $('tot').innerHTML=t?[['Income each '+w+(t.varies?' (planned at 85%, as it varies)':''),money(t.income)],['Safety buffer top-up each '+w+' (target '+money(t.bufferTarget)+')',money(t.bufferTopUp)],['Spare after the buffer',money(t.spare)],['All pots need, each '+w,money(t.paceTotal)],['Left over each '+w,money(t.left)],['Unassigned money in hand',money(src('spare').balance)]].map(a=>'<div><span>'+a[0]+'</span><b>'+a[1]+'</b></div>').join(''):'<div><span>Enter your income to see the numbers.</span></div>';
+  $('tot').innerHTML=t?[['Income Each '+w+(t.varies?' (planned at 85%, as it varies)':''),money(t.income)],['Safety buffer top-up each '+w+' (target '+money(t.bufferTarget)+')',money(t.bufferTopUp)],['Spare After the Buffer',money(t.spare)],['All Pots Need, Each '+w,money(t.paceTotal)],['Left Over Each '+w,money(t.left)],['Unassigned Money in Hand',money(src('spare').balance)]].map(a=>'<div><span>'+a[0]+'</span><b>'+a[1]+'</b></div>').join(''):'<div><span>Enter your income to see the numbers.</span></div>';
   $('bHint').textContent=t?'Target now: '+money(t.bufferTarget)+'. It is built up over about 6 months, after your firm pots are covered. Unassigned money is income that no pot has asked for yet; "+ Add" can draw on it.':'';
   const ev=S.ledger.slice(-12).reverse();
-  $('hist').innerHTML=ev.map(e=>{const p=S.pots.find(x=>x.id===e.potId),nm=e.potId==='buffer'?'Safety buffer':e.potId==='spare'?'Unassigned money':p?p.name:'';return '<tr><td>'+new Date(e.ts).toLocaleDateString(loc(),{day:'numeric',month:'short'})+'</td><td>'+e.type+'</td><td>'+esc(nm)+'</td><td class="n">'+(e.cents?money(e.cents):'')+'</td><td>'+esc(e.note||'')+'</td></tr>'}).join('');
+  $('hist').innerHTML=ev.map(e=>{const p=S.pots.find(x=>x.id===e.potId),nm=e.potId==='buffer'?'Safety Buffer':e.potId==='spare'?'Unassigned Money':p?p.name:'';return '<tr><td>'+new Date(e.ts).toLocaleDateString(loc(),{day:'numeric',month:'short'})+'</td><td>'+e.type+'</td><td>'+esc(nm)+'</td><td class="n">'+(e.cents?money(e.cents):'')+'</td><td>'+esc(e.note||'')+'</td></tr>'}).join('');
 }
 function paintStatic(){
   document.querySelectorAll('#mode button').forEach(b=>{const on=b.dataset.v===mode();b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
   document.querySelectorAll('#reward button').forEach(b=>{const on=b.dataset.v===S.settings.reward;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
   $('modeHint').textContent=mode()==='guided'?'Guided: if a change would make a firm pot miss its date, I will warn you and undo it, and valves are held to the spare income. Flexible pots can slip, and I will say which.':'Free: you can do anything. If the money runs out I will show a hint and one suggested fix, but I will not stop you.';
   $('bAmtL').hidden=S.settings.bufferAuto!==false;$('iDaysL').hidden=S.income.every!=='custom';
+  {const u=CF.upcomingPays(S,5),M=CF.MY_PAY,on=S.income.every==='fortnightly'&&S.income.next===CF.payCycleNext(M.anchor,today());
+   $('payList').textContent=u.length?'Coming paydays: '+u.map(x=>dstr(CF.parseDate(x))).join(', ')+'. After that it keeps going every '+(S.income.every==='fortnightly'?'14 days':'pay')+', forever.':'';
+   $('myPay').textContent=on?'\u2713 On your pay rhythm (every 2nd Tuesday from 24 Nov 2026)':'Use my pay: every 2nd Tuesday from 24 Nov 2026';$('myPay').classList.toggle('pri',!on)}
   $('varyHint').textContent=S.income.reliable===false?'Because your pay varies, the plan uses 85% of this amount to stay safe.':'';
 }
 function fillStatic(){
@@ -461,6 +466,7 @@ document.addEventListener('click',e=>{
   const mb=e.target.closest('#mode button');if(mb){S.settings.mode=mb.dataset.v;dismissed='';last=clone(S);save();paint(null,true);return}
   const rb=e.target.closest('#reward button');if(rb){S.settings.reward=rb.dataset.v;last=clone(S);save();paintStatic();return}
   if(e.target.id==='addPot'){const p={id:nid(),name:'New pot',price:0,due:CF.fmtISO(CF.addMonths(today(),6)),repeat:'none',priority:3,firm:false,saved:0,valveRate:null,payFreq:'pay',createdAt:now(),startSaved:0,lastDeal:null,status:'active'};S.pots.push(p);open.add(p.id);CF.reconcile(last,S,now());last=clone(S);save();paint(null,true);return}
+  if(e.target.id==='myPay'){const M=CF.MY_PAY,n=CF.payCycleNext(M.anchor,today());S.income.every='fortnightly';S.income.days=M.days;S.income.next=n;S.income.anchor=n;fillStatic();commit(true);return}
   if(e.target.id==='example'){if(confirm('Replace everything on this page with the example budget?')){S=CF.newState(today());last=clone(S);lastGood='none';open.clear();adding.clear();save();fillStatic();paint(null,true)}return}
   if(!a)return;const act=a.dataset.act;
   if(act==='edit'){if(a.closest('.vessel')){$('panel').open=true;open.add(id);renderPots();const t=document.querySelector('#pots [data-id="'+id+'"]');if(t)t.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'center'});return}

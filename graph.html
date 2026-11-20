@@ -160,6 +160,16 @@ html[data-device=phone] #topSw a#cfSw,html[data-device=phone] #topSw a#cgSw{min-
 html.embed .wrap{padding:14px 18px 28px}
 html.embed h1{font-size:26px;margin-bottom:4px}
 html.embed .sub{font-size:14px;margin-bottom:12px}
+/* Loan Tracker: a small button pinned in the bottom-right corner (the Tracker is an add-on to this graph) */
+.trkFab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:50;display:flex;align-items:center;gap:2px;padding:4px;border-radius:99px;background:var(--panel);border:1px solid color-mix(in srgb,var(--acc) 45%,var(--line));box-shadow:0 8px 24px rgba(0,0,0,.22)}
+.trkFab a,.trkFab button{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border-radius:99px;font:inherit;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;cursor:pointer;border:0}
+.trkFab a{background:var(--acc);color:var(--acc-ink)}
+.trkFab button{background:transparent;color:var(--mute);font-size:18px;padding:0 10px}
+.trkFab a:hover{filter:brightness(1.08)}.trkFab button:hover{color:var(--ink)}
+.trkFab a:focus-visible,.trkFab button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+html[data-device=phone] .trkFab{right:12px;bottom:calc(12px + env(safe-area-inset-bottom))}
+html.embed .trkFab{display:none}
+body{padding-bottom:64px}
 html.embed nav,html.embed .go .goTxt,html.embed .go a{display:none}
 html.embed .go{display:none!important}
 html.embed .go button{min-height:42px;font-size:15px}
@@ -242,93 +252,93 @@ html[data-device=phone] .nodeEd.min{position:fixed;left:auto!important;right:12p
 <body>
 <div class="wrap">
   <a class="homeL" href="index.html" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Finance Visualised</span></a>
-  <h1>Every path out of a loan</h1>
+  <h1>Every Path Out of a Loan</h1>
   <p class="sub">Each line is one repayment amount. Above the yellow spine the debt grows. Below it the loan is paid off, and each line ends at its exit year. Turn the knobs and the whole picture redraws.</p>
-  <div class="go"><span class="goTxt"><b>Track your real loan</b>Log your repayments and see where you are against every path.</span><a href="tracker.html">Go to the Loan Tracker →</a><button id="toTracker" title="Copies this loan into a new Tracker profile">Bring this loan with me</button></div>
+  <div class="trkFab" role="group" aria-label="Loan Tracker"><a href="tracker.html" title="Log your real repayments and see where you are against every path">📒 Tracker</a><button id="toTracker" type="button" title="Copies this loan into a new Tracker profile" aria-label="Bring this loan into the Tracker">＋</button></div>
 
   <div class="stats">
-    <div class="stat"><span>Equalised payment</span><b id="sEq">–</b></div>
-    <div class="stat"><span>Your payment</span><b id="sPay">–</b></div>
+    <div class="stat"><span>Equalised Payment</span><b id="sEq">–</b></div>
+    <div class="stat"><span>Your Payment</span><b id="sPay">–</b></div>
     <div class="stat"><span>Outcome</span><b id="sOut">–</b></div>
     <div class="stat"><span id="sIntL">Interest</span><b id="sInt">–</b></div>
-    <div class="stat"><span id="sTotL">Total paid</span><b id="sTot">–</b><small id="sTotN"></small></div>
+    <div class="stat"><span id="sTotL">Total Paid</span><b id="sTot">–</b><small id="sTotN"></small></div>
     <div class="stat"><span id="sStdL">vs standard loan</span><b id="sStd">–</b><small id="sStdN"></small></div>
-    <div class="stat wide good" id="sOffBox" hidden><span>Your offset saves</span><b id="sOffS">–</b><small id="sOffSN"></small></div>
-    <div class="stat wide" id="sLumpBox" hidden><span>Your extras save</span><b id="sLump">–</b></div>
-    <div class="stat wide" id="sRateBox" hidden><span>Rate changes</span><b id="sRate">–</b><small id="sRateN"></small></div>
+    <div class="stat wide good" id="sOffBox" hidden><span>Your Offset Saves</span><b id="sOffS">–</b><small id="sOffSN"></small></div>
+    <div class="stat wide" id="sLumpBox" hidden><span>Your Extras Save</span><b id="sLump">–</b></div>
+    <div class="stat wide" id="sRateBox" hidden><span>Rate Changes</span><b id="sRate">–</b><small id="sRateN"></small></div>
   </div>
 
   <div class="main">
     <aside>
       <div class="ctl">
-        <label for="loanN">Principal (loan amount)</label>
+        <label for="loanN">Principal (Loan Amount)</label>
         <div class="row"><input type="range" id="loanR" min="10000" max="2000000" step="5000"><span class="unit pre"><i>$</i><input type="text" id="loanN" inputmode="numeric" autocomplete="off"></span></div>
       </div>
       <div class="ctl">
-        <label for="rateN">Interest rate (% a year)</label>
+        <label for="rateN">Interest Rate (% a Year)</label>
         <div class="row"><input type="range" id="rateR" min="0.25" max="15" step="0.05"><span class="unit post"><input type="number" id="rateN" min="0.25" max="25" step="0.05" inputmode="decimal"><i>%</i></span></div>
         <p class="hint" id="rateSplit"></p>
       </div>
       <div class="ctl">
-        <label for="payN"><span>Your payment</span><span id="payHint"></span></label>
+        <label for="payN"><span>Your Payment</span><span id="payHint"></span></label>
         <div class="row"><input type="range" id="payR" min="0" max="1000" step="0.1"><span class="unit pre"><i>$</i><input type="text" id="payN" inputmode="numeric" autocomplete="off"></span></div>
         <div class="ticks" id="payTicks"></div>
       </div>
       <div class="ctl">
-        <label for="termN"><span>Loan term</span><span>sets the standard payment</span></label>
+        <label for="termN"><span>Loan Term</span><span>sets the standard payment</span></label>
         <div class="row"><input type="range" id="termLR" min="1" max="40" step="1"><span class="unit post"><input type="number" id="termN" min="1" max="40" step="1" inputmode="numeric"><i>yrs</i></span></div>
       </div>
-      <div class="ctl"><div class="lab">Payment frequency</div>
-        <div class="seg eight" data-k="freq"><button data-v="365">Daily</button><button data-v="52">Weekly</button><button data-v="26">Fortnightly</button><button data-v="12">Monthly</button><button data-v="4">Quarterly</button><button data-v="2">Half-yearly</button><button data-v="1">Yearly</button><button data-v="custom">Custom</button></div>
-          <div class="ctl" id="freqCBox" hidden><label for="freqC"><span>Custom: payments per year</span><span>1–365</span></label><input type="number" id="freqC" style="width:100%" min="1" max="365" step="1" inputmode="numeric"></div>
+      <div class="ctl"><div class="lab">Payment Frequency</div>
+        <div class="seg eight" data-k="freq"><button data-v="365">Daily</button><button data-v="52">Weekly</button><button data-v="26">Fortnightly</button><button data-v="12">Monthly</button><button data-v="4">Quarterly</button><button data-v="2">Half-Yearly</button><button data-v="1">Yearly</button><button data-v="custom">Custom</button></div>
+          <div class="ctl" id="freqCBox" hidden><label for="freqC"><span>Custom: Payments per Year</span><span>1–365</span></label><input type="number" id="freqC" style="width:100%" min="1" max="365" step="1" inputmode="numeric"></div>
           <p class="hint" id="freqCHint" hidden>13 a year is a payment about every 4 weeks. Tip: paying half your monthly amount every fortnight works out the same as 13 monthly payments a year. Choose Fortnightly for that.</p>
       </div>
 
       <div class="grp">
-        <h2>Real world</h2>
+        <h2>Real World</h2>
         <div class="ctl">
-          <label for="offN">Offset or savings balance</label>
+          <label for="offN">Offset or Savings Balance</label>
           <div class="row"><input type="range" id="offR" min="0" step="1000"><span class="unit pre"><i>$</i><input type="text" id="offN" inputmode="numeric" autocomplete="off"></span></div>
         </div>
         <div class="ctl">
-          <label for="lumpN">One-off extra repayment</label>
+          <label for="lumpN">One-Off Extra Repayment</label>
           <div class="row"><input type="range" id="lumpR" min="0" step="1000"><span class="unit pre"><i>$</i><input type="text" id="lumpN" inputmode="numeric" autocomplete="off"></span></div>
         </div>
         <div class="ctl">
           <label for="lumpYR"><span>Paid</span><span id="lumpYO"></span></label>
           <input type="range" id="lumpYR" min="0" step="0.25" style="width:100%">
         </div>
-        <div class="ctl"><div class="lab"><span>More one-off repayments</span><span>e.g. a tax refund or bonus</span></div>
+        <div class="ctl"><div class="lab"><span>More One-Off Repayments</span><span>e.g. a tax refund or bonus</span></div>
           <div class="list" id="lumpList"></div>
-          <button type="button" class="addRow" id="addLump">+ Add a one-off repayment</button>
+          <button type="button" class="addRow" id="addLump">+ Add a One-Off Repayment</button>
         </div>
         <div class="ctl">
-          <label for="recN"><span>Regular extra repayment</span><span>added to every payment</span></label>
+          <label for="recN"><span>Regular Extra Repayment</span><span>added to every payment</span></label>
           <div class="row"><input type="range" id="recR" min="0" step="10"><span class="unit pre"><i>$</i><input type="text" id="recN" inputmode="numeric" autocomplete="off"></span></div>
         </div>
         <div class="two">
-          <div class="ctl"><label for="recFrom">From year</label><input type="number" id="recFrom" min="0" max="40" step="0.25" inputmode="decimal"></div>
+          <div class="ctl"><label for="recFrom">From Year</label><input type="number" id="recFrom" min="0" max="40" step="0.25" inputmode="decimal"></div>
           <div class="ctl"><label for="recTo">Until year (0 = to the end)</label><input type="number" id="recTo" min="0" max="100" step="0.25" inputmode="decimal"></div>
         </div>
         <div class="ctl">
-          <label for="topN"><span>Added to offset each month</span></label>
+          <label for="topN"><span>Added to Offset Each Month</span></label>
           <div class="row"><input type="range" id="topR" min="0" max="5000" step="50"><span class="unit pre"><i>$</i><input type="text" id="topN" inputmode="numeric" autocomplete="off"></span></div>
         </div>
         <p class="hint">The starting offset cuts the interest on every line. Monthly top-ups and extra repayments only change <em>your</em> line, and the faint ghost line shows your path without them, and the green area between is the money you save. Already partway through a loan? Enter what you owe today and the years left.</p>
       </div>
 
       <div class="grp">
-        <h2>Rate changes</h2>
+        <h2>Rate Changes</h2>
         <div class="list" id="rateList"></div>
-        <button type="button" class="addRow" id="addRate">+ Add a future rate change</button>
-        <div class="ctl" id="rateModeBox"><div class="lab">When the rate changes</div>
-          <div class="seg" data-k="rateMode"><button data-v="term">Bank recalculates my repayment</button><button data-v="payment">I keep paying the same</button></div>
+        <button type="button" class="addRow" id="addRate">+ Add a Future Rate Change</button>
+        <div class="ctl" id="rateModeBox"><div class="lab">When the Rate Changes</div>
+          <div class="seg" data-k="rateMode"><button data-v="term">Bank Recalculates My Repayment</button><button data-v="payment">I Keep Paying the Same</button></div>
         </div>
-        <p class="hint" id="rateHint">Plan for rates going up or down, for example 6.25% after 1 yr 6 mo (0% works for an interest-free period). <b>Bank recalculates my repayment</b> is what lenders normally do on a variable loan: your repayment changes so the loan still ends on time. <b>I keep paying the same</b>: the payoff date moves instead. Only <em>your</em> line follows the changes; the fan of other paths stays at today’s rate.</p>
+        <p class="hint" id="rateHint">Plan for rates going up or down, for example 6.25% after 1 yr 6 mo (0% works for an interest-free period). <b>Bank Recalculates My Repayment</b> is what lenders normally do on a variable loan: your repayment changes so the loan still ends on time. <b>I Keep Paying the Same</b>: the payoff date moves instead. Only <em>your</em> line follows the changes; the fan of other paths stays at today’s rate.</p>
       </div>
 
       <div class="grp">
-        <h2>Nodes on your line</h2>
+        <h2>Nodes on Your Line</h2>
         <div class="list" id="nodeList"></div>
         <p class="hint" id="nodeHint">A node is a point on your line where your plan changes, such as paying more from a certain date. Unlock the padlock on the chart, then click your line (or press and hold on a phone) to add one. Nodes are saved with your loan and in backups.</p>
       </div>
@@ -336,33 +346,33 @@ html[data-device=phone] .nodeEd.min{position:fixed;left:auto!important;right:12p
       <div class="grp">
         <h2>Display</h2>
         <div class="ctl">
-          <label for="termR"><span>Chart length</span><span id="termO"></span></label>
-          <label class="chk"><input type="checkbox" id="autoT"> Fit to my loan automatically</label>
+          <label for="termR"><span>Chart Length</span><span id="termO"></span></label>
+          <label class="chk"><input type="checkbox" id="autoT"> Fit to My Loan Automatically</label>
           <input type="range" id="termR" min="5" max="40" step="1" style="width:100%">
         </div>
-        <div class="ctl"><div class="lab">Y-axis shows</div>
+        <div class="ctl"><div class="lab">Y-Axis Shows</div>
           <div class="seg" data-k="mode"><button data-v="change">Change</button><button data-v="balance">Balance</button><button data-v="percent">% of loan</button></div>
         </div>
-        <div class="ctl"><div class="lab">Thin curves between years</div>
+        <div class="ctl"><div class="lab">Thin Curves Between Years</div>
           <div class="seg" data-k="dens"><button data-v="yearly">None</button><button data-v="quarterly">Quarterly</button><button data-v="monthly">Monthly</button></div>
         </div>
-        <details class="more"><summary>More display options</summary><div class="moreIn">
-        <div class="ctl"><div class="lab">Curves above the spine</div>
-          <div class="seg" data-k="upper"><button data-v="even">Even steps</button><button data-v="mirror">Mirror payments</button></div>
+        <details class="more"><summary>More Display Options</summary><div class="moreIn">
+        <div class="ctl"><div class="lab">Curves Above the Spine</div>
+          <div class="seg" data-k="upper"><button data-v="even">Even Steps</button><button data-v="mirror">Mirror Payments</button></div>
         </div>
-        <div class="ctl"><div class="lab">Growth zone (above spine)</div>
+        <div class="ctl"><div class="lab">Growth Zone (Above Spine)</div>
           <div class="seg" data-k="cap"><button data-v="1">Up to 1×</button><button data-v="2">Up to 2×</button><button data-v="0">Hide</button></div>
         </div>
-        <label class="chk"><input type="checkbox" id="labels"> Payment labels under the axis</label>
+        <label class="chk"><input type="checkbox" id="labels"> Payment Labels Under the Axis</label>
         <label class="chk"><input type="checkbox" id="beyond"> Dashed exits beyond the chart (up to 100 yrs)</label>
-        <label class="chk"><input type="checkbox" id="fill"> Gradient fill between curves</label>
+        <label class="chk"><input type="checkbox" id="fill"> Gradient Fill Between Curves</label>
         </div></details>
       </div>
     </aside>
 
     <section class="chart">
-      <div class="tools"><button id="undo" title="Undo last change (Ctrl+Z)" disabled>↶ Undo</button><button id="redo" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><button id="reset" title="Back to $300k at 6% over 30 years. Your display settings stay as they are.">Reset loan</button></div>
-      <div class="axis"><span id="yTitle">Change in Principal ($)</span><span>Time to Exit (years) →</span></div>
+      <div class="tools"><button id="undo" title="Undo last change (Ctrl+Z)" disabled>↶ Undo</button><button id="redo" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><button id="reset" title="Back to $300k at 6% over 30 years. Your display settings stay as they are.">Reset Loan</button></div>
+      <div class="axis"><span id="yTitle">Change in Principal ($)</span><span>Time to Exit (Years) →</span></div>
       <div class="fig" id="fig"><canvas id="cv" role="img" aria-label="Chart: every repayment path for this loan, balance owing against years. The key figures are in the boxes above the chart."></canvas><canvas id="ov" aria-hidden="true"></canvas><div class="tip" id="tip"></div></div>
     </section>
   </div>
@@ -626,12 +636,12 @@ function stats(){rateSplit();
   const put=(o,l,v)=>{$('sOut').textContent=o;$('sIntL').textContent=l;$('sInt').textContent=v};
   $('sEq').textContent=money(I)+'/'+f;$('sPay').textContent=money(p)+'/'+f;
   if(frozen)put('Balance frozen','Interest each year, forever',money(I*S.freq));
-  else if(R.paid!==null)put('Paid off in '+ym(R.paid/S.freq),'Total interest',money(R.int));
+  else if(R.paid!==null)put('Paid off in '+ym(R.paid/S.freq),'Total Interest',money(R.int));
   else if(R.dbl!==null)put('Doubles in '+ym(R.dbl/S.freq),'Owed after '+S.T+' years',money(R.atT));
   else put('Not paid off in 100 yrs','Owed after '+S.T+' years',money(R.atT));
   $('payHint').textContent=frozen?'interest only: balance stays the same':R.paid!==null?'pays off in '+ym(R.paid/S.freq):p>I?'pays off in over 100 yrs':'debt grows';
   /* total paid and the comparison with the standard loan for the term */
-  if(R.paid!==null){$('sTotL').textContent='Total paid';$('sTot').textContent=money(R.tot);$('sTotN').textContent=money(S.P)+' loan + '+money(R.int)+' interest'}
+  if(R.paid!==null){$('sTotL').textContent='Total Paid';$('sTot').textContent=money(R.tot);$('sTotN').textContent=money(S.P)+' loan + '+money(R.int)+' interest'}
   else{$('sTotL').textContent='Paid in '+S.T+' years';$('sTot').textContent=money(R.totT);$('sTotN').textContent='and still '+money(R.atT)+' owing'}
   const pStd=exitPay(S.term*S.freq),RS=run(pStd,false,true);$('sStdL').textContent='vs standard '+S.term+'-yr loan';
   if(R.paid===null){$('sStd').textContent='Never pays off';$('sStdN').textContent='standard is '+money(pStd)+'/'+f}
@@ -801,7 +811,7 @@ update();
   const lock=document.createElement('button');lock.id='payLock';lock.type='button';fig.appendChild(lock);
   function place(){if(typeof G!=='undefined'&&G)lock.style.left=(G.L+8)+'px'}
   function paint(){lock.classList.toggle('open',unlocked);lock.setAttribute('aria-pressed',String(unlocked));
-    lock.innerHTML=unlocked?'<span>🔓</span>Unlocked: click your line to add a node':'<span>🔒</span>Unlock to edit the line';
+    lock.innerHTML=unlocked?'<span>🔓</span>Unlocked: click your line to add a node':'<span>🔒</span>Unlock to Edit the Line';
     lock.title=unlocked?'Unlocked: drag across the chart, or tap a time, and your payment changes to match. Tap to lock again.':'Locked so a stray tap can’t change your payment. Tap to unlock, then drag the line to the time you want to be debt-free.';
     fig.classList.toggle('dragmode',unlocked);place()}
   function arm(){clearTimeout(relockT);relockT=setTimeout(()=>{if(!drag){unlocked=false;paint()}},120000)}
