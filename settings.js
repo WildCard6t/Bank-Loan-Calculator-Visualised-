@@ -167,10 +167,58 @@
     ov.querySelector('.set-x').focus();
   }
   function close(){if(!ov||ov.hidden)return;ov.hidden=true;document.body.style.overflow='';if(lastFocus&&lastFocus.focus)lastFocus.focus()}
-  window.loanSettings={open,close,get,markBackup};
+  /* ---- "How to save your progress" explainer ---- */
+  let hw=null,hwFocus=null;
+  function howTo(){
+    if(!hw){
+      hw=document.createElement('div');hw.className='set-ov';hw.hidden=true;
+      hw.innerHTML='<div class="set how" role="dialog" aria-modal="true" aria-labelledby="howT">'+
+        '<header><h2 id="howT">How to save your progress</h2><button type="button" class="set-x" aria-label="Close">✕</button></header>'+
+        '<section><p class="set-hint" style="font-size:14px">There are no accounts and nothing is sent anywhere. Your loans live on this device, and you choose how safe to keep them.</p></section>'+
+        '<section><div class="how-n">1</div><h4>It saves by itself</h4>'+
+          '<p>Every change is saved automatically on this phone or computer, in this browser. You don’t have to do anything.</p>'+
+          '<p class="set-hint"><b>Good enough</b> if you’re just trying things out. But the browser can clear it, for example if you clear Safari’s history and website data, use private browsing, or don’t open the app for a long time. It also doesn’t move to a new phone.</p></section>'+
+        '<section><div class="how-n">2</div><h4>Save a backup file <em>recommended</em></h4>'+
+          '<p>One tap saves everything (all your loans, logs and settings) into a single small file.</p>'+
+          '<p class="set-hint">Do it after you add a few repayments, or about once a month. If you haven’t for 30 days, an orange dot appears on ⚙ Settings to remind you.</p>'+
+          '<div class="set-row"><button type="button" class="set-btn pri" data-act="howExport">⬇ Save backup file now</button></div>'+
+          '<p class="set-hint" id="howMsg"></p></section>'+
+        '<section><div class="how-n">3</div><h4>Keep the file somewhere safe</h4>'+
+          '<p>The file lands in <b>Files › Downloads</b> on iPhone, or your <b>Downloads</b> folder on a computer. Move or copy it somewhere that won’t get lost:</p>'+
+          '<ul><li><b>iCloud Drive</b> or <b>Google Drive</b> (on iPhone: Files app, hold the file, Move)</li><li>Email it to yourself</li><li>A USB stick or your computer</li></ul>'+
+          '<p class="set-hint">To carry on later, or on another phone or computer, open ⚙ Settings › <b>Load backup file</b> and pick it. You’ll see what’s inside before anything is replaced.</p></section>'+
+        '<section><p class="set-hint">🔒 The file holds your loan amounts and notes, but no passwords or bank logins. Treat it like a personal document and don’t post it publicly.</p></section>'+
+      '</div>';
+      document.body.appendChild(hw);
+      hw.addEventListener('click',e=>{
+        if(e.target===hw||e.target.closest('.set-x')){closeHow();return}
+        if(e.target.closest('[data-act=howExport]')){exportFile();const m=hw.querySelector('#howMsg');m.textContent='✓ Saved. Now do step 3 so it’s safe.'}
+      });
+      hw.addEventListener('keydown',e=>{if(e.key==='Escape')closeHow()});
+    }
+    hwFocus=document.activeElement;hw.hidden=false;document.body.style.overflow='hidden';hw.querySelector('.set-x').focus();
+  }
+  function closeHow(){if(!hw||hw.hidden)return;hw.hidden=true;document.body.style.overflow='';if(hwFocus&&hwFocus.focus)hwFocus.focus()}
+  window.loanSettings={open,close,get,markBackup,howTo,exportFile};
 
   /* currency symbol inside the money boxes */
   function money(){const sym=window.loanRegion?loanRegion.sym:'$';document.querySelectorAll('.unit.pre > i').forEach(i=>{if(i.textContent==='$'||i.textContent==='£')i.textContent=sym})}
+  /* quick look picker on the first-visit Welcome screen */
+  function welcome(){
+    const box=document.querySelector('#welcome .box');if(!box||box.querySelector('.wl'))return;
+    const w=document.createElement('div');w.className='wl';
+    w.innerHTML='<div class="wl-t">Pick a look <span>(you can change it later in ⚙ Settings)</span></div>'+
+      '<div class="wl-row"><div class="set-seg wl-mode" data-k="mode"><button type="button" data-v="auto">🌗 Auto</button><button type="button" data-v="light">☀ Light</button><button type="button" data-v="dark">☾ Dark</button></div>'+
+      '<div class="wl-sw" data-k="scheme" role="group" aria-label="Colour scheme">'+SCHEMES.map(([v,n])=>'<button type="button" data-v="'+v+'" title="'+n+'" aria-label="'+n+' colour scheme"><i></i></button>').join('')+'</div></div>';
+    const small=box.querySelector('small');box.insertBefore(w,small||null);
+    const paint=()=>{const d=dark(),sc=get().scheme||'indigo',m=loanTheme.get();
+      w.querySelectorAll('.wl-mode button').forEach(b=>{const on=b.dataset.v===m;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
+      w.querySelectorAll('.wl-sw button').forEach(b=>{const c=SCHEMES.find(x=>x[0]===b.dataset.v),on=c[0]===sc;b.querySelector('i').style.background=d?c[3]:c[2];b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)})};
+    w.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;e.stopPropagation();
+      if(b.closest('.wl-mode'))loanTheme.set(b.dataset.v);else loanTheme.setScheme(b.dataset.v);paint()});
+    window.addEventListener('themechange',paint);paint();
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(welcome,0));setTimeout(welcome,50);
   function boot(){money();badge();window.addEventListener('pageshow',badge);try{if(sessionStorage.getItem('loanSettingsOpen')){sessionStorage.removeItem('loanSettingsOpen');open()}}catch(e){}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();

@@ -69,3 +69,37 @@ html[data-device=phone] .set-sw{grid-template-columns:repeat(3,minmax(0,1fr))}
 #setSw.due::after{content:"";position:absolute;top:3px;right:3px;width:9px;height:9px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 2px var(--panel)}
 .set [hidden]{display:none!important}
 html[data-device=phone] .set-cty button{flex:1 1 45%!important}
+
+/* "How to save your progress" explainer */
+.how section{position:relative;padding-left:58px}
+.how section:first-of-type,.how section:last-of-type{padding-left:18px}
+.how .how-n{position:absolute;left:18px;top:14px;width:28px;height:28px;border-radius:50%;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;font-weight:600;font-size:14px}
+.how h4{margin:3px 0 0;font-size:16px;font-weight:600;color:var(--ink)}
+.how h4 em{font-style:normal;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--acc);margin-left:6px;vertical-align:2px}
+.how p{margin:0;font-size:14.5px;line-height:1.5}
+.how ul{margin:0;padding-left:18px;font-size:14.5px;display:grid;gap:4px}
+/* the section on the Tracker page */
+.saveCard{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin:0 0 18px;padding:16px 18px;background:var(--panel);border-radius:14px;box-shadow:var(--shadow);border-left:4px solid var(--acc)}
+.saveCard .txt{flex:1 1 300px}
+.saveCard h2{margin:0 0 2px;font-size:17px;font-weight:600;color:var(--ink);text-transform:none;letter-spacing:-.01em}
+.saveCard p{margin:0;font-size:14px;color:var(--mute)}
+.saveCard .acts{display:flex;flex-wrap:wrap;gap:8px}
+.saveCard button{min-height:44px;padding:0 16px;border-radius:10px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;border:1px solid var(--acc)}
+.saveCard .b1{background:var(--acc);color:var(--acc-ink)}
+.saveCard .b2{background:var(--panel);color:var(--acc)}
+html[data-device=phone] .saveCard{margin:0 0 12px;padding:14px}
+html[data-device=phone] .saveCard{display:grid}html[data-device=phone] .saveCard .acts{display:grid;grid-template-columns:1fr 1fr}html[data-device=phone] .saveCard button{padding:0 8px}
+
+/* look picker on the Welcome screen */
+.wl{margin:18px auto 0;max-width:620px;padding:14px;border-radius:16px;background:var(--panel);border:1px solid var(--line);text-align:left;display:grid;gap:10px}
+.wl-t{font-size:14px;font-weight:600;color:var(--ink)}.wl-t span{font-weight:400;color:var(--mute);font-size:13px}
+.wl-row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.wl-mode{flex:1 1 260px}
+.wl-mode button{min-height:40px}
+.wl-sw{display:flex;gap:8px;flex:none}
+#welcome .wl-sw button{position:static;display:grid;place-items:center;width:40px;height:40px;padding:0;border-radius:50%;border:2px solid transparent;background:none;cursor:pointer}
+#welcome .wl-sw button i{width:28px;height:28px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+#welcome .wl-sw button.on{border-color:var(--ink)}
+#welcome .wl-mode button{position:static;display:block;padding:0;border:0;border-radius:8px;text-align:center;background:none;color:var(--ink);font-size:14px}
+#welcome .wl-mode button.on{background:var(--acc);color:var(--acc-ink);font-weight:600}
+@media(max-width:520px){.wl-sw{flex:1 1 100%;justify-content:space-between}}

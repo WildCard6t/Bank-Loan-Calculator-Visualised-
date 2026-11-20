@@ -222,6 +222,10 @@ html.embed .fig{min-height:300px}
     <div class="plist" id="plist"></div>
   </section>
 
+  <section class="saveCard" id="saveCard" aria-labelledby="saveH">
+    <div class="txt"><h2 id="saveH">How to save your progress</h2><p id="saveSub">Your loans save on this device automatically. A backup file keeps them safe for good.</p></div>
+    <div class="acts"><button type="button" class="b1" onclick="window.loanSettings&&loanSettings.howTo()">Show me how</button><button type="button" class="b2" onclick="window.loanSettings&&loanSettings.exportFile()">⬇ Save backup</button></div>
+  </section>
   <div class="cols">
     <aside class="panel">
       <div class="ctl"><label for="pName">Profile name</label><input class="f" id="pName" maxlength="40"></div>
