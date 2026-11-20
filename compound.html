@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f111a" id="themeColor">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Finance Vis">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>
+/* colour theme: Auto (follows the phone), Light or Dark. Shared by both pages, remembered in this browser. Runs before the page paints. */
+(function(){var K='loanTheme',r=document.documentElement,v='dark';
+ if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){if(e.source!==window.parent||e.origin!==location.origin)return;var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loanSettings)window.loanTheme.refresh();if(d.loan==='reloadAll')location.reload();if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})};if(window.loanEmbed)document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('toTracker');if(b)b.textContent='Send this loan to the Tracker →'})
+ var KS='loanSettings.v1',sc='indigo';
+ function cfg(){try{return JSON.parse(localStorage.getItem(KS))||{}}catch(e){return {}}}
+ var REG={AU:['en-AU','$'],NZ:['en-NZ','$'],UK:['en-GB','£'],US:['en-US','$'],CA:['en-CA','$']},c0=cfg(),cc=REG[c0.country]?c0.country:'AU';
+ window.loanRegion={country:cc,locale:REG[cc][0],sym:REG[cc][1],mdy:cc==='US'};
+ function bar(){var m=document.getElementById('themeColor');if(m)m.content=getComputedStyle(r).getPropertyValue('--bg').trim()||'#f4f3f0'}
+ function apply(){try{v=localStorage.getItem(K)||v}catch(e){}if(v==='light'||v==='dark')r.dataset.theme=v;else delete r.dataset.theme;sc=cfg().scheme||sc;if(sc!=='indigo')r.dataset.scheme=sc;else delete r.dataset.scheme;bar()}
+ function fire(){window.dispatchEvent(new Event('themechange'))}
+ apply();
+ window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){v=t;try{localStorage.setItem(K,t)}catch(e){};apply();fire()},setScheme:function(s){sc=s;var o=cfg();o.scheme=s;try{localStorage.setItem(KS,JSON.stringify(o))}catch(e){};apply();fire()},refresh:function(){apply();fire()},bar:bar};
+ addEventListener('storage',function(e){if(e.key===K||e.key===KS)window.loanTheme.refresh()});
+ document.addEventListener('DOMContentLoaded',bar);
+ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){bar();fire()})}catch(e){}
+})();
+</script>
+<title>Compound Growth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Compound Growth: the good side of compounding. The loan graph flipped around.
+   The picture IS the maths: every input re-runs the simulation and redraws the chart live.
+   Maths: an event-by-event simulation (deposits, interest credits, fees, tax), checked against the textbook formulas in selfTest(). */
+:root{color-scheme:light;--bg:#f4f3f0;--panel:#ffffff;--ink:#1a1c29;--mute:#5d6074;--line:#e3e1db;--acc:#4f46e5;--acc-ink:#ffffff;--soft:#efeefd;--good:#15803d;--bad:#d1342f;--gold:#b88a00;--shadow:0 1px 2px rgba(26,28,41,.06),0 6px 20px rgba(26,28,41,.06)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--good:#4cc38a;--bad:#ff6b63;--gold:#ffd43b;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--good:#4cc38a;--bad:#ff6b63;--gold:#ffd43b;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Geist,system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:1180px;margin:0 auto;padding:max(clamp(16px,3vw,32px),env(safe-area-inset-top)) max(4vw,16px) calc(56px + env(safe-area-inset-bottom));position:relative}
+h1{font-size:clamp(28px,4vw,40px);line-height:1.1;margin:6px 0 6px;font-weight:600;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:0 0 16px;max-width:68ch}
+[hidden]{display:none!important}
+.homeL{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:2px 10px 2px 4px;margin:0 0 2px -4px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;transition:background .15s}
+.homeL img{width:26px;height:26px;border-radius:7px}.homeL:hover{background:var(--soft);color:var(--acc)}
+#topSw{position:absolute;top:max(clamp(16px,3vw,32px),env(safe-area-inset-top));right:max(4vw,16px);display:flex;gap:6px;z-index:6;flex-wrap:wrap;justify-content:flex-end}
+#topSw button,#topSw a{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap;text-decoration:none}
+#topSw button:hover,#topSw a:hover{color:var(--ink);border-color:var(--acc)}
+@media(max-width:860px){#topSw{position:static;margin:4px 0 8px;justify-content:flex-start}#topSw button,#topSw a{min-height:36px}}
+html[data-device=phone] #topSw{position:static;margin:4px 0 8px;justify-content:flex-start}
+
+/* headline numbers */
+.stats{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px;margin:0 0 14px}
+.stat{background:var(--panel);border-radius:14px;padding:12px 16px;box-shadow:var(--shadow);border-left:4px solid var(--c,var(--line))}
+.stat span{display:block;font-size:13px;color:var(--mute);font-weight:500}
+.stat b{display:block;font-size:clamp(20px,2.4vw,28px);font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat.big b{font-size:clamp(26px,3.4vw,38px);color:var(--gold);text-shadow:0 0 18px color-mix(in srgb,var(--gold) 35%,transparent)}
+.stat small{display:block;font-size:12.5px;color:var(--mute)}
+@media(max-width:640px){.stats{grid-template-columns:1fr 1fr}.stat.big{grid-column:1/-1}}
+
+/* chart */
+.chart{background:var(--panel);border-radius:14px;padding:10px 6px 8px;box-shadow:var(--shadow)}
+.fig{position:relative;width:100%;height:clamp(340px,52vh,560px);touch-action:pan-y}
+.fig canvas{position:absolute;inset:0;width:100%;height:100%}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--panel);font-size:13px;line-height:1.45;padding:8px 10px;border-radius:8px;white-space:nowrap;display:none;z-index:2;font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:6px 12px 2px;font-size:13px;color:var(--mute)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.story{margin:10px 4px 0;font-size:14.5px;color:var(--mute)}.story b{color:var(--ink);font-weight:600}
+
+/* controls */
+.ctl{background:var(--panel);border-radius:14px;padding:16px 18px;margin-top:14px;display:grid;gap:16px 28px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start;box-shadow:var(--shadow)}
+.f label,.f .lab{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;color:var(--mute);margin-bottom:4px;font-weight:500}
+.row{display:flex;gap:10px;align-items:center}
+input[type=range]{flex:1;accent-color:var(--acc);height:44px;margin:0}
+.num{width:118px;font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);text-align:right;flex:none}
+select{width:100%;min-height:46px;font:inherit;font-size:16px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);cursor:pointer}
+.prof select{font-weight:600;border-color:var(--acc);background:var(--soft)}
+.seg{display:flex;background:var(--bg);border-radius:9px;padding:3px;gap:3px}
+.seg button{flex:1;min-height:38px;border:0;border-radius:7px;background:none;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--panel);font-weight:500}
+.hint{font-size:13px;color:var(--mute);margin:4px 0 0}
+input:focus-visible,button:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+details.more{grid-column:1/-1;border-top:1px solid var(--line);padding-top:12px}
+details.more summary{cursor:pointer;font-weight:600;font-size:15px;min-height:40px;display:flex;align-items:center;gap:8px;list-style:none}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::before{content:"▸";color:var(--acc);transition:transform .15s}
+details.more[open] summary::before{transform:rotate(90deg)}
+details.more summary span{font-weight:400;color:var(--mute);font-size:13px}
+.grid2{display:grid;gap:14px 28px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:10px}
+.reset{min-height:42px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:none;color:var(--ink);font:inherit;font-size:14px;cursor:pointer;justify-self:start}
+.reset:hover{border-color:var(--acc)}
+.note{font-size:13px;color:var(--mute);margin:16px 2px 0;max-width:90ch}.note p{margin:0 0 6px}
+#selftest{font-size:13px;margin:6px 2px 0;font-weight:500}#selftest.good{color:var(--good)}#selftest.bad{color:var(--bad)}
+html[data-device=phone] input[type=range]{height:48px}
+@media(max-width:520px){.num{width:104px}}
+</style>
+<link rel="stylesheet" href="settings.css">
+<script src="settings.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="homeL" href="index.html" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Finance Visualised</span></a>
+  <div id="topSw"><a href="graph.html">Loan Graph</a><a href="tracker.html">Loan Tracker</a><a href="cashflow.html">Cash-Flow</a><button id="setSw" type="button" title="Colours, layout and country" onclick="window.loanSettings&&loanSettings.open()">⚙ Settings</button></div>
+  <h1>Compound Growth</h1>
+  <p class="sub">The good side of compounding. Your deposits are the steady stripe; everything above it is interest earning interest. Move anything and watch it grow.</p>
+
+  <div class="stats" aria-live="polite">
+    <div class="stat big" style="--c:#ffd000"><span id="lBal">Final balance</span><b id="sBal">–</b><small id="sBalNote"></small></div>
+    <div class="stat" style="--c:#4da3ff"><span>Total paid in</span><b id="sPaid">–</b><small id="sPaidNote"></small></div>
+    <div class="stat" style="--c:#3db54a"><span>Interest earned</span><b id="sInt">–</b><small id="sIntNote"></small></div>
+  </div>
+
+  <div class="chart">
+    <div class="fig" id="fig"><canvas id="cv"></canvas><canvas id="ov"></canvas><div class="tip" id="tip"></div></div>
+    <div class="legend" id="legend"></div>
+  </div>
+  <p class="story" id="story"></p>
+
+  <div class="ctl">
+    <div class="f prof"><label for="prof">Where is your money growing?</label>
+      <select id="prof">
+        <option value="savings">Savings account</option>
+        <option value="term">Term deposit</option>
+        <option value="etf">Index fund or ETF (shares)</option>
+        <option value="super">Super</option>
+        <option value="custom">Custom (set your own)</option>
+      </select>
+      <p class="hint" id="profHint"></p></div>
+    <div class="f"><label for="startR">Starting amount <span id="startV"></span></label>
+      <div class="row"><input type="range" id="startR" min="0" max="200000" step="500"><input class="num" id="startN" type="number" inputmode="decimal" min="0" step="100" aria-label="Starting amount"></div></div>
+    <div class="f"><label for="depR"><span id="depLab">Regular deposit</span> <span id="depV"></span></label>
+      <div class="row"><input type="range" id="depR" min="0" max="2000" step="5"><input class="num" id="depN" type="number" inputmode="decimal" min="0" step="5" aria-label="Regular deposit"></div>
+      <div class="seg" id="freq" role="group" aria-label="How often" style="margin-top:6px"><button type="button" data-v="52">Weekly</button><button type="button" data-v="26">Fortnightly</button><button type="button" data-v="12">Monthly</button></div></div>
+    <div class="f"><label for="yrsR">How many years <span id="yrsV"></span></label>
+      <div class="row"><input type="range" id="yrsR" min="1" max="50" step="1"><input class="num" id="yrsN" type="number" inputmode="numeric" min="1" max="60" step="1" aria-label="Years"></div></div>
+    <div class="f" id="salF"><label for="salR">Your yearly salary (before tax) <span id="salV"></span></label>
+      <div class="row"><input type="range" id="salR" min="0" max="300000" step="1000"><input class="num" id="salN" type="number" inputmode="decimal" min="0" step="1000" aria-label="Yearly salary"></div>
+      <p class="hint" id="salHint"></p></div>
+    <div class="f" id="ageF"><label for="ageR">Your age now <span id="ageV"></span></label>
+      <div class="row"><input type="range" id="ageR" min="15" max="75" step="1"><input class="num" id="ageN" type="number" inputmode="numeric" min="15" max="90" step="1" aria-label="Your age"></div></div>
+
+    <details class="more" id="more"><summary>Fine-tune this account <span id="moreSum"></span></summary>
+      <div class="grid2">
+        <div class="f"><label for="rateR">Growth rate per year <span id="rateV"></span></label>
+          <div class="row"><input type="range" id="rateR" min="0" max="15" step="0.05"><input class="num" id="rateN" type="number" inputmode="decimal" min="-10" max="30" step="0.05" aria-label="Growth rate % per year"></div>
+          <p class="hint" id="rateHint"></p></div>
+        <div class="f"><label for="comp">Interest is added</label>
+          <select id="comp"><option value="365">Daily</option><option value="52">Weekly</option><option value="12">Monthly</option><option value="4">Quarterly</option><option value="1">Yearly</option><option value="term">At the end of each term</option></select></div>
+        <div class="f" id="termF"><label for="termR">Term length <span id="termV"></span></label>
+          <div class="row"><input type="range" id="termR" min="1" max="60" step="1"><input class="num" id="termN" type="number" inputmode="numeric" min="1" max="120" step="1" aria-label="Term in months"></div></div>
+        <div class="f"><label for="volR">Ups and downs (volatility) <span id="volV"></span></label>
+          <div class="row"><input type="range" id="volR" min="0" max="30" step="1"><input class="num" id="volN" type="number" inputmode="decimal" min="0" max="60" step="1" aria-label="Volatility %"></div>
+          <p class="hint">0 means steady. Above 0 shows a fan of good and bad luck.</p></div>
+        <div class="f"><label for="feeR">Fee, % of balance per year <span id="feeV"></span></label>
+          <div class="row"><input type="range" id="feeR" min="0" max="3" step="0.05"><input class="num" id="feeN" type="number" inputmode="decimal" min="0" max="10" step="0.05" aria-label="Fee % per year"></div></div>
+        <div class="f"><label for="flatR">Fee, dollars per year <span id="flatV"></span></label>
+          <div class="row"><input type="range" id="flatR" min="0" max="600" step="5"><input class="num" id="flatN" type="number" inputmode="decimal" min="0" step="5" aria-label="Fee dollars per year"></div></div>
+        <div class="f"><label for="taxgR">Tax on the interest or growth <span id="taxgV"></span></label>
+          <div class="row"><input type="range" id="taxgR" min="0" max="47" step="1"><input class="num" id="taxgN" type="number" inputmode="decimal" min="0" max="60" step="1" aria-label="Tax on growth %"></div>
+          <p class="hint" id="taxgHint"></p></div>
+        <div class="f" id="taxcF"><label for="taxcR">Tax on money going in <span id="taxcV"></span></label>
+          <div class="row"><input type="range" id="taxcR" min="0" max="47" step="1"><input class="num" id="taxcN" type="number" inputmode="decimal" min="0" max="60" step="1" aria-label="Contributions tax %"></div>
+          <p class="hint">Super takes 15% of your employer's payments as they go in.</p></div>
+        <div class="f" id="empF"><label for="empR">Employer pays in (% of salary) <span id="empV"></span></label>
+          <div class="row"><input type="range" id="empR" min="0" max="20" step="0.5"><input class="num" id="empN" type="number" inputmode="decimal" min="0" max="30" step="0.5" aria-label="Employer contribution %"></div></div>
+        <div class="f"><label for="acc">When can you take it out?</label>
+          <select id="acc"><option value="any">Any time</option><option value="term">Only at the end of each term</option><option value="age">Not until a set age</option></select>
+          <div class="row" id="lockF" style="margin-top:8px"><span class="hint" style="margin:0;flex:none">Locked until age</span><input type="range" id="lockR" min="40" max="75" step="1"><input class="num" id="lockN" type="number" inputmode="numeric" min="18" max="100" step="1" aria-label="Locked until age"></div></div>
+        <button class="reset" id="reset" type="button">Reset this account to its usual settings</button>
+      </div>
+    </details>
+  </div>
+
+  <div class="note">
+    <p><b>A rough estimate, not financial advice.</b> Real rates change, shares go up and down, and tax depends on your situation. Deposits are counted at the end of each week, fortnight or month. With ups and downs on, the fan shows 1-in-10 bad luck to 1-in-10 good luck from 400 made-up futures.</p>
+  </div>
+  <p id="selftest"></p>
+</div>
+<span id="cInk" style="color:var(--ink)" hidden></span>
+
+<script>
+/* layout: chosen in Settings, otherwise detected from the screen */
+(function(){var r=document.documentElement,d=null;try{d=localStorage.getItem('loanDevice')}catch(e){}r.dataset.device=d||((matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<760)?'phone':'desktop')})();
+if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+<script>
+{
+const $=id=>document.getElementById(id);
+const KEY='compoundGrowth.v1';
+
+/* ---------- profiles: sensible, editable defaults ---------- */
+const PROFILES={
+  savings:{rate:4.5,comp:'12',term:12,vol:0,fee:0,flat:0,taxg:0,taxc:0,emp:0,acc:'any',lock:65,
+    hint:'A bank savings account. Steady interest, added monthly, take it out any time.'},
+  term:{rate:4.5,comp:'term',term:12,vol:0,fee:0,flat:0,taxg:0,taxc:0,emp:0,acc:'term',lock:65,
+    hint:'Your money is locked for a set term. Interest is paid at the end, then it all rolls into a new term.'},
+  etf:{rate:7,comp:'365',term:12,vol:15,fee:0.2,flat:0,taxg:0,taxc:0,emp:0,acc:'any',lock:65,
+    hint:'Shares in lots of companies at once. About 7% a year on average over the long run, but some years are up and some are down.'},
+  super:{rate:7,comp:'365',term:12,vol:10,fee:0,flat:0,taxg:0,taxc:15,emp:12,acc:'age',lock:65,
+    hint:'Your employer pays 12% of your salary in. You can\'t touch it until you retire (65 here).'},
+  custom:{rate:5,comp:'12',term:12,vol:0,fee:0,flat:0,taxg:0,taxc:0,emp:0,acc:'any',lock:65,
+    hint:'Set every number yourself in "Fine-tune this account" below.'}
+};
+const SETKEYS=['rate','comp','term','vol','fee','flat','taxg','taxc','emp','acc','lock'];
+const fresh=p=>{const o={};SETKEYS.forEach(k=>o[k]=PROFILES[p][k]);return o};
+let S={prof:'savings',start:10000,dep:100,freq:52,years:20,sal:80000,age:30,set:{}};
+try{const o=JSON.parse(localStorage.getItem(KEY));if(o&&typeof o==='object'){S={...S,...o,set:o.set||{}}}}catch(e){}
+if(!PROFILES[S.prof])S.prof='savings';
+for(const p in PROFILES)S.set[p]={...fresh(p),...(S.set[p]||{})};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const P=()=>S.set[S.prof];
+
+/* ---------- money formatting (follows the country in Settings) ---------- */
+const R=window.loanRegion||{locale:'en-AU',sym:'$'};
+const money=v=>(v<0?'−':'')+R.sym+Math.round(Math.abs(v)).toLocaleString(R.locale);
+const kfmt=v=>{const a=Math.abs(v),s=v<0?'−':'';if(a>=1e6)return s+R.sym+(a/1e6).toFixed(a>=1e7?0:1).replace(/\.0$/,'')+'M';if(a>=1e3)return s+R.sym+(a/1e3).toFixed(a>=1e4?0:1).replace(/\.0$/,'')+'k';return s+R.sym+Math.round(a)};
+const FW={52:'week',26:'fortnight',12:'month'};
+
+/* ---------- the maths ----------
+   simulate(o): walks through time event by event.
+   - Deposits land at the end of each deposit period (k / depFreq years).
+   - Interest builds up day by day as simple interest and is ADDED to the balance at each compounding time
+     (k / compFreq years, or every term for "at the end of each term"). Once added, it earns interest too. That is compounding.
+   - Fees build up the same way and come out when interest is added. Tax on growth comes out of the interest.
+   - Tax on contributions comes out of the employer's payment before it lands.
+   Returns yearly-ish samples for the chart plus the totals. */
+function simulate(o){
+  const T=o.years,fd=o.freq,i=o.rate/100,fee=o.fee/100,tg=o.taxg/100,tc=o.taxc/100;
+  const cf=o.comp==='term'?12/Math.max(1,o.term):+o.comp;
+  const empPer=(o.emp>0&&o.sal>0)?o.sal*o.emp/100/fd:0;
+  /* event times as exact fractions, merged */
+  const nd=Math.round(T*fd),nc=Math.floor(T*cf+1e-9);
+  let a=1,b=1,ev=[];
+  while(a<=nd||b<=nc){const ta=a<=nd?a/fd:Infinity,tb=b<=nc?b/cf:Infinity;
+    if(Math.abs(ta-tb)<1e-9){ev.push([ta,1,1]);a++;b++}else if(ta<tb){ev.push([ta,1,0]);a++}else{ev.push([tb,0,1]);b++}}
+  if(!ev.length||ev[ev.length-1][0]<T-1e-9)ev.push([T,0,0]);
+  let B=o.start,t=0,accI=0,accF=0,paid=o.start,start=o.start,dep=0,intE=0,feeT=0,taxT=0;
+  const pts=[{t:0,B,start,dep:0}];
+  const sampleEvery=Math.max(1,Math.floor(ev.length/700));
+  ev.forEach(([te,isD,isC],k)=>{
+    const dt=te-t;accI+=B*i*dt;accF+=B*fee*dt+o.flat*dt;t=te;
+    if(isC||k===ev.length-1&&!isC&&te>=T-1e-9&&o.comp!=='term'){ /* interest added (also settle at the very end so nothing is left hanging) */
+      const tax=accI>0?accI*tg:0;B+=accI-tax-accF;intE+=accI;taxT+=tax;feeT+=accF;accI=0;accF=0}
+    if(isD){const mine=o.dep,emp=empPer,ct=emp*tc;B+=mine+emp-ct;paid+=mine+emp;dep+=mine+emp-ct;taxT+=ct}
+    if(k%sampleEvery===0||k===ev.length-1)pts.push({t,B,start,dep});
+  });
+  /* a term deposit that hasn't reached its next maturity keeps its unpaid interest (shown as pending) */
+  const pend=accI-accF;
+  return{B,paid,intE,feeT,taxT,pend,pts,empPer,net:B-start-dep};
+}
+
+/* ups and downs: 400 made-up futures with random yearly returns (log-normal, seeded so the fan stays still while you drag).
+   The middle future follows the average-rate line. Returns the 10th..90th percentile balance at each year. */
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const NPATH=400,PCT=[.1,.2,.3,.4,.5,.6,.7,.8,.9];
+let Z=null;function normals(years){const need=NPATH*Math.max(60,years);if(Z&&Z.length>=need)return Z;const r=rng(20261120);Z=new Float64Array(need);for(let k=0;k<need;k+=2){const u=Math.max(1e-12,r()),v=r(),m=Math.sqrt(-2*Math.log(u));Z[k]=m*Math.cos(2*Math.PI*v);if(k+1<need)Z[k+1]=m*Math.sin(2*Math.PI*v)}return Z}
+function fan(o){
+  const Y=Math.ceil(o.years),sig=o.vol/100,cfq=o.comp==='term'?12/Math.max(1,o.term):+o.comp,mu=cfq*Math.log(1+o.rate/100/cfq),fd=o.freq,fee=o.fee/100,tg=o.taxg/100,tc=o.taxc/100,z=normals(Y);
+  const empPer=(o.emp>0&&o.sal>0)?o.sal*o.emp/100/fd:0,depNet=o.dep+empPer*(1-tc),dt=1/fd;
+  const out=Array.from({length:Y+1},()=>new Float64Array(NPATH));
+  for(let p=0;p<NPATH;p++){let B=o.start;out[0][p]=B;
+    for(let y=1;y<=Y;y++){const g=Math.exp((z[p*Math.max(60,Y)+y-1]*sig)*1+mu)-1,per=Math.pow(1+g,dt)-1;
+      const steps=Math.round(fd*Math.min(1,o.years-(y-1)));
+      for(let s=0;s<steps;s++){const gr=B*per;B+=gr-(gr>0?gr*tg:0)-B*fee*dt-o.flat*dt+depNet;}
+      out[y][p]=B}}
+  return out.map(a=>{const s=Array.from(a).sort((x,y)=>x-y);return PCT.map(q=>s[Math.min(NPATH-1,Math.floor(q*NPATH))])});
+}
+
+/* the textbook future-value formula, used only to check the simulation */
+function fvFormula(start,pmt,ratePct,perYear,years){const r=ratePct/100/perYear,n=Math.round(years*perYear);return r===0?start+pmt*n:start*Math.pow(1+r,n)+pmt*(Math.pow(1+r,n)-1)/r}
+
+function selfTest(){
+  const base={start:0,dep:0,freq:52,years:10,rate:5,comp:'52',term:12,fee:0,flat:0,taxg:0,taxc:0,emp:0,sal:0};
+  const close=(a,b,tol)=>Math.abs(a-b)<=tol;
+  const T=[
+    ['$100 a week at 5% for 10 years ≈ $67k',()=>{const v=simulate({...base,dep:100,comp:'12'}).B;return v>66500&&v<68000}],
+    ['Weekly deposits, weekly interest = textbook formula',()=>close(simulate({...base,dep:100}).B,fvFormula(0,100,5,52,10),0.5)],
+    ['$10,000 at 6% monthly for 10 years = $18,194',()=>close(simulate({...base,start:10000,rate:6,comp:'12',freq:12}).B,10000*Math.pow(1.005,120),0.5)],
+    ['0% interest: $50 a fortnight for 3 years = $3,900',()=>close(simulate({...base,dep:50,freq:26,years:3,rate:0}).B,3900,0.01)],
+    ['Term deposit, 12-month terms, 5% for 3 years = $11,576',()=>close(simulate({...base,start:10000,comp:'term',term:12,freq:12,years:3}).B,11576.25,0.5)],
+    ['A 1% fee on $10,000 at 7% yearly for 1 year = $10,600',()=>close(simulate({...base,start:10000,rate:7,comp:'1',fee:1,freq:12,years:1}).B,10600,0.5)],
+    ['Super: 12% of $100k, less 15% tax, at 0% for a year = $10,200',()=>close(simulate({...base,rate:0,sal:100000,emp:12,taxc:15,freq:12,years:1}).B,10200,0.5)],
+    ['Paid in + interest − tax − fees = final balance',()=>{const r=simulate({...base,start:5000,dep:80,rate:6,comp:'4',fee:.5,flat:20,taxg:30,sal:60000,emp:12,taxc:15,years:7});return close(r.paid+r.intE-r.taxT-r.feeT,r.B,1)}],
+    ['No ups and downs: the fan middle matches the line',()=>{const o={...base,start:1000,dep:50,rate:7,comp:'365',vol:0,years:5};const f=fan(o);const v=simulate(o).B;return close(f[5][4],v,v*0.005)}]
+  ];
+  const fails=T.filter(([,f])=>{try{return!f()}catch(e){return true}}).map(([n])=>n);
+  const el=$('selftest');el.className=fails.length?'bad':'good';
+  el.textContent=fails.length?'✗ Maths check failed: '+fails.join('; '):'✓ '+T.length+' maths checks passed';
+  if(fails.length)console.warn('Compound Growth self-test failures',fails);
+}
+
+/* ---------- inputs ---------- */
+function pair(r,n,get,set,lab,fmt){
+  const sync=()=>{const v=get();$(r).value=v;if(document.activeElement!==$(n))$(n).value=+(+v).toFixed(2);if(lab)$(lab).textContent=fmt(v)};
+  $(r).addEventListener('input',()=>{set(+$(r).value);sync();go()});
+  $(n).addEventListener('input',()=>{const v=parseFloat($(n).value);if(isFinite(v)){set(v);$(r).value=v;if(lab)$(lab).textContent=fmt(v);go()}});
+  $(n).addEventListener('blur',sync);
+  return sync;
+}
+const pct=v=>(+v).toFixed(2).replace(/\.?0+$/,'')+'%';
+const syncs=[
+  pair('startR','startN',()=>S.start,v=>S.start=Math.max(0,v),'startV',money),
+  pair('depR','depN',()=>S.dep,v=>S.dep=Math.max(0,v),'depV',v=>money(v)+' a '+FW[S.freq]),
+  pair('yrsR','yrsN',()=>S.years,v=>S.years=Math.min(60,Math.max(1,Math.round(v))),'yrsV',v=>v+(v==1?' year':' years')),
+  pair('salR','salN',()=>S.sal,v=>S.sal=Math.max(0,v),'salV',money),
+  pair('ageR','ageN',()=>S.age,v=>S.age=Math.min(90,Math.max(15,Math.round(v))),'ageV',v=>v),
+  pair('rateR','rateN',()=>P().rate,v=>P().rate=v,'rateV',pct),
+  pair('termR','termN',()=>P().term,v=>P().term=Math.min(120,Math.max(1,Math.round(v))),'termV',v=>v+(v==1?' month':' months')),
+  pair('volR','volN',()=>P().vol,v=>P().vol=Math.max(0,v),'volV',v=>v>0?'±'+v+'% a year':'steady'),
+  pair('feeR','feeN',()=>P().fee,v=>P().fee=Math.max(0,v),'feeV',pct),
+  pair('flatR','flatN',()=>P().flat,v=>P().flat=Math.max(0,v),'flatV',money),
+  pair('taxgR','taxgN',()=>P().taxg,v=>P().taxg=Math.min(100,Math.max(0,v)),'taxgV',pct),
+  pair('taxcR','taxcN',()=>P().taxc,v=>P().taxc=Math.min(100,Math.max(0,v)),'taxcV',pct),
+  pair('empR','empN',()=>P().emp,v=>P().emp=Math.max(0,v),'empV',pct),
+  pair('lockR','lockN',()=>P().lock,v=>P().lock=Math.min(100,Math.max(18,Math.round(v))),null,null)
+];
+$('freq').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.freq=+b.dataset.v;go(true)});
+$('prof').addEventListener('change',()=>{S.prof=$('prof').value;go(true)});
+$('comp').addEventListener('change',()=>{P().comp=$('comp').value;go(true)});
+$('acc').addEventListener('change',()=>{P().acc=$('acc').value;go(true)});
+$('reset').addEventListener('click',()=>{S.set[S.prof]=fresh(S.prof);go(true)});
+
+function syncAll(){
+  syncs.forEach(f=>f());
+  const p=P(),sup=p.emp>0||S.prof==='super';
+  $('prof').value=S.prof;$('profHint').textContent=PROFILES[S.prof].hint;
+  $('comp').value=p.comp;$('acc').value=p.acc;
+  [...$('freq').children].forEach(b=>b.classList.toggle('on',+b.dataset.v===S.freq));
+  $('termF').hidden=p.comp!=='term'&&p.acc!=='term';
+  $('salF').hidden=!sup;$('empF').hidden=!sup&&S.prof!=='custom';$('taxcF').hidden=!sup&&S.prof!=='custom';
+  $('ageF').hidden=p.acc!=='age';$('lockF').hidden=p.acc!=='age';
+  $('depLab').textContent=sup?'You add on top (optional)':'Regular deposit';
+  $('salHint').textContent=p.emp>0&&S.sal>0?'Your employer pays in '+money(S.sal*p.emp/100/S.freq)+' a '+FW[S.freq]+' ('+pct(p.emp)+').':'';
+  $('rateHint').textContent=p.vol>0?'An average. Real years swing around it.':'';
+  $('taxgHint').textContent=S.prof==='super'?'Super funds usually quote returns after this tax, so it starts at 0.':'Interest counts as income at tax time. Put your tax rate here to see the effect.';
+  const cl={'365':'daily','52':'weekly','12':'monthly','4':'quarterly','1':'yearly',term:'each '+p.term+'-month term'}[p.comp];
+  $('moreSum').textContent='· '+pct(p.rate)+', added '+cl+(p.fee?', '+pct(p.fee)+' fee':'')+(p.vol?', ups and downs':'');
+}
+
+/* ---------- drawing ---------- */
+const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const mix=(st,f,a)=>{f=Math.min(1,Math.max(0,f));let i=1;while(i<st.length-1&&f>st[i][0])i++;const[f0,c0]=st[i-1],[f1,c1]=st[i],u=(f-f0)/(f1-f0||1);return 'rgba('+c0.map((v,j)=>Math.round(v+(c1[j]-v)*u))+','+a+')'};
+/* interest bands: the loan page's rainbow, climbing from teal through gold to hot pink as interest piles up */
+const RAIN=[[0,'#0e9488'],[.2,'#3db54a'],[.4,'#b5d22c'],[.58,'#ffd000'],[.74,'#ffa400'],[.88,'#ff6a00'],[1,'#ff3d7f']].map(([f,h])=>[f,hex(h)]);
+/* the fan: bad luck warm, good luck cool */
+const LUCK=[[0,'#ff5d6c'],[.35,'#ff9d3d'],[.5,'#ffd000'],[.7,'#35d07f'],[1,'#4da3ff']].map(([f,h])=>[f,hex(h)]);
+const C_START='#7c6cff',C_DEP='#4da3ff',BANDS=8;
+const fig=$('fig'),cv=$('cv'),ov=$('ov'),tip=$('tip');
+let RES=null,FAN=null,G=null,yShow=0,yTarget=0,raf=0;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const niceStep=r=>{const p=Math.pow(10,Math.floor(Math.log10(r||1))),n=r/p;return(n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p};
+
+function lockInfo(){const p=P();
+  if(p.acc==='age'){const yrs=p.lock-S.age;return{kind:'age',t:yrs,label:yrs<=0?'Free to take out (you\'re '+S.age+')':'Can\'t touch until age '+p.lock}}
+  if(p.acc==='term')return{kind:'term',t:p.term/12,label:'Can\'t touch until the term ends'};
+  return null}
+
+function draw(){
+  const W=fig.clientWidth,H=fig.clientHeight,d=window.devicePixelRatio||1;if(!W||!H||!RES)return;
+  for(const c of[cv,ov]){c.width=Math.round(W*d);c.height=Math.round(H*d)}
+  const x=cv.getContext('2d');x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,W,H);
+  const cs=getComputedStyle(document.documentElement),ink=cs.getPropertyValue('--ink').trim(),mute=cs.getPropertyValue('--mute').trim(),line=cs.getPropertyValue('--line').trim(),panel=cs.getPropertyValue('--panel').trim();
+  const dark=cs.colorScheme==='dark'||/^#[0-2]/.test(cs.getPropertyValue('--bg').trim());
+  const narrow=W<560,L=narrow?52:66,Rm=narrow?14:24,Tm=16,B=30,pw=W-L-Rm,ph=H-Tm-B,T=S.years;
+  const yMin=Math.min(0,...RES.pts.map(q=>q.B)),yMax=yShow||1;
+  const X=t=>L+t/T*pw,Y=v=>Tm+(yMax-v)/(yMax-yMin)*ph;
+  G={L,Tm,pw,ph,X,Y,T,W,H};
+  const font=s=>s+'px Geist,system-ui,sans-serif';
+  /* grid */
+  x.font=font(12);x.lineWidth=1;const yt=niceStep((yMax-yMin)/Math.max(3,ph/52));
+  x.textAlign='right';x.textBaseline='middle';
+  for(let v=Math.ceil(yMin/yt)*yt;v<=yMax+1e-6;v+=yt){const yy=Math.round(Y(v))+.5;x.strokeStyle=line;x.beginPath();x.moveTo(L,yy);x.lineTo(L+pw,yy);x.stroke();x.fillStyle=mute;x.fillText(kfmt(v),L-8,yy)}
+  const xs=[1,2,5,10].find(s=>pw/(T/s)>=(narrow?30:34))||10;
+  x.textAlign='center';x.textBaseline='top';
+  for(let yr=0;yr<=T;yr++){if(yr%xs)continue;const xx=Math.round(X(yr))+.5;x.strokeStyle=line;x.beginPath();x.moveTo(xx,Tm);x.lineTo(xx,Tm+ph);x.stroke();x.fillStyle=mute;x.fillText(yr,xx,Tm+ph+7)}
+  x.textAlign='right';x.fillText('years',L-8,Tm+ph+7);
+
+  x.save();x.beginPath();x.rect(L,Tm-2,pw,ph+4);x.clip();
+  const pts=RES.pts,area=(lo,hi,fill)=>{x.beginPath();pts.forEach((q,i)=>i?x.lineTo(X(q.t),Y(hi(q))):x.moveTo(X(q.t),Y(hi(q))));for(let i=pts.length-1;i>=0;i--)x.lineTo(X(pts[i].t),Y(lo(pts[i])));x.closePath();x.fillStyle=fill;x.fill()};
+  const stroke=(f,col,w,glow)=>{x.beginPath();pts.forEach((q,i)=>i?x.lineTo(X(q.t),Y(f(q))):x.moveTo(X(q.t),Y(f(q))));x.strokeStyle=col;x.lineWidth=w;if(glow){x.shadowColor=col;x.shadowBlur=glow}x.stroke();x.shadowBlur=0};
+  const base=q=>q.start,paidTop=q=>q.start+q.dep,grow=q=>Math.max(0,q.B-paidTop(q));
+  x.lineJoin='round';
+  /* the lock zone: faint stripes until you're allowed to touch it */
+  const lk=lockInfo();
+  if(lk&&lk.t>0){const ux=X(Math.min(T,lk.t));x.save();x.beginPath();x.rect(L,Tm,ux-L,ph);x.clip();x.strokeStyle=mute;x.globalAlpha=.09;x.lineWidth=6;for(let k=-ph;k<pw;k+=16){x.beginPath();x.moveTo(L+k,Tm+ph);x.lineTo(L+k+ph,Tm);x.stroke()}x.restore()}
+  /* 1. starting amount */
+  area(()=>0,base,mix([[0,hex(C_START)],[1,hex(C_START)]],0,.32));
+  /* 2. your deposits: the steady stripe */
+  area(base,paidTop,mix([[0,hex(C_DEP)],[1,hex(C_DEP)]],0,.30));
+  /* 3. interest earning interest: rainbow bands that fan out as it snowballs */
+  for(let j=0;j<BANDS;j++){const a=j/BANDS,b=(j+1)/BANDS;area(q=>paidTop(q)+grow(q)*a,q=>paidTop(q)+grow(q)*b,mix(RAIN,b,dark?.30:.36))}
+  for(let j=1;j<BANDS;j++)stroke(q=>paidTop(q)+grow(q)*j/BANDS,mix(RAIN,j/BANDS,.55),1);
+  /* fees or tax eating more than it earns: show the shortfall in red */
+  if(pts.some(q=>q.B<paidTop(q)-0.5))area(q=>Math.min(q.B,paidTop(q)),paidTop,'rgba(255,93,108,.28)');
+  stroke(base,C_START,1.6);stroke(paidTop,C_DEP,2.2,dark?8:0);
+  /* 4. the fan of good and bad luck */
+  if(FAN&&P().vol>0){const yr=FAN.length-1,fx=k=>X(Math.min(T,k));
+    const band=(i0,i1,col)=>{x.beginPath();for(let k=0;k<=yr;k++){const v=Y(FAN[k][i1]);k?x.lineTo(fx(k),v):x.moveTo(fx(k),v)}for(let k=yr;k>=0;k--)x.lineTo(fx(k),Y(FAN[k][i0]));x.closePath();x.fillStyle=col;x.fill()};
+    band(0,8,dark?'rgba(255,255,255,.04)':'rgba(26,28,41,.035)');
+    PCT.forEach((q,i)=>{if(i===4)return;x.beginPath();for(let k=0;k<=yr;k++){const v=Y(FAN[k][i]);k?x.lineTo(fx(k),v):x.moveTo(fx(k),v)}x.strokeStyle=mix(LUCK,q,i===0||i===8?.95:.5);x.lineWidth=i===0||i===8?2:1.1;x.setLineDash(i===0||i===8?[]:[3,4]);if(i===0||i===8){x.shadowColor=mix(LUCK,q,1);x.shadowBlur=dark?8:0}x.stroke();x.shadowBlur=0;x.setLineDash([])})}
+  /* 5. your balance: the bright edge of the snowball */
+  stroke(q=>q.B,dark?'#ffe066':'#e0a800',3,dark?14:6);
+  x.restore();
+  /* lock line */
+  if(lk&&lk.t>0&&lk.t<=T){const ux=Math.round(X(lk.t))+.5;x.setLineDash([4,4]);x.strokeStyle=mute;x.lineWidth=1.2;x.beginPath();x.moveTo(ux,Tm);x.lineTo(ux,Tm+ph);x.stroke();x.setLineDash([]);
+    if(lk.kind==='term')for(let k=2;k*lk.t<=T+1e-9&&k<200;k++){const tx=Math.round(X(k*lk.t))+.5;x.strokeStyle=mute;x.globalAlpha=.35;x.beginPath();x.moveTo(tx,Tm+ph-10);x.lineTo(tx,Tm+ph);x.stroke();x.globalAlpha=1}
+    const t='🔓 '+(lk.kind==='age'?'Age '+P().lock+': yours to use':'Term ends: free to take out');x.font='500 '+font(12);const tw=x.measureText(t).width+12,lx=Math.min(ux+4,L+pw-tw);x.fillStyle=panel;x.globalAlpha=.9;x.fillRect(lx,Tm+4,tw,20);x.globalAlpha=1;x.fillStyle=ink;x.textAlign='left';x.textBaseline='middle';x.fillText(t,lx+6,Tm+14)}
+  else if(lk&&lk.t>T){x.font='500 '+font(12);x.fillStyle=mute;x.textAlign='left';x.textBaseline='top';x.fillText('🔒 Locked the whole time (until age '+P().lock+')',L+8,Tm+6)}
+  /* snowball point: where a year's growth beats a year's deposits */
+  if(RES.snow&&RES.snow.t<=T){const sx=X(RES.snow.t),sy=Y(RES.snow.B);x.beginPath();x.arc(sx,sy,6,0,7);x.fillStyle=panel;x.fill();x.lineWidth=2.5;x.strokeStyle='#ff9d3d';x.shadowColor='#ff9d3d';x.shadowBlur=10;x.stroke();x.shadowBlur=0;
+    const t='Snowball point';x.font='600 '+font(12);const tw=x.measureText(t).width;x.fillStyle='#ff9d3d';x.textAlign=sx+tw+14>L+pw?'right':'left';x.textBaseline='bottom';x.fillText(t,sx+(x.textAlign==='right'?-10:10),sy-8)}
+  /* end dot */
+  {const q=pts[pts.length-1],ex=X(q.t),ey=Y(q.B);x.beginPath();x.arc(ex,ey,6,0,7);x.fillStyle=dark?'#ffe066':'#e0a800';x.shadowColor=x.fillStyle;x.shadowBlur=16;x.fill();x.shadowBlur=0;x.strokeStyle=panel;x.lineWidth=2;x.stroke()}
+}
+
+/* ease the vertical scale so you can SEE the curves grow before the axis catches up */
+function animate(){cancelAnimationFrame(raf);
+  const step=()=>{const diff=yTarget-yShow;if(reduce||Math.abs(diff)<yTarget*0.002){yShow=yTarget;draw();return}
+    yShow+=diff*(diff>0?.14:.10);draw();raf=requestAnimationFrame(step)};
+  if(!yShow){yShow=yTarget;draw();return}step()}
+
+/* hover / touch: what is in the pot at that moment */
+function hover(e){if(!G||!RES)return;const r=fig.getBoundingClientRect(),px=e.clientX-r.left;if(px<G.L-4||px>G.L+G.pw+4){unhover();return}
+  const t=Math.max(0,Math.min(G.T,(px-G.L)/G.pw*G.T));let q=RES.pts[0];for(const p of RES.pts){if(p.t<=t+1e-9)q=p;else break}
+  const d=window.devicePixelRatio||1,o=ov.getContext('2d');o.setTransform(d,0,0,d,0,0);o.clearRect(0,0,G.W,G.H);
+  const xx=Math.round(G.X(q.t))+.5;o.strokeStyle=getComputedStyle($('cInk')).color;o.globalAlpha=.4;o.lineWidth=1;o.beginPath();o.moveTo(xx,G.Tm);o.lineTo(xx,G.Tm+G.ph);o.stroke();o.globalAlpha=1;
+  o.beginPath();o.arc(xx,G.Y(q.B),5,0,7);o.fillStyle='#ffd000';o.fill();
+  const g=q.B-q.start-q.dep,yr=q.t,yl=yr<1?Math.round(yr*12)+' months':(Math.round(yr*10)/10)+' years';
+  tip.innerHTML='<b>After '+yl+': '+money(q.B)+'</b><br>Starting amount '+money(q.start)+'<br>Deposits '+money(q.dep)+'<br>'+(g>=0?'Interest '+money(g):'Lost to fees '+money(-g));
+  tip.style.display='block';const tw=tip.offsetWidth;tip.style.left=Math.max(4,Math.min(G.W-tw-4,xx+12-(xx>G.W/2?tw+24:0)))+'px';tip.style.top=Math.max(4,G.Y(q.B)-tip.offsetHeight-12)+'px'}
+function unhover(){tip.style.display='none';const o=ov.getContext('2d');o.setTransform(1,0,0,1,0,0);o.clearRect(0,0,ov.width,ov.height)}
+fig.addEventListener('pointermove',hover);fig.addEventListener('pointerdown',hover);fig.addEventListener('pointerleave',unhover);
+
+/* ---------- run everything ---------- */
+function opts(){const p=P();return{start:S.start,dep:S.dep,freq:S.freq,years:S.years,rate:p.rate,comp:p.comp,term:p.term,fee:p.fee,flat:p.flat,taxg:p.taxg,taxc:p.taxc,emp:p.emp,sal:S.sal,vol:p.vol}}
+function go(full){
+  if(full)syncAll();else{syncAll()}
+  const o=opts();RES=simulate(o);FAN=o.vol>0?fan(o):null;
+  /* snowball point: first year whose growth is bigger than that year's deposits */
+  RES.snow=null;{const yearly=[];let k=0;for(let y=0;y<=Math.floor(S.years);y++){while(k<RES.pts.length-1&&RES.pts[k].t<y-1e-9)k++;yearly.push(RES.pts[k])}
+    for(let y=1;y<yearly.length;y++){const a=yearly[y-1],b=yearly[y],dDep=b.dep-a.dep,dGrow=(b.B-b.start-b.dep)-(a.B-a.start-a.dep);if(dDep>0&&dGrow>dDep){RES.snow=b;break}}}
+  /* numbers */
+  const p=P(),lk=lockInfo();
+  $('sBal').textContent=money(RES.B);
+  $('lBal').textContent='Balance after '+S.years+(S.years==1?' year':' years');
+  $('sBalNote').textContent=FAN?'Bad luck '+kfmt(FAN[FAN.length-1][0])+' · good luck '+kfmt(FAN[FAN.length-1][8]):(lk&&lk.t>S.years?'🔒 Locked until age '+p.lock:RES.paid>0?'Every $1 you put in became '+R.sym+(RES.B/RES.paid).toFixed(2):'');
+  $('sPaid').textContent=money(RES.paid);
+  $('sPaidNote').textContent=RES.empPer>0?'Includes '+money(RES.empPer*Math.round(S.years*S.freq))+' from your employer':'';
+  const net=RES.B-RES.paid;
+  $('sInt').textContent=money(RES.intE);
+  const cost=RES.taxT+RES.feeT;
+  $('sIntNote').textContent=(cost>=1?'Tax and fees took '+money(cost):'')+(RES.pend>1&&p.comp==='term'?(cost>=1?' · ':'')+money(RES.pend)+' more due when the term ends':'');
+  /* the story under the chart */
+  const yrs=n=>n+(n==1?' year':' years');
+  let s='';
+  if(RES.snow)s+='From <b>year '+Math.round(RES.snow.t)+'</b>, the interest each year is bigger than everything you put in that year. That\'s the snowball point. ';
+  else if(RES.paid>0&&RES.B>RES.paid)s+='Keep going: with more years, the interest each year would overtake your deposits. ';
+  if(net<0)s+='<b>Fees and tax are bigger than the growth here</b>, so the balance ends up below what you put in. ';
+  if(S.years<50&&RES.B>RES.paid){const o2={...opts(),years:Math.min(60,S.years+5)},r2=simulate(o2);s+='Five more years would make it <b>'+money(r2.B)+'</b>.'}
+  $('story').innerHTML=s;
+  /* legend */
+  $('legend').innerHTML='<span><i style="background:'+C_START+'"></i>Starting amount</span><span><i style="background:'+C_DEP+'"></i>Your deposits'+(RES.empPer>0?' + employer':'')+'</span><span><i style="background:linear-gradient(90deg,#0e9488,#ffd000,#ff3d7f)"></i>Interest earning interest</span>'+(FAN?'<span><i style="background:linear-gradient(90deg,#ff5d6c,#4da3ff)"></i>Bad luck to good luck</span>':'')+(lk&&lk.t>0?'<span><i style="background:repeating-linear-gradient(45deg,var(--mute) 0 2px,transparent 2px 5px);opacity:.6"></i>Locked</span>':'');
+  /* target scale */
+  const top=Math.max(RES.B,...RES.pts.map(q=>q.B),FAN?FAN[FAN.length-1][8]:0,FAN?Math.max(...FAN.map(r=>r[8])):0,1);
+  yTarget=top*1.06;
+  save();animate();
+}
+let rz=0;new ResizeObserver(()=>{cancelAnimationFrame(rz);rz=requestAnimationFrame(draw)}).observe(fig);
+window.addEventListener('themechange',()=>requestAnimationFrame(draw));
+window.addEventListener('devicechange',()=>requestAnimationFrame(draw));
+go(true);selfTest();
+window.__compound={simulate,fan,fvFormula,selfTest};
+}
+</script>
+</body>
+</html>
