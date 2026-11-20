@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
 <script>
 /* colour theme: same switch and storage key as the two pages */
-(function(){var K='loanTheme',r=document.documentElement,v='auto';
+(function(){var K='loanTheme',r=document.documentElement,v='dark';
  var KS='loanSettings.v1',sc='indigo';
  function cfg(){try{return JSON.parse(localStorage.getItem(KS))||{}}catch(e){return {}}}
  var REG={AU:['en-AU','$'],NZ:['en-NZ','$'],UK:['en-GB','£'],US:['en-US','$'],CA:['en-CA','$']},c0=cfg(),cc=REG[c0.country]?c0.country:'AU';
@@ -67,11 +67,12 @@ main[data-view=tracker]{grid-template-columns:minmax(0,1fr)}main[data-view=track
 @media(max-width:760px){main{grid-template-columns:minmax(0,1fr)}.div{display:none}main:not([data-view]) #pT,main[data-view=split] #pT{display:none}}
 </style>
 <link rel="stylesheet" href="settings.css">
+<script src="nav.js"></script>
 <script src="settings.js" defer></script>
 </head>
 <body>
 <header>
-  <a class="brand" href="index.html?home=1" title="Home"><img src="icons/icon-192.png" alt=""><span>Bank Loan Visualised</span></a>
+  <a class="brand" href="index.html" title="Home"><img src="icons/icon-192.png" alt=""><span>Bank Loan Visualised</span></a>
   <div class="seg" id="view" role="group" aria-label="Layout">
     <button data-v="split">Side by side</button><button data-v="graph">Graph only</button><button data-v="tracker">Tracker only</button>
   </div>
@@ -79,10 +80,10 @@ main[data-view=tracker]{grid-template-columns:minmax(0,1fr)}main[data-view=track
   <button class="pill pri" id="send" title="Copies the loan in the graph into a new Tracker profile">Send graph loan to Tracker →</button>
   <button class="pill" id="setSw" title="Colours and country">⚙ Settings</button>
   <a class="pill" href="cashflow.html" title="Plan your pays, bills and goals">💰 Cash-flow</a>
-  <a class="pill" href="index.html" title="The pages on their own, with the phone layout">Single pages</a>
+  <a class="pill" href="graph.html" title="The pages on their own, with the phone layout">Single pages</a>
 </header>
 <main id="main">
-  <section class="pane" id="pG"><h2>Every path out of a loan <a href="index.html" target="_blank" rel="noopener">Open on its own ↗</a></h2><iframe id="fG" src="index.html?embed=1" title="Every path out of a loan"></iframe></section>
+  <section class="pane" id="pG"><h2>Every path out of a loan <a href="graph.html" target="_blank" rel="noopener">Open on its own ↗</a></h2><iframe id="fG" src="graph.html?embed=1" title="Every path out of a loan"></iframe></section>
   <div class="div" id="div" role="separator" aria-orientation="vertical" aria-label="Drag to resize" tabindex="0"></div>
   <section class="pane" id="pT"><h2>Loan Tracker <a href="tracker.html" target="_blank" rel="noopener">Open on its own ↗</a></h2><iframe id="fT" src="tracker.html?embed=1" title="Loan Tracker"></iframe></section>
 </main>

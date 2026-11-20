@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <script>
 /* colour theme: Auto (follows the phone), Light or Dark. Shared by both pages, remembered in this browser. Runs before the page paints. */
-(function(){var K='loanTheme',r=document.documentElement,v='auto';
+(function(){var K='loanTheme',r=document.documentElement,v='dark';
  if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){if(e.source!==window.parent||e.origin!==location.origin)return;var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loanSettings)window.loanTheme.refresh();if(d.loan==='reloadAll')location.reload();if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})};if(window.loanEmbed)document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('toTracker');if(b)b.textContent='Send this loan to the Tracker →'})
  var KS='loanSettings.v1',sc='indigo';
  function cfg(){try{return JSON.parse(localStorage.getItem(KS))||{}}catch(e){return {}}}
@@ -138,15 +138,40 @@ details#panel[open]>summary{margin-bottom:6px}
 @keyframes lift{to{transform:translateY(-120%);opacity:0}}
 @keyframes spark{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-120px) scale(1.6)}}
 @media (prefers-reduced-motion:reduce){.liq,.acc,.tick{transition:none}.acc,.vessel.ready .tank,.vessel.poof .liq,.vessel.poof .acc,.sparks i{animation:none}}
+
+/* ---- Pin board look: ruled paper, a glowing supply pipe, pinned reservoirs of different sizes ---- */
+:root{--rule:rgba(79,70,229,.07);--halo:transparent;--halo2:transparent}
+:root[data-theme=dark]{--rule:rgba(255,255,255,.04);--halo:rgba(120,90,255,.14);--halo2:rgba(255,93,108,.10)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--rule:rgba(255,255,255,.04);--halo:rgba(120,90,255,.14);--halo2:rgba(255,93,108,.10)}}
+body{background-color:var(--bg);background-image:radial-gradient(ellipse 60% 50% at 62% 45%,var(--halo),transparent 70%),radial-gradient(ellipse 40% 40% at 12% 10%,var(--halo2),transparent 70%),repeating-linear-gradient(to bottom,transparent 0,transparent 31px,var(--rule) 31px,var(--rule) 32px);background-attachment:fixed}
+.wrap{max-width:1180px}
+.hero.card{background:transparent;box-shadow:none;padding:0}
+.vessels{position:relative;padding-top:74px;align-items:start;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px 20px}
+.vessels::before{content:"";position:absolute;left:12px;right:12px;top:26px;height:12px;border-radius:99px;background:linear-gradient(90deg,#ff5d6c,#ff9d3d,#ffd43b,#35d07f,#4da3ff,#a78bfa);box-shadow:0 0 18px rgba(167,139,250,.45),0 0 6px rgba(77,163,255,.4);opacity:.9}
+.vessel{--c:#a78bfa;--off:0px;margin-top:var(--off);padding:14px;gap:8px;border-radius:16px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow)}
+.vessel::before{content:"";position:absolute;left:calc(50% - 3px);top:calc(-42px - var(--off));width:6px;height:calc(42px + var(--off));border-radius:3px;background:linear-gradient(var(--c),color-mix(in srgb,var(--c) 40%,transparent));box-shadow:0 0 10px color-mix(in srgb,var(--c) 60%,transparent)}
+.vessel::after{content:"";position:absolute;top:-6px;left:calc(50% - 6px);width:12px;height:12px;border-radius:50%;background:#c9c2ff;box-shadow:0 1px 3px rgba(0,0,0,.4),0 0 8px color-mix(in srgb,var(--c) 70%,transparent)}
+.tank{height:var(--th,170px);border:1.5px solid color-mix(in srgb,var(--c) 55%,var(--line));border-top-color:transparent;background:var(--bg);box-shadow:inset 0 0 18px color-mix(in srgb,var(--c) 10%,transparent)}
+.liq{background:linear-gradient(var(--c),color-mix(in srgb,var(--c) 70%,#000));box-shadow:0 -4px 18px color-mix(in srgb,var(--c) 66%,transparent)}
+.acc{background:repeating-linear-gradient(115deg,color-mix(in srgb,var(--c) 60%,transparent) 0 8px,color-mix(in srgb,var(--c) 30%,transparent) 8px 16px);background-size:32px 100%}
+.vessel.ready .tank{border-color:var(--c);box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 40%,transparent),0 0 24px color-mix(in srgb,var(--c) 55%,transparent);animation:glow2 2.2s ease-in-out infinite}
+.vessel .hv{background:var(--c);border-color:var(--c);color:#0d0f18}
+.vessel .add{background:var(--bg)}
+.vessel .valve input[type=range]{accent-color:var(--c)}
+@keyframes glow2{50%{box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 60%,transparent),0 0 34px color-mix(in srgb,var(--c) 70%,transparent)}}
+@media(max-width:560px){.vessel{--off:0px!important}}
+@media (prefers-reduced-motion:reduce){.vessel.ready .tank{animation:none}}
 </style>
 <link rel="stylesheet" href="settings.css">
+<script src="nav.js"></script>
 <script src="settings.js" defer></script>
 <script src="cashflow.js"></script>
 </head>
 <body>
 <div class="wrap">
-  <a class="homeL" href="index.html?home=1" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Bank Loan Visualised</span></a>
-  <div id="topSw"><a href="index.html">Loan graph</a><a href="tracker.html">Loan Tracker</a><button id="setSw" type="button" title="Colours, layout and country" onclick="window.loanSettings&&loanSettings.open()">⚙ Settings</button><button id="devSw" type="button" aria-haspopup="true" aria-expanded="false" title="Choose how the page is laid out"></button></div>
+  <a class="homeL" href="index.html" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Bank Loan Visualised</span></a>
+  <div id="topSw"><button id="setSw" type="button" title="Colours, layout and country" onclick="window.loanSettings&&loanSettings.open()">⚙ Settings</button><button id="devSw" type="button" aria-haspopup="true" aria-expanded="false" title="Choose how the page is laid out"></button></div>
+  <script>loanNav.mount(document.getElementById('topSw'),'cashflow')</script>
   <h1>Cash-flow</h1>
   <p class="sub">Each vessel is something you are saving for. Money flows in on payday. The valve under each one sets how much it gets.</p>
 
@@ -274,9 +299,12 @@ function bufferVesselHTML(){
 }
 function renderVessels(){
   const box=$('vessels');box.innerHTML='';
+  /* each reservoir gets the next colour along the spectrum and its own height off the pipe, so the board reads as hand-pinned */
+  const PAL=['#ff5d6c','#ff9d3d','#ffd43b','#35d07f','#4da3ff','#a78bfa','#ff7eb3'],OFF=[0,44,16,60,26,50];
+  const paint=el=>{const i=box.children.length;el.style.setProperty('--c',PAL[i%PAL.length]);el.style.setProperty('--off',OFF[i%OFF.length]+'px')};
   sorted(res).forEach(r=>{const p=S.pots.find(x=>x.id===r.id);if(!p)return;const d=document.createElement('div');d.innerHTML=vesselHTML(r,p);const el=d.firstChild;
-    if(adding.has(p.id))el.querySelector('.add').hidden=false;box.appendChild(el)});
-  if(res.totals&&res.totals.bufferTarget>0){const d=document.createElement('div');d.innerHTML=bufferVesselHTML();box.appendChild(d.firstChild)}
+    if(adding.has(p.id))el.querySelector('.add').hidden=false;paint(el);box.appendChild(el)});
+  if(res.totals&&res.totals.bufferTarget>0){const d=document.createElement('div');d.innerHTML=bufferVesselHTML();const el=d.firstChild;paint(el);box.appendChild(el)}
   if(!box.children.length)box.innerHTML='<p class="hint">No pots yet. Open "Inputs, list and numbers" below and add one.</p>';
   updateVessels();
 }
@@ -284,6 +312,7 @@ function updateVessels(){
   if(!res)return;const L=CF.levelsAt(S,now()),fc=flowNow(),wk=perWord();
   document.querySelectorAll('#vessels .vessel').forEach(el=>{
     const id=el.dataset.id,l=L[id];if(!l)return;const price=l.price||1,pc=v=>Math.max(0,Math.min(100,v*100/price));
+    el.style.setProperty('--th',Math.round(110+150*Math.min(1,Math.max(0,Math.log10(Math.max(price/100,100)/100)/2)))+'px');
     el.querySelector('.liq').style.height=pc(l.banked)+'%';
     const a=el.querySelector('.acc');a.style.bottom=pc(l.banked)+'%';a.style.height=Math.min(pc(l.accruing),100-pc(l.banked))+'%';
     const tk=el.querySelector('.tick');if(tk){tk.style.display=l.tick<0?'none':'';tk.style.bottom='calc('+pc(l.tick)+'% - 1px)'}

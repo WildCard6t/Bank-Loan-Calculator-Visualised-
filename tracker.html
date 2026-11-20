@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <script>
 /* colour theme: Auto (follows the phone), Light or Dark. Shared by both pages, remembered in this browser. Runs before the page paints. */
-(function(){var K='loanTheme',r=document.documentElement,v='auto';
+(function(){var K='loanTheme',r=document.documentElement,v='dark';
  if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){if(e.source!==window.parent||e.origin!==location.origin)return;var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loanSettings)window.loanTheme.refresh();if(d.loan==='reloadAll')location.reload();if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})}
  var KS='loanSettings.v1',sc='indigo';
  function cfg(){try{return JSON.parse(localStorage.getItem(KS))||{}}catch(e){return {}}}
@@ -357,14 +357,15 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
 }
 </style>
 <link rel="stylesheet" href="settings.css">
+<script src="nav.js"></script>
 <script src="settings.js" defer></script>
 </head>
 <body>
 <div class="wrap">
   <p class="printHead" id="printHead"></p>
   <div class="broken" id="broken" hidden role="alert"><b>Something in this loan’s data couldn’t be shown.</b> Your other loans are safe. <button type="button" class="mini" onclick="document.getElementById('undo').click()">Undo last change</button> <button type="button" class="mini" onclick="document.getElementById('preImp').click()">Restore before import</button></div>
-  <nav><a href="index.html">← Every path out of a loan</a></nav>
-  <a class="homeL" href="index.html?home=1" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Bank Loan Visualised</span></a>
+  <nav><a href="graph.html">← Every path out of a loan</a></nav>
+  <a class="homeL" href="index.html" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Bank Loan Visualised</span></a>
   <h1>Loan Tracker</h1>
   <p class="sub">Your real loan, from the day it started. Before Today the line is your history, coloured by how hard you were paying. From Today it becomes your plan, with a fan of better and worse paths. Add nodes on the line to record what happened or plan what’s next, and watch what it saves you.</p>
 
@@ -503,7 +504,7 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
 /* device choice: shared by both pages, remembered in this browser */
 (function(){
   const K='loanDevice',root=document.documentElement;let saved=null;try{saved=localStorage.getItem(K)}catch(e){}
-  const guess=(matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<760)?'phone':'desktop';
+  const guess='desktop';
   if(window.loanEmbed)return;
   root.dataset.device=saved||guess;
   const label=()=>(root.dataset.device==='phone'?'📱':'🖥️')+' Display ▾';
@@ -520,15 +521,6 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden){closePop();b.focus()}});
     window.addEventListener('resize',closePop);window.addEventListener('scroll',closePop,{passive:true});
     document.body.appendChild(pop);w.prepend(b);
-    const home=/[?&]home=1/.test(location.search);if(home)try{history.replaceState(null,'',location.pathname)}catch(e){}
-    if(saved&&!home)return;
-    const o=document.createElement('div');o.id='welcome';o.setAttribute('role','dialog');o.setAttribute('aria-label','Choose a layout');
-    o.innerHTML='<div class="box"><h2>Welcome</h2><p>How are you viewing this? Pick the layout that suits your screen.</p><div class="opts">'+
-      '<button data-v="phone"'+(guess==='phone'?' class="rec"':'')+'>'+(guess==='phone'?'<em>Suggested</em>':'')+'<b>📱 Phone</b><span>The chart stays pinned at the top while you scroll the controls, with big touch-friendly buttons.</span></button>'+
-      '<button data-v="desktop"'+(guess==='desktop'?' class="rec"':'')+'>'+(guess==='desktop'?'<em>Suggested</em>':'')+'<b>🖥️ Computer</b><span>A wide chart with every label, and the controls laid out underneath.</span></button>'+
-      '</div><small>You can switch any time with the button in the top corner.</small></div>';
-    o.addEventListener('click',e=>{const t=e.target.closest('button[data-v]');if(t){apply(t.dataset.v);o.remove()}});
-    document.body.appendChild(o);o.querySelector('.rec').focus();
   });
 })();
 </script>
@@ -538,9 +530,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   const dev=document.getElementById('devSw');if(!dev)return;
   const box=document.createElement('div');box.id='topSw';dev.replaceWith(box);
   const t=document.createElement('button');t.id='setSw';t.type='button';t.textContent='⚙ Settings';t.title='Colours, layout and country';t.onclick=()=>window.loanSettings&&loanSettings.open();
-  const cv=document.createElement('a');cv.id='combSw';cv.href='desktop.html';cv.textContent='⧉ Combined view';cv.title='Graph and Tracker side by side on one screen';
-  const cf=document.createElement('a');cf.id='cfSw';cf.href='cashflow.html';cf.textContent='💰 Cash-flow';cf.title='Plan your pays, bills and goals';
-  box.append(cf,cv,t,dev);
+  box.append(...loanNav.links('tracker'),t,dev);
 });
 if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>

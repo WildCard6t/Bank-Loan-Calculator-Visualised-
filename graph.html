@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f3f0" id="themeColor">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Loan Paths">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>
+/* colour theme: Auto (follows the phone), Light or Dark. Shared by both pages, remembered in this browser. Runs before the page paints. */
+(function(){var K='loanTheme',r=document.documentElement,v='dark';
+ if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){if(e.source!==window.parent||e.origin!==location.origin)return;var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loanSettings)window.loanTheme.refresh();if(d.loan==='reloadAll')location.reload();if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})};if(window.loanEmbed)document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('toTracker');if(b)b.textContent='Send this loan to the Tracker →'})
+ var KS='loanSettings.v1',sc='indigo';
+ function cfg(){try{return JSON.parse(localStorage.getItem(KS))||{}}catch(e){return {}}}
+ var REG={AU:['en-AU','$'],NZ:['en-NZ','$'],UK:['en-GB','£'],US:['en-US','$'],CA:['en-CA','$']},c0=cfg(),cc=REG[c0.country]?c0.country:'AU';
+ window.loanRegion={country:cc,locale:REG[cc][0],sym:REG[cc][1],mdy:cc==='US'};
+ function bar(){var m=document.getElementById('themeColor');if(m)m.content=getComputedStyle(r).getPropertyValue('--bg').trim()||'#f4f3f0'}
+ function apply(){try{v=localStorage.getItem(K)||v}catch(e){}if(v==='light'||v==='dark')r.dataset.theme=v;else delete r.dataset.theme;sc=cfg().scheme||sc;if(sc!=='indigo')r.dataset.scheme=sc;else delete r.dataset.scheme;bar()}
+ function fire(){window.dispatchEvent(new Event('themechange'))}
+ apply();
+ window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){v=t;try{localStorage.setItem(K,t)}catch(e){};apply();fire()},setScheme:function(s){sc=s;var o=cfg();o.scheme=s;try{localStorage.setItem(KS,JSON.stringify(o))}catch(e){};apply();fire()},refresh:function(){apply();fire()},bar:bar};
+ addEventListener('storage',function(e){if(e.key===K||e.key===KS)window.loanTheme.refresh()});
+ document.addEventListener('DOMContentLoaded',bar);
+ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){bar();fire()})}catch(e){}
+})();
+</script>
+<title>Live Loan Graph</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: precise, calm instrument — the maths is the hero
+   IDEA: a laboratory instrument panel: knobs on the left, a live trace on the right
+   PICTURE: the full family of loan curves, redrawn as you turn each knob
+   COLOUR and TYPE: aluminium ground, black ink, the user's yellow-red / yellow-blue curve scheme; Geist
+   LAYOUT: title + live readouts, then controls beside a large chart; stacks to chart-then-controls on phones */
+:root{color-scheme:light;--bg:#f4f3f0;--panel:#ffffff;--ink:#1a1c29;--mute:#5d6074;--line:#e3e1db;--acc:#4f46e5;--acc-ink:#ffffff;--soft:#efeefd;--good:#15803d;--bad:#d1342f;--good-bg:#e3f4e8;--bad-bg:#fde6e4;--info:#2563eb;--info-bg:#e3ebfd;--shadow:0 1px 2px rgba(26,28,41,.06),0 6px 20px rgba(26,28,41,.06)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--good:#4cc38a;--bad:#ff6b63;--good-bg:#12301f;--bad-bg:#3a1716;--info:#7aa5ff;--info-bg:#16233d;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--good:#4cc38a;--bad:#ff6b63;--good-bg:#12301f;--bad-bg:#3a1716;--info:#7aa5ff;--info-bg:#16233d;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Geist,system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:1920px;margin:0 auto;padding:clamp(20px,3vw,40px) max(4vw,14px)}
+h1{font-size:clamp(30px,4vw,46px);line-height:1.05;margin:0 0 8px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.sub{color:var(--mute);margin:0 0 20px;max-width:68ch}
+.stat small{display:block;font-size:12px;color:var(--mute)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.two input{width:100%!important}
+.ticks{position:relative;height:24px;margin:0 126px 0 0}.ticks button{position:absolute;top:0;transform:translateX(-50%);border:0;background:none;color:var(--mute);font:inherit;font-size:11px;padding:2px 2px;cursor:pointer;white-space:nowrap}.ticks button:first-child{transform:none}.ticks button:hover{color:var(--acc)}.ticks button::before{content:"";position:absolute;left:50%;top:-3px;width:1px;height:5px;background:currentColor}.ticks button:first-child::before{left:0}
+details.more summary{cursor:pointer;font-size:14px;color:var(--mute);min-height:40px;display:flex;align-items:center;list-style-position:inside}details.more summary:hover{color:var(--ink)}.moreIn{display:grid;gap:14px;padding-top:8px}
+.go{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin:-4px 0 22px;padding:16px 18px;border:2px solid var(--acc);border-radius:14px;background:var(--soft)}.go .goTxt{flex:1 1 260px;font-size:15px;color:var(--mute)}.go .goTxt b{display:block;color:var(--ink);font-size:17px;font-weight:600}.go a,.go button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 22px;border-radius:11px;font:inherit;font-size:17px;font-weight:600;text-decoration:none;cursor:pointer;transition:transform .12s,box-shadow .12s}.go a{background:var(--acc);color:#fff;border:2px solid var(--acc);box-shadow:0 4px 14px color-mix(in srgb,var(--acc) 35%,transparent)}.go button{background:var(--panel);color:var(--acc);border:2px solid var(--acc)}.go a:hover,.go button:hover{transform:translateY(-1px);box-shadow:0 6px 18px color-mix(in srgb,var(--acc) 40%,transparent)}.go a:focus-visible,.go button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}html[data-device=phone] .go a,html[data-device=phone] .go button{flex:1 1 100%}
+.stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:var(--line);border-radius:12px;overflow:hidden;margin-bottom:18px}
+.stat{background:var(--panel);padding:12px 16px}
+.stat b{display:block;font-size:clamp(19px,2.2vw,26px);font-weight:600;white-space:nowrap;letter-spacing:-.01em}
+.stat span{font-size:13px;color:var(--mute)}
+.stat.good b{color:var(--good)}.stat small{display:block;font-size:12.5px;color:var(--mute)}
+.stat.wide{grid-column:1/-1}.stat.wide b{white-space:normal;font-size:clamp(17px,1.8vw,21px)}[hidden]{display:none!important}
+.main{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start}.chart{order:-1}
+aside,.chart{background:var(--panel);border-radius:14px}
+aside{padding:18px;display:grid;gap:18px 28px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start}
+.chart{padding:12px 8px 8px}
+.fig{position:relative;width:100%;aspect-ratio:21/8;min-height:380px;max-height:82vh;touch-action:pan-y}
+.fig canvas{position:absolute;inset:0;width:100%;height:100%}
+.axis{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);padding:0 10px 4px}
+.ctl label,.ctl .lab{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--mute);margin-bottom:6px;font-weight:500}
+.row{display:flex;gap:8px;align-items:center}
+.unit{position:relative;display:inline-flex;flex:none}.unit i{position:absolute;top:50%;transform:translateY(-50%);font-style:normal;color:var(--mute);pointer-events:none;font-size:16px}.unit.pre i{left:11px}.unit.pre input{padding-left:24px}.unit.post i{right:11px}.unit.post input{padding-right:28px}
+input[type=range]{flex:1;accent-color:var(--acc);height:44px;margin:0}
+input[type=number],.unit input{width:118px;font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);text-align:right}
+input:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg{display:flex;background:var(--bg);border-radius:9px;padding:3px;gap:3px}
+.seg button{flex:1;min-height:38px;border:0;border-radius:7px;background:none;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.seg.six,.seg.eight{flex-wrap:wrap}.seg.six button{flex:1 1 30%}.seg.eight button{flex:1 1 22%}
+.hint{font-size:13px;color:var(--mute);margin:0}
+.seg button.on{background:var(--ink);color:var(--panel);font-weight:500}
+.chk{display:flex;align-items:center;gap:10px;min-height:36px;font-size:15px;cursor:pointer}
+.chk input{width:20px;height:20px;accent-color:var(--acc)}
+.grp{border-top:1px solid var(--line);padding-top:14px;display:grid;gap:14px}
+.grp h2{font-size:13px;margin:0;color:var(--mute);font-weight:500}
+.tools{display:flex;justify-content:flex-end;gap:8px;padding:0 6px 8px}.tools button{min-height:40px;padding:0 16px;border:1px solid var(--line);background:none;color:var(--ink);border-radius:9px;font:inherit;font-size:14px;cursor:pointer}.tools button:disabled{opacity:.4;cursor:default}.tools button:not(:disabled):hover{border-color:var(--acc)}
+.reset{min-height:44px;border:1px solid var(--line);background:none;color:var(--ink);border-radius:9px;font:inherit;cursor:pointer}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--panel);font-size:13px;line-height:1.45;padding:8px 10px;border-radius:8px;white-space:nowrap;display:none;z-index:2}
+.hint{font-size:13px;color:var(--mute);margin:0}
+#selftest{font-size:13px;margin:8px 0 0;font-weight:500}#selftest.good{color:var(--good)}#selftest.bad{color:var(--bad)}
+.note{font-size:13px;color:var(--mute);margin:14px 0 0;max-width:90ch}.note p{margin:0 0 8px}
+.k{display:none}
+@media(max-width:1300px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.main{grid-template-columns:minmax(0,1fr)}.chart{order:-1}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.fig{aspect-ratio:auto;height:440px}.axis span+span{display:none}}
+
+/* ---- device choice: welcome screen + switch ---- */
+.wrap{position:relative}
+#devSw{position:absolute;top:clamp(14px,2.4vw,32px);right:max(4vw,14px);min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font:inherit;font-size:13px;cursor:pointer;z-index:6}
+#devSw:hover{color:var(--ink);border-color:var(--acc)}
+#welcome{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:20px;overflow:auto}
+#welcome .box{max-width:620px;width:100%;text-align:center}
+#welcome h2{font-size:clamp(26px,5vw,38px);margin:0 0 6px;font-weight:600;letter-spacing:-.02em;color:var(--ink)}
+#welcome p{color:var(--mute);margin:0 0 22px}
+#welcome .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){#welcome .opts{grid-template-columns:1fr}}
+#welcome button{position:relative;background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:22px 16px;cursor:pointer;color:var(--ink);font:inherit;text-align:left;display:grid;gap:6px}
+#welcome button:hover,#welcome button.rec{border-color:var(--acc)}
+#welcome button b{font-size:20px}#welcome button span{font-size:14px;color:var(--mute)}
+#welcome button em{position:absolute;top:10px;right:12px;font-style:normal;font-size:11px;font-weight:600;color:var(--acc);text-transform:uppercase;letter-spacing:.06em}
+#welcome a.cfCard{position:relative;display:grid;gap:6px;margin-top:12px;background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:18px 16px;color:var(--ink);text-align:left;text-decoration:none}
+#welcome a.cfCard:hover{border-color:var(--acc)}#welcome a.cfCard b{font-size:20px}#welcome a.cfCard span{font-size:14px;color:var(--mute)}
+#welcome a.cfCard em{position:absolute;top:10px;right:12px;font-style:normal;font-size:11px;font-weight:600;color:var(--acc);text-transform:uppercase;letter-spacing:.06em}
+#welcome small{display:block;margin-top:18px;color:var(--mute);font-size:13px}
+
+/* ---- phone layout ---- */
+html[data-device=phone] .wrap{padding:14px 10px 24px}
+html[data-device=phone] #devSw{top:12px;right:10px}
+html[data-device=phone] h1{font-size:25px;padding-right:130px}
+html[data-device=phone] .sub{font-size:14px;margin-bottom:10px}
+html[data-device=phone] .stats{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:10px}
+html[data-device=phone] .stat{padding:8px 12px}html[data-device=phone] .stat b{font-size:18px}html[data-device=phone] .stat span{font-size:12px}
+html[data-device=phone] .main{gap:12px}
+html[data-device=phone] .chart{position:sticky;top:0;z-index:5;padding:6px 4px 4px;border-radius:0 0 14px 14px;box-shadow:0 8px 18px rgba(0,0,0,.18)}
+html[data-device=phone] .tools{padding:0 4px 2px;position:absolute;right:6px;top:4px;z-index:3}
+html[data-device=phone] .tools button{min-height:32px;padding:0 10px;font-size:13px}
+html[data-device=phone] .axis{font-size:11px;padding:4px 6px 2px;min-height:34px;align-items:center}
+html[data-device=phone] .axis span+span{display:none}
+html[data-device=phone] .fig{aspect-ratio:auto;height:40vh;min-height:250px;max-height:none}
+html[data-device=phone] aside{grid-template-columns:minmax(0,1fr);padding:14px;gap:16px}
+html[data-device=phone] input[type=range]{height:48px}
+html[data-device=phone] .seg button{min-height:44px}
+html[data-device=phone] .chk{min-height:44px}
+html[data-device=phone] .chk:has(#labels){display:none}
+
+/* ---- v0.14 / v0.5: colours, dark mode switch, iPhone polish ---- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:var(--bg)}
+body{-webkit-tap-highlight-color:transparent}
+button,a,input,select,summary{touch-action:manipulation}
+input[type=range]{accent-color:var(--acc)}
+.chk input{accent-color:var(--acc)}
+select{font-size:16px!important}
+.stats{background:var(--line);box-shadow:var(--shadow)}
+aside,.chart,.panel{box-shadow:var(--shadow)}
+.seg{background:var(--bg)}
+.seg button.on{background:var(--acc);color:var(--acc-ink);font-weight:600}
+#topSw{position:absolute;top:clamp(14px,2.4vw,32px);right:max(4vw,14px);display:flex;gap:6px;z-index:6}
+#topSw button{position:static;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+#topSw button:hover{color:var(--ink);border-color:var(--acc)}
+html[data-device=phone] .wrap{padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+html[data-device=phone] #topSw{position:static;justify-content:flex-end;margin:0 0 8px}
+html[data-device=phone] #topSw button{min-height:36px;font-size:13px}
+html[data-device=phone] h1{padding-right:0}
+html[data-device=phone] .stat b{font-variant-numeric:tabular-nums}
+html[data-device=phone] .note{font-size:12.5px;line-height:1.5}
+.go{border:1.5px solid color-mix(in srgb,var(--acc) 45%,var(--line));background:var(--soft);box-shadow:var(--shadow)}
+.go a{box-shadow:none}.go a:hover,.go button:hover{box-shadow:0 4px 14px rgba(79,70,229,.25)}
+.go a{color:var(--acc-ink)}
+html[data-device=phone] .go{padding:12px;gap:10px;margin:0 0 12px;border-radius:14px}
+html[data-device=phone] .go .goTxt{flex:1 1 100%;font-size:13px;line-height:1.4}
+html[data-device=phone] .go .goTxt b{font-size:16px}
+html[data-device=phone] .go a,html[data-device=phone] .go button{flex:1 1 0;min-height:48px;padding:0 10px;font-size:14px;text-align:center;line-height:1.2}
+html[data-device=phone] .chart{top:0;border-radius:0 0 16px 16px;margin:0 -12px;padding:6px 6px 4px;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+html[data-device=phone] .unit input,html[data-device=phone] input[type=number]{width:112px}
+html[data-device=phone] .ticks{margin-right:120px;height:28px}
+html[data-device=phone] .ticks button{font-size:11.5px;padding:4px 2px}
+html[data-device=phone] details.more summary{min-height:46px}
+html[data-device=phone] .tools{top:2px}
+
+#topSw a#combSw{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font-size:13px;text-decoration:none;white-space:nowrap}
+#topSw a#combSw:hover{color:var(--ink);border-color:var(--acc)}
+html[data-device=phone] #topSw a#combSw{display:none}
+#topSw a#cfSw{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font-size:13px;text-decoration:none;white-space:nowrap}
+#topSw a#cfSw:hover{color:var(--ink);border-color:var(--acc)}
+html[data-device=phone] #topSw a#cfSw{min-height:36px}
+/* inside the combined desktop view: the frame supplies the header and switches */
+html.embed .wrap{padding:14px 18px 28px}
+html.embed h1{font-size:26px;margin-bottom:4px}
+html.embed .sub{font-size:14px;margin-bottom:12px}
+html.embed nav,html.embed .go .goTxt,html.embed .go a{display:none}
+html.embed .go{display:none!important}
+html.embed .go button{min-height:42px;font-size:15px}
+html.embed .fig{min-height:300px}
+
+/* drag-to-set payoff: padlock and drag mode */
+#payLock{position:absolute;top:8px;left:72px;z-index:3;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 13px;border-radius:99px;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 70%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:var(--ink);font:inherit;font-size:13px;font-weight:500;cursor:pointer;opacity:.82;box-shadow:0 2px 10px rgba(0,0,0,.12);white-space:nowrap}
+#payLock:hover{opacity:1;border-color:var(--acc)}
+#payLock.open{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);opacity:1}
+#payLock span{font-size:15px;line-height:1}
+.fig.dragmode{touch-action:none;cursor:ew-resize}
+.fig.dragmode canvas{cursor:ew-resize}
+html[data-device=phone] #payLock{top:6px;min-height:34px;font-size:12.5px;padding:0 11px}
+
+/* editable lists: one-off repayments and rate changes */
+.list{display:grid;gap:8px}.list:empty{display:none}
+.lrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px;border-radius:10px;background:var(--bg)}
+.lrow label{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--mute);margin:0}
+.lrow .unit input{width:118px}.lrow label input{width:76px!important;text-align:right}.lrow .unit.post input{width:92px}
+.lrow input{background:var(--panel)!important}
+.xRow{margin-left:auto;width:38px;height:38px;border:0;border-radius:50%;background:none;color:var(--mute);font:inherit;font-size:16px;cursor:pointer}.xRow:hover{color:var(--bad);background:var(--panel)}
+.addRow{justify-self:start;min-height:40px;padding:0 14px;border:1px dashed var(--acc);border-radius:10px;background:none;color:var(--acc);font:inherit;font-size:14px;font-weight:500;cursor:pointer}.addRow:hover{background:var(--soft)}
+#sRateN{white-space:normal}
+html[data-device=phone] .addRow{min-height:44px;width:100%}
+
+/* nodes */
+.chart{position:relative}
+.nodeEd{position:absolute;z-index:8;width:300px;padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.25);display:grid;gap:8px;font-size:14px}
+.nodeEd[hidden]{display:none}
+.neHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.neHead b{font-size:15px}
+.neX{width:34px;height:34px;border:0;border-radius:50%;background:var(--bg);color:var(--ink);cursor:pointer;font:inherit}
+.neLab{font-size:12.5px;color:var(--mute);font-weight:500;margin-top:2px}
+.neRow{display:flex;align-items:center;gap:6px}.neRow .unit input{width:120px}
+.neStep{width:40px;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:20px;cursor:pointer}.neStep:hover{border-color:var(--acc)}
+.neFreq{color:var(--mute)}
+.neQuick{display:flex;flex-wrap:wrap;gap:6px}.neQuick button{min-height:32px;padding:0 10px;border:1px solid var(--line);border-radius:99px;background:none;color:var(--ink);font:inherit;font-size:13px;cursor:pointer}.neQuick button:hover{border-color:var(--acc);color:var(--acc)}
+.nodeEd input.neY,.nodeEd input.neNote{width:100%;font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);text-align:left}
+.neEff{margin:2px 0 0;padding:8px 10px;border-radius:10px;background:var(--soft);font-size:13.5px}
+.neBtns{display:flex;justify-content:space-between;gap:8px}.neBtns button{min-height:40px;padding:0 14px;border-radius:10px;font:inherit;font-size:14px;cursor:pointer}
+.neDel{border:1px solid var(--line);background:none;color:var(--bad)}.neDone{border:0;background:var(--acc);color:var(--acc-ink);font-weight:600}
+.nodeMenu{position:absolute;z-index:9;display:grid;min-width:230px;padding:6px;border-radius:12px;background:var(--panel);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.nodeMenu[hidden]{display:none}.nodeMenu button{min-height:40px;padding:0 12px;border:0;border-radius:8px;background:none;color:var(--ink);font:inherit;font-size:14px;text-align:left;cursor:pointer}.nodeMenu button:hover{background:var(--soft)}
+.nrow .nDot{width:14px;height:14px;border-radius:50%;border:3px solid var(--acc);background:var(--panel);flex:none}
+.nrow .nWhen{font-weight:600}.nrow .nPay{color:var(--ink)}.nrow .nNote{color:var(--mute);font-size:13px;flex:1 1 100%;order:9}
+.nEdit{margin-left:auto;min-height:34px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}.nrow .xRow{margin-left:0}
+html[data-device=phone] .nodeEd{position:fixed;left:0!important;right:0;bottom:0;top:auto!important;width:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));z-index:60;max-height:75vh;overflow:auto}
+html[data-device=phone] .neStep{width:46px;height:46px}
+html[data-device=phone] #payLock{max-width:calc(100% - 80px);overflow:hidden;text-overflow:ellipsis}
+.homeL{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:2px 10px 2px 4px;margin:0 0 2px -4px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;cursor:pointer;transition:background .15s}
+.homeL img{width:26px;height:26px;border-radius:7px}.homeL:hover{background:var(--soft);color:var(--acc)}.homeL:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+html.embed .homeL{display:none}
+
+/* node editor: docked beside the chart on a computer (the chart shrinks, nothing is covered); minimise to a small pill */
+html:not([data-device=phone]) .chart.editing{padding-right:356px}
+html:not([data-device=phone]) .chart.editing .nodeEd{left:auto!important;right:12px;top:12px!important;width:332px;max-height:calc(100% - 24px);overflow:auto;box-shadow:0 6px 24px rgba(0,0,0,.16)}
+.neHB{display:flex;gap:6px;flex:none}
+.neMin{width:34px;height:34px;border:0;border-radius:50%;background:var(--bg);color:var(--ink);cursor:pointer;font:inherit;font-size:15px;line-height:1}
+.neMin:hover,.neX:hover{background:var(--soft)}
+.nodeEd.min{width:auto!important;max-width:min(380px,calc(100% - 24px));padding:5px 5px 5px 14px;border-radius:99px;left:auto!important;right:12px!important;top:auto!important;bottom:12px;cursor:pointer;overflow:hidden}
+.nodeEd.min>:not(.neHead){display:none!important}
+.nodeEd.min .neHead b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[data-device=phone] .nodeEd{max-height:46vh}
+html[data-device=phone] .nodeEd.min{position:fixed;left:auto!important;right:12px!important;bottom:calc(12px + env(safe-area-inset-bottom));max-height:none;padding:5px 5px 5px 14px;border-radius:99px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.dispPop{position:fixed;z-index:90;padding:10px;border-radius:16px;background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.25);animation:dpIn .14s ease-out}
+.dispPop[hidden]{display:none}
+.dpT{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:0 4px 8px}
+.dpRow{display:flex;gap:8px}
+.dispPop button{position:relative;display:grid;justify-items:center;gap:4px;width:112px;padding:14px 8px 12px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.dispPop button i{font-style:normal;font-size:30px;line-height:1}
+.dispPop button:hover{border-color:var(--acc)}
+.dispPop button.on{border-color:var(--acc);background:var(--soft);color:var(--acc);font-weight:600;box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 22%,transparent),0 0 18px color-mix(in srgb,var(--acc) 45%,transparent)}
+.dispPop button em{font-style:normal;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.dispPop button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+@keyframes dpIn{from{opacity:0;transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){.dispPop{animation:none}}
+</style>
+<link rel="stylesheet" href="settings.css">
+<script src="nav.js"></script>
+<script src="settings.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="homeL" href="index.html" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Bank Loan Visualised</span></a>
+  <h1>Every path out of a loan</h1>
+  <p class="sub">Each line is one repayment amount. Above the yellow spine the debt grows. Below it the loan is paid off, and each line ends at its exit year. Turn the knobs and the whole picture redraws.</p>
+  <div class="go"><span class="goTxt"><b>Track your real loan</b>Log your repayments and see where you are against every path.</span><a href="tracker.html">Go to the Loan Tracker →</a><button id="toTracker" title="Copies this loan into a new Tracker profile">Bring this loan with me</button></div>
+
+  <div class="stats">
+    <div class="stat"><span>Equalised payment</span><b id="sEq">–</b></div>
+    <div class="stat"><span>Your payment</span><b id="sPay">–</b></div>
+    <div class="stat"><span>Outcome</span><b id="sOut">–</b></div>
+    <div class="stat"><span id="sIntL">Interest</span><b id="sInt">–</b></div>
+    <div class="stat"><span id="sTotL">Total paid</span><b id="sTot">–</b><small id="sTotN"></small></div>
+    <div class="stat"><span id="sStdL">vs standard loan</span><b id="sStd">–</b><small id="sStdN"></small></div>
+    <div class="stat wide good" id="sOffBox" hidden><span>Your offset saves</span><b id="sOffS">–</b><small id="sOffSN"></small></div>
+    <div class="stat wide" id="sLumpBox" hidden><span>Your extras save</span><b id="sLump">–</b></div>
+    <div class="stat wide" id="sRateBox" hidden><span>Rate changes</span><b id="sRate">–</b><small id="sRateN"></small></div>
+  </div>
+
+  <div class="main">
+    <aside>
+      <div class="ctl">
+        <label for="loanN">Principal (loan amount)</label>
+        <div class="row"><input type="range" id="loanR" min="10000" max="2000000" step="5000"><span class="unit pre"><i>$</i><input type="text" id="loanN" inputmode="numeric" autocomplete="off"></span></div>
+      </div>
+      <div class="ctl">
+        <label for="rateN">Interest rate (% a year)</label>
+        <div class="row"><input type="range" id="rateR" min="0.25" max="15" step="0.05"><span class="unit post"><input type="number" id="rateN" min="0.25" max="25" step="0.05" inputmode="decimal"><i>%</i></span></div>
+        <p class="hint" id="rateSplit"></p>
+      </div>
+      <div class="ctl">
+        <label for="payN"><span>Your payment</span><span id="payHint"></span></label>
+        <div class="row"><input type="range" id="payR" min="0" max="1000" step="0.1"><span class="unit pre"><i>$</i><input type="text" id="payN" inputmode="numeric" autocomplete="off"></span></div>
+        <div class="ticks" id="payTicks"></div>
+      </div>
+      <div class="ctl">
+        <label for="termN"><span>Loan term</span><span>sets the standard payment</span></label>
+        <div class="row"><input type="range" id="termLR" min="1" max="40" step="1"><span class="unit post"><input type="number" id="termN" min="1" max="40" step="1" inputmode="numeric"><i>yrs</i></span></div>
+      </div>
+      <div class="ctl"><div class="lab">Payment frequency</div>
+        <div class="seg eight" data-k="freq"><button data-v="365">Daily</button><button data-v="52">Weekly</button><button data-v="26">Fortnightly</button><button data-v="12">Monthly</button><button data-v="4">Quarterly</button><button data-v="2">Half-yearly</button><button data-v="1">Yearly</button><button data-v="custom">Custom</button></div>
+          <div class="ctl" id="freqCBox" hidden><label for="freqC"><span>Custom: payments per year</span><span>1–365</span></label><input type="number" id="freqC" style="width:100%" min="1" max="365" step="1" inputmode="numeric"></div>
+          <p class="hint" id="freqCHint" hidden>13 a year is a payment about every 4 weeks. Tip: paying half your monthly amount every fortnight works out the same as 13 monthly payments a year. Choose Fortnightly for that.</p>
+      </div>
+
+      <div class="grp">
+        <h2>Real world</h2>
+        <div class="ctl">
+          <label for="offN">Offset or savings balance</label>
+          <div class="row"><input type="range" id="offR" min="0" step="1000"><span class="unit pre"><i>$</i><input type="text" id="offN" inputmode="numeric" autocomplete="off"></span></div>
+        </div>
+        <div class="ctl">
+          <label for="lumpN">One-off extra repayment</label>
+          <div class="row"><input type="range" id="lumpR" min="0" step="1000"><span class="unit pre"><i>$</i><input type="text" id="lumpN" inputmode="numeric" autocomplete="off"></span></div>
+        </div>
+        <div class="ctl">
+          <label for="lumpYR"><span>Paid</span><span id="lumpYO"></span></label>
+          <input type="range" id="lumpYR" min="0" step="0.25" style="width:100%">
+        </div>
+        <div class="ctl"><div class="lab"><span>More one-off repayments</span><span>e.g. a tax refund or bonus</span></div>
+          <div class="list" id="lumpList"></div>
+          <button type="button" class="addRow" id="addLump">+ Add a one-off repayment</button>
+        </div>
+        <div class="ctl">
+          <label for="recN"><span>Regular extra repayment</span><span>added to every payment</span></label>
+          <div class="row"><input type="range" id="recR" min="0" step="10"><span class="unit pre"><i>$</i><input type="text" id="recN" inputmode="numeric" autocomplete="off"></span></div>
+        </div>
+        <div class="two">
+          <div class="ctl"><label for="recFrom">From year</label><input type="number" id="recFrom" min="0" max="40" step="0.25" inputmode="decimal"></div>
+          <div class="ctl"><label for="recTo">Until year (0 = to the end)</label><input type="number" id="recTo" min="0" max="100" step="0.25" inputmode="decimal"></div>
+        </div>
+        <div class="ctl">
+          <label for="topN"><span>Added to offset each month</span></label>
+          <div class="row"><input type="range" id="topR" min="0" max="5000" step="50"><span class="unit pre"><i>$</i><input type="text" id="topN" inputmode="numeric" autocomplete="off"></span></div>
+        </div>
+        <p class="hint">The starting offset cuts the interest on every line. Monthly top-ups and extra repayments only change <em>your</em> line, and the faint ghost line shows your path without them, and the green area between is the money you save. Already partway through a loan? Enter what you owe today and the years left.</p>
+      </div>
+
+      <div class="grp">
+        <h2>Rate changes</h2>
+        <div class="list" id="rateList"></div>
+        <button type="button" class="addRow" id="addRate">+ Add a future rate change</button>
+        <div class="ctl" id="rateModeBox"><div class="lab">When the rate changes</div>
+          <div class="seg" data-k="rateMode"><button data-v="term">Bank recalculates my repayment</button><button data-v="payment">I keep paying the same</button></div>
+        </div>
+        <p class="hint" id="rateHint">Plan for rates going up or down, for example 6.25% after 1 yr 6 mo (0% works for an interest-free period). <b>Bank recalculates my repayment</b> is what lenders normally do on a variable loan: your repayment changes so the loan still ends on time. <b>I keep paying the same</b>: the payoff date moves instead. Only <em>your</em> line follows the changes; the fan of other paths stays at today’s rate.</p>
+      </div>
+
+      <div class="grp">
+        <h2>Nodes on your line</h2>
+        <div class="list" id="nodeList"></div>
+        <p class="hint" id="nodeHint">A node is a point on your line where your plan changes, such as paying more from a certain date. Unlock the padlock on the chart, then click your line (or press and hold on a phone) to add one. Nodes are saved with your loan and in backups.</p>
+      </div>
+
+      <div class="grp">
+        <h2>Display</h2>
+        <div class="ctl">
+          <label for="termR"><span>Chart length</span><span id="termO"></span></label>
+          <label class="chk"><input type="checkbox" id="autoT"> Fit to my loan automatically</label>
+          <input type="range" id="termR" min="5" max="40" step="1" style="width:100%">
+        </div>
+        <div class="ctl"><div class="lab">Y-axis shows</div>
+          <div class="seg" data-k="mode"><button data-v="change">Change</button><button data-v="balance">Balance</button><button data-v="percent">% of loan</button></div>
+        </div>
+        <div class="ctl"><div class="lab">Thin curves between years</div>
+          <div class="seg" data-k="dens"><button data-v="yearly">None</button><button data-v="quarterly">Quarterly</button><button data-v="monthly">Monthly</button></div>
+        </div>
+        <details class="more"><summary>More display options</summary><div class="moreIn">
+        <div class="ctl"><div class="lab">Curves above the spine</div>
+          <div class="seg" data-k="upper"><button data-v="even">Even steps</button><button data-v="mirror">Mirror payments</button></div>
+        </div>
+        <div class="ctl"><div class="lab">Growth zone (above spine)</div>
+          <div class="seg" data-k="cap"><button data-v="1">Up to 1×</button><button data-v="2">Up to 2×</button><button data-v="0">Hide</button></div>
+        </div>
+        <label class="chk"><input type="checkbox" id="labels"> Payment labels under the axis</label>
+        <label class="chk"><input type="checkbox" id="beyond"> Dashed exits beyond the chart (up to 100 yrs)</label>
+        <label class="chk"><input type="checkbox" id="fill"> Gradient fill between curves</label>
+        </div></details>
+      </div>
+    </aside>
+
+    <section class="chart">
+      <div class="tools"><button id="undo" title="Undo last change (Ctrl+Z)" disabled>↶ Undo</button><button id="redo" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><button id="reset" title="Back to $300k at 6% over 30 years. Your display settings stay as they are.">Reset loan</button></div>
+      <div class="axis"><span id="yTitle">Change in Principal ($)</span><span>Time to Exit (years) →</span></div>
+      <div class="fig" id="fig"><canvas id="cv"></canvas><canvas id="ov"></canvas><div class="tip" id="tip"></div></div>
+    </section>
+  </div>
+
+  <div class="note"><p><b>What this assumes.</b> Educational tool, not financial advice. Interest is worked out once per repayment on the balance minus any offset. Real banks work it out daily, so expect small differences: usually a little more interest for monthly repayments and a little less for weekly or fortnightly ones. Rates stay the same unless you add a rate change; when you do, the bank recalculates your repayment unless you choose otherwise. No fees, lenders mortgage insurance or tax. Savings are measured until the loan is paid off, against the same loan without your extras (with the same rate changes). The self-test checks the core formulas for one standard loan, not every feature.</p>
+  <p><b>How to read the chart.</b> Curves above the spine step evenly from the equalised payment down to $0 (the reddest line); switch to <em>mirror payments</em> to pair each one with a payoff curve the same distance on the other side. Hover or drag across the chart to read any moment. Dashed lines are loans that take longer than the chart (from 35 up to 100 years, whichever are past its right edge): they leave the right edge still owing money, and they crowd closer to the spine the longer they take.</p></div>
+  <p id="selftest"></p>
+</div>
+<i class="k" id="cMute" style="color:var(--mute)"></i><i class="k" id="cAcc" style="color:var(--acc)"></i><i class="k" id="cGood" style="color:var(--good)"></i><i class="k" id="cBad" style="color:var(--bad)"></i><i class="k" id="cLine" style="color:var(--line)"></i><i class="k" id="cPanel" style="color:var(--panel)"></i>
+
+<script>
+/* device choice: shared by both pages, remembered in this browser */
+(function(){
+  const K='loanDevice',root=document.documentElement;let saved=null;try{saved=localStorage.getItem(K)}catch(e){}
+  const guess='desktop';
+  if(window.loanEmbed)return;
+  root.dataset.device=saved||guess;
+  const label=()=>(root.dataset.device==='phone'?'📱':'🖥️')+' Display ▾';
+  function apply(v){root.dataset.device=v;try{localStorage.setItem(K,v)}catch(e){};const b=document.getElementById('devSw');if(b)b.textContent=label();window.dispatchEvent(new Event('devicechange'))}
+  window.addEventListener('DOMContentLoaded',()=>{
+    const w=document.querySelector('.wrap'),b=document.createElement('button');b.id='devSw';b.title='Choose how the page is laid out';b.textContent=label();b.setAttribute('aria-haspopup','true');b.setAttribute('aria-expanded','false');
+    /* Display: a small bubble with both layouts; the one in use glows */
+    const pop=document.createElement('div');pop.className='dispPop';pop.hidden=true;pop.setAttribute('role','menu');pop.setAttribute('aria-label','Display');
+    const paintPop=()=>{const cur=root.dataset.device;pop.innerHTML='<div class="dpT">Display</div><div class="dpRow">'+[['desktop','🖥️','Computer'],['phone','📱','Phone']].map(([v,i,n])=>'<button type="button" role="menuitemradio" aria-checked="'+(v===cur)+'" data-v="'+v+'" class="'+(v===cur?'on':'')+'"><i>'+i+'</i><span>'+n+'</span>'+(v===cur?'<em>In use</em>':'')+'</button>').join('')+'</div>'};
+    const closePop=()=>{pop.hidden=true;b.setAttribute('aria-expanded','false')};
+    b.onclick=e=>{e.stopPropagation();if(!pop.hidden){closePop();return}paintPop();pop.hidden=false;b.setAttribute('aria-expanded','true');const r=b.getBoundingClientRect(),pw=pop.offsetWidth;pop.style.top=(r.bottom+8)+'px';pop.style.left=Math.max(8,Math.min(innerWidth-pw-8,r.right-pw))+'px';const on=pop.querySelector('.on');if(on)on.focus()};
+    pop.addEventListener('click',e=>{e.stopPropagation();const t=e.target.closest('[data-v]');if(!t)return;apply(t.dataset.v);paintPop();setTimeout(closePop,350)});
+    document.addEventListener('click',e=>{if(!pop.hidden&&!pop.contains(e.target))closePop()});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden){closePop();b.focus()}});
+    window.addEventListener('resize',closePop);window.addEventListener('scroll',closePop,{passive:true});
+    document.body.appendChild(pop);w.prepend(b);
+  });
+})();
+</script>
+<script>
+/* top-corner switches: colour theme beside the phone/computer switch */
+window.addEventListener('DOMContentLoaded',()=>{
+  const dev=document.getElementById('devSw');if(!dev)return;
+  const box=document.createElement('div');box.id='topSw';dev.replaceWith(box);
+  const t=document.createElement('button');t.id='setSw';t.type='button';t.textContent='⚙ Settings';t.title='Colours, layout and country';t.onclick=()=>window.loanSettings&&loanSettings.open();
+  box.append(...loanNav.links('graph'),t,dev);
+});
+if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+<script>
+{
+const $=id=>document.getElementById(id);
+const DEF={P:300000,rate:6,T:40,freq:12,s:550,mode:'change',dens:'quarterly',cap:1,labels:true,fill:true,beyond:true,off:0,lump:0,lumpY:5,upper:'even',term:30,rec:0,recFrom:0,recTo:0,top:0,lumps:[],rates:[],rateMode:'term',nodes:[],autoT:true,rm2:true};
+let S={...DEF},saved=false,showC=false;
+/* saved state is rebuilt from known fields only, so a damaged or booby-trapped backup can't break the page or run code */
+function cleanS(v){const o={...DEF};if(!v||typeof v!=='object')return o;
+  const fin=(x,d,lo,hi)=>{x=typeof x==='string'?parseFloat(x):x;return typeof x==='number'&&isFinite(x)&&x>=lo&&x<=hi?x:d};
+  const R={P:[1000,1e9],rate:[0.01,25],T:[5,40],freq:[1,365],s:[0,1000],cap:[0,2],off:[0,1e9],lump:[0,1e9],lumpY:[0,100],term:[1,40],rec:[0,1e8],recFrom:[0,100],recTo:[0,100],top:[0,1e8],customF:[1,365],pay:[0,1e8]};
+  for(const[k,[lo,hi]]of Object.entries(R))if(k in v)o[k]=fin(v[k],DEF[k],lo,hi);
+  o.freq=Math.round(o.freq);o.term=Math.round(o.term);o.T=Math.round(o.T);
+  for(const k of['labels','fill','beyond','autoT'])if(typeof v[k]==='boolean')o[k]=v[k];
+  const pick=(k,ok)=>{if(ok.includes(v[k]))o[k]=v[k]};pick('mode',['change','balance','percent']);pick('dens',['yearly','quarterly','monthly']);pick('upper',['even','mirror']);pick('rateMode',['payment','term']);
+  if(!v.rm2)o.rateMode='term';o.rm2=true;
+  const arr=x=>Array.isArray(x)?x:[];
+  o.lumps=arr(v.lumps).map(l=>({a:fin(l&&l.a,0,0,1e9),y:fin(l&&l.y,0,0,100)}));
+  o.rates=arr(v.rates).map(c=>({y:fin(c&&c.y,1,0,100),r:fin(c&&c.r,6,0,25)}));
+  o.nodes=arr(v.nodes).filter(n=>n&&typeof n.id==='string'&&/^[a-z0-9_-]{1,40}$/i.test(n.id)).map(n=>({id:n.id,y:fin(n.y,1,0,100),f:Math.round(fin(n.f,o.freq,1,365)),pay:fin(n.pay,0,0,1e8),note:String(n.note||'').slice(0,80)}));
+  return o}
+try{const v=JSON.parse(localStorage.getItem('loanGraph.v2'));if(v){S=cleanS(v);saved=true}}catch(e){}
+S.T=Math.min(40,S.T);
+const save=()=>{try{localStorage.setItem('loanGraph.v2',JSON.stringify(S))}catch(e){}};
+const FL=new Proxy({12:'mo',26:'fn',52:'wk',4:'qtr',2:'half-yr',1:'yr',365:'day'},{get:(o,k)=>o[k]||'pmt'});
+const PRESET=[1,2,4,12,26,52,365];
+/* THE MODEL — one period = one payment:
+   interest = period rate × max(0, balance − offset); balance += interest − payment;
+   the extra repayment comes off at the end of its period (year 0 = before the first period).
+   With no offset the closed-form formulas are used (identical results, faster). */
+const rr=()=>S.rate/100/S.freq, TP=()=>S.T*S.freq, OFF=()=>Math.min(Math.max(0,S.off||0),S.P*.95), IO=()=>(S.P-OFF())*rr();
+const step=(B,p)=>B+rr()*Math.max(0,B-OFF())-p;
+const delta=(p,t)=>(S.P-p/rr())*(Math.pow(1+rr(),t)-1);
+function balAt(p,n){if(!OFF())return S.P+delta(p,n);let B=S.P;for(let k=0;k<n;k++)B=step(B,p);return B}
+const exitCache=new Map();
+function exitPay(n){
+  if(!OFF()){const r=rr();return S.P*r/(1-Math.pow(1+r,-n))}
+  n=Math.max(1,Math.round(n));const key=[S.P,S.rate,S.freq,OFF(),n].join();if(exitCache.has(key))return exitCache.get(key);
+  let lo=0,hi=S.P/n+S.P*rr()+1;for(let i=0;i<60;i++){const m=(lo+hi)/2;if(balAt(m,n)>0)lo=m;else hi=m}
+  if(exitCache.size>20000)exitCache.clear();const v=(lo+hi)/2;exitCache.set(key,v);return v}
+function exitN(p){
+  if(p<=IO()*(1+1e-9))return Infinity;
+  if(!OFF()){const r=rr();return -Math.log(1-S.P*r/p)/Math.log(1+r)}
+  let B=S.P;for(let k=1;k<=200*S.freq;k++){const nb=step(B,p);if(nb<=0)return k-1+B/(B-nb);B=nb}return Infinity}
+/* follow YOUR loan exactly, period by period, for up to 100 years */
+const hasEx=()=>S.lump>0||S.rec>0||S.top>0||(S.lumps||[]).some(l=>l.a>0);
+const rateList=()=>(S.rates||[]).filter(c=>c.y>0&&c.r>=0).map(c=>[Math.round(c.y*S.freq),c.r/100/S.freq,c]).sort((a,b)=>a[0]-b[0]);
+const hasRates=()=>rateList().length>0;
+/* nodes: points on your line where your plan changes. Each node: {id,y (years in),f (payments a year when made),pay (regular payment from here),note}.
+   Built to hold more kinds of change later (lump, rate, note); today a node sets your regular payment from that point. */
+const nodeList=()=>(S.nodes||[]).map(n=>[Math.round(n.y*S.freq),n.pay*(n.f||S.freq)/S.freq,n]).sort((a,b)=>a[0]-b[0]);
+const hasNodes=()=>(S.nodes||[]).length>0;
+function run(p,withExtra,withRates=withExtra){
+  const Tp=TP(),tol=S.P*1e-7,xk=withExtra&&S.lump>0?Math.round(S.lumpY*S.freq):-1;
+  const LS=new Map();if(withExtra)(S.lumps||[]).forEach(l=>{if(l.a>0){const k=Math.max(0,Math.round((l.y||0)*S.freq));LS.set(k,(LS.get(k)||0)+l.a)}});
+  const RC=withRates?rateList():[],base=RC.length&&S.rateMode==='term'?run(p,withExtra,false):null,Nb=base&&base.paid!==null?base.paid:null;
+  const ND=nodeList();let r=rr(),pp=p,ci=0,ni=0;const pchg=[],ppl=[];
+  const rec=withExtra?(S.rec||0):0,rf=(S.recFrom||0)*S.freq,rt=S.recTo>0?S.recTo*S.freq:Infinity,top=withExtra?(S.top||0)*12/S.freq:0;
+  let B=S.P,int=0,paid=null,dbl=null,atT=null,tot=0,totT=null;const pts=[[0,0]];
+  if(xk===0||LS.has(0)){const x=Math.min(B,(xk===0?S.lump:0)+(LS.get(0)||0));B-=x;tot+=x;pts.push([0,B-S.P])}
+  if(B<=tol)paid=0;
+  for(let k=1;k<=100*S.freq&&paid===null;k++){
+    while(ci<RC.length&&RC[ci][0]<=k-1){const nr=RC[ci][1];if(Nb!==null){const n=Nb-(k-1);if(n>0){const A=x=>x>0?x/(1-Math.pow(1+x,-n)):1/n;pp=pp*A(nr)/A(r)}}r=nr;pchg.push([k-1,pp,RC[ci][2].r]);ppl.push([k-1,pp]);ci++}
+    while(ni<ND.length&&ND[ni][0]<=k-1){pp=ND[ni][1];ppl.push([k-1,pp]);ni++}
+    const off=OFF()+top*(k-1),i=r*Math.max(0,B-off);int+=i;
+    const pay=pp+(k-1>=rf&&k-1<rt?rec:0)+(k===xk?S.lump:0)+(LS.get(k)||0);let nb=B+i-pay;tot+=Math.min(pay,B+i);
+    if(nb<=tol){paid=k;if(k-1<Tp)pts.push([k-1+B/(B-nb),-S.P]);nb=0}
+    else if(k<=Tp)pts.push([k,nb-S.P]);
+    if(dbl===null&&nb>=2*S.P)dbl=k;
+    if(k===Tp){atT=nb;totT=tot}B=nb}
+  return{paid,int,dbl,atT:atT===null?0:atT,pts,tot,totT:totT===null?tot:totT,pchg,ppl}}
+const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=v=>(v<0?'−':'')+loanRegion.sym+Math.round(Math.abs(v)).toLocaleString(loanRegion.locale);
+const kfmt=a=>{a=Math.abs(a);return loanRegion.sym+(a>=1e6?parseFloat((a/1e6).toFixed(2))+'M':a>=1e4?Math.round(a/1e3)+'k':a>=1e3?parseFloat((a/1e3).toFixed(1))+'k':Math.round(a))};
+const ym=y=>{const m=Math.round(y*12),a=Math.floor(m/12),b=m%12;return (a?a+' yr'+(a>1?'s':''):'')+(b?(a?' ':'')+b+' mo':'')||'0 mo'};
+
+/* payment slider: 0–500 grows (0 → equalised), 500–550 equalised → longest exit, 550–1000 longest exit → 1 year */
+const payFromS=s=>S.pay!=null&&s===S._sPay?S.pay:payFromS0(s);
+const payFromS0=s=>{const I=IO(),pT=exitPay(TP());if(s<=500)return I*s/500;if(s<=550)return I+(pT-I)*(s-500)/50;const y=S.T-(S.T-1)*(s-550)/450;return exitPay(y*S.freq)};
+const sFromPay=p=>{const I=IO(),pT=exitPay(TP());if(p<=I)return Math.max(0,500*p/I);if(p<=pT)return 500+50*(p-I)/(pT-I);const y=exitN(p)/S.freq;return Math.min(1000,550+450*(S.T-y)/(S.T-1))};
+
+const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const LOW=[[0,'#1d5bd8'],[.3,'#0e9488'],[.6,'#3db54a'],[.82,'#b5d22c'],[1,'#ffd000']].map(([f,h])=>[f,hex(h)]);
+const UP=[[0,'#ffd000'],[.4,'#ffa400'],[.7,'#ff6a00'],[1,'#c4122f']].map(([f,h])=>[f,hex(h)]);
+const col=(st,f,a)=>{f=Math.min(1,Math.max(0,f));let i=1;while(i<st.length-1&&f>st[i][0])i++;const[f0,c0]=st[i-1],[f1,c1]=st[i],u=(f-f0)/(f1-f0||1);return 'rgba('+c0.map((v,j)=>Math.round(v+(c1[j]-v)*u))+','+a+')'};
+const niceStep=raw=>{const m=Math.pow(10,Math.floor(Math.log10(raw)));for(const k of[1,2,2.5,5,10])if(k*m>=raw)return k*m};
+
+function build(){
+  const Tp=TP(),I=IO(),step=Math.max(1,{yearly:S.freq,quarterly:S.freq/4,monthly:S.freq/12}[S.dens]);
+  const low=[],up=[],cnt=Math.round(Tp/step);
+  for(let k=1;k<=cnt;k++){
+    const n=OFF()?Math.max(1,Math.round(k*step)):k*step,yr=k*step/S.freq,bold=Math.abs(yr-Math.round(yr))<1e-6,p=exitPay(n);
+    low.push({p,end:n,frac:n/Tp,bold});
+    const pu=2*I-p; if(S.upper==='mirror'&&pu>0)up.push({p:pu,end:Tp,frac:(I-pu)/I,bold});
+  }
+  if(S.beyond){const ys=[35,40,45,50,60,80,100].filter(y=>y>S.T);if(S.T<30)ys.unshift(30);
+    for(const y of ys){const p=exitPay(y*S.freq),pu=2*I-p;low.push({p,end:Tp,frac:1,bold:false,bey:true});if(S.upper==='mirror')up.push({p:pu,end:Tp,frac:(I-pu)/I,bold:false,bey:true})}}
+  if(S.upper!=='mirror'){const sub={yearly:1,quarterly:4,monthly:12}[S.dens],J=S.T*sub;for(let j=1;j<J;j++)up.push({p:I*(1-j/J),end:Tp,frac:j/J,bold:j%sub===0})}
+  up.push({p:0,end:Tp,frac:1,bold:true});
+  up.sort((a,b)=>a.frac-b.frac);
+  return{low,up};
+}
+
+const fig=$('fig'),cv=$('cv'),ov=$('ov'),tip=$('tip');let G=null;
+function ylab(v){
+  const P=S.P;if(Math.abs(v)<P*1e-9)v=0;
+  if(S.mode==='balance')return kfmt(P+v);
+  if(S.mode==='percent')return (v>0?'+':v<0?'−':'')+Math.round(Math.abs(v)/P*100)+'%';
+  return v===0?'$0':(v>0?'+':'−')+kfmt(v);
+}
+function draw(){
+  const W=fig.clientWidth,H=fig.clientHeight,d=window.devicePixelRatio||1;
+  if(!W||!H)return;
+  for(const c of[cv,ov]){c.width=Math.round(W*d);c.height=Math.round(H*d)}
+  const x=cv.getContext('2d');x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,W,H);
+  const ink=getComputedStyle(document.body).color,mute=getComputedStyle($('cMute')).color,line=getComputedStyle($('cLine')).color,panel=getComputedStyle($('cPanel')).color;
+  const phone=document.documentElement.dataset.device==='phone',LAB=S.labels&&!phone,narrow=W<560,L=narrow?60:66,R=narrow?78:100,Tm=12,B=LAB?(narrow?84:100):34;
+  const pw=W-L-R,ph=H-Tm-B,P=S.P,yMin=-P,yMax=S.cap?S.cap*P:P*0.06,Tp=TP(),I=IO();
+  const X=t=>L+t/Tp*pw,Y=v=>Tm+(yMax-v)/(yMax-yMin)*ph;
+  G={L,Tm,pw,ph,Tp,W,H,X,Y,ink,panel};
+  const font=s=>s+'px Geist,system-ui,sans-serif';
+
+  /* grid */
+  x.font=font(12);x.lineWidth=1;
+  const yt=niceStep((yMax-yMin)/Math.max(3,ph/46));
+  x.textAlign='right';x.textBaseline='middle';
+  for(let v=Math.ceil(yMin/yt)*yt;v<=yMax+1e-6;v+=yt){const yy=Math.round(Y(v))+.5;x.strokeStyle=line;x.beginPath();x.moveTo(L,yy);x.lineTo(L+pw,yy);x.stroke();x.fillStyle=mute;x.fillText(ylab(v),L-8,yy)}
+  const xs=[1,2,5,10].find(s=>pw/(S.T/s)>=(narrow?30:28))||10;
+  x.textAlign='center';x.textBaseline='top';
+  for(let yr=0;yr<=S.T;yr++){const xx=Math.round(X(yr*S.freq))+.5;x.strokeStyle=line;x.globalAlpha=yr%xs?.4:1;x.beginPath();x.moveTo(xx,Tm);x.lineTo(xx,Tm+ph);x.stroke();x.globalAlpha=1;if(yr%xs===0){x.fillStyle=mute;x.fillText(yr,xx,Tm+ph+6)}}
+  x.textAlign='left';x.fillText('years',L+pw+16,Tm+ph+6);
+
+  /* curves */
+  const{low,up}=S.cap?build():{...build(),up:[]};
+  const st=Tp/Math.min(360,Math.max(120,pw/2)),cl=v=>Math.max(yMin,Math.min(yMax*1.03+1,v));
+  const pts=c=>{const a=[];
+    if(!OFF()){for(let t=0;t<c.end;t+=st)a.push([t,cl(delta(c.p,t))]);a.push([c.end,cl(delta(c.p,c.end))]);return a}
+    const N=Math.ceil(c.end),ev=Math.max(1,Math.round(st));let B=S.P;a.push([0,0]);
+    for(let k=1;k<=N;k++){B=step(B,c.p);if(k%ev===0||k===N)a.push([k,cl(B-S.P)])}return a};
+  for(const c of low)c.pts=pts(c);for(const c of up)c.pts=pts(c);
+  const path=(a,rev,move)=>{const s=rev?a.slice().reverse():a;s.forEach(([t,v],i)=>i||!move?x.lineTo(X(t),Y(v)):x.moveTo(X(t),Y(v)))};
+  x.save();x.beginPath();x.rect(L,Tm,pw,ph);x.clip();
+  if(S.fill){
+    const fb=(a,b,c)=>{x.beginPath();path(a.pts,false,true);path(b.pts,true,false);x.closePath();x.fillStyle=c;x.fill()};
+    for(let i=0;i<low.length-1;i++)fb(low[i],low[i+1],col(LOW,low[i+1].frac,.16));
+    for(let i=0;i<up.length-1;i++)fb(up[i],up[i+1],col(UP,up[i+1].frac,.14));
+    const spine={pts:[[0,0],[Tp,0]]};if(up.length)fb(spine,up[0],col(UP,up[0].frac,.14));if(low.length)fb(low[low.length-1],spine,col(LOW,1,.16));
+  }
+  x.lineJoin='round';
+  for(const pass of[false,true]){
+    for(const[arr,stops]of[[low,LOW],[up,UP]])for(const c of arr){if(c.bold!==pass)continue;x.setLineDash(c.bey?[4,4]:[]);x.beginPath();path(c.pts,false,true);x.strokeStyle=c.bey?'rgba(212,163,0,.75)':col(stops,c.frac,pass?.95:.38);x.lineWidth=pass?2.2:c.bey?1.2:1;x.stroke()}
+    x.setLineDash([]);
+  }
+  x.beginPath();x.moveTo(X(0),Y(0));x.lineTo(X(Tp),Y(0));x.strokeStyle='#ffd000';x.lineWidth=4.5;x.stroke();
+
+  /* your payment */
+  const p=payFromS(S.s),me0=run(p,true);G.me=me0;const me={pts:me0.pts.map(([t,v])=>[t,cl(v)])};
+  /* the ghost: your line before your change (without your extras and nodes, or without the node you're editing), with the money between them shaded */
+  G.ghost=null;
+  if(hasEx()||hasNodes()){const keep=S.nodes,sk=window.__ghostSkip;let g0;
+    if(sk){S.nodes=(keep||[]).filter(n=>n.id!==sk);g0=run(p,true)}else{S.nodes=[];g0=run(p,false,true)}S.nodes=keep;
+    const gh=g0.pts.map(([t,v])=>[t,cl(v)]),va=(a,t)=>{if(t>=a[a.length-1][0])return a[a.length-1][1]<=-S.P+1e-6?-S.P:null;for(let i=1;i<a.length;i++)if(a[i][0]>=t){const[t0,v0]=a[i-1],[t1,v1]=a[i];return t1>t0?v0+(v1-v0)*(t-t0)/(t1-t0):v1}return null};
+    const N=240,Sm=[];for(let i=0;i<=N;i++){const t=Tp*i/N,c=va(me.pts,t),g=va(gh,t);if(c==null||g==null)continue;Sm.push([t,c,g])}
+    const dI=g0.paid!==null&&me0.paid!==null?g0.int-me0.int:null,dK=g0.paid!==null&&me0.paid!==null?g0.paid-me0.paid:null;
+    const good=getComputedStyle($('cGood')).color,bad=getComputedStyle($('cBad')).color,better=dI!==null?dI>=0:me0.paid!==null||(me0.atT<=g0.atT);
+    if(Sm.length>1){x.beginPath();Sm.forEach(([t,c],i)=>i?x.lineTo(X(t),Y(c)):x.moveTo(X(t),Y(c)));for(let i=Sm.length-1;i>=0;i--)x.lineTo(X(Sm[i][0]),Y(Sm[i][2]));x.closePath();x.fillStyle=better?good:bad;x.globalAlpha=.22;x.fill();x.globalAlpha=1}
+    x.beginPath();path(gh,false,true);x.strokeStyle=ink;x.globalAlpha=.28;x.lineWidth=3;x.stroke();x.globalAlpha=1;
+    let bi=0;for(let i=0;i<Sm.length;i++)if(Math.abs(Sm[i][2]-Sm[i][1])>Math.abs(Sm[bi][2]-Sm[bi][1]))bi=i;
+    if(Sm.length&&(dI===null||Math.abs(dI)>=1))G.ghost={x:X(Sm[bi][0]),y:Y((Sm[bi][1]+Sm[bi][2])/2),t:dI!==null?(dI>=0?'You save '+money(dI):'Costs '+money(-dI)+' more')+(dK&&Math.abs(dK)>=1?' · '+ym(Math.abs(dK)/S.freq)+(dK>0?' sooner':' later'):''):me0.paid!==null?'Now paid off in '+ym(me0.paid/S.freq):'',good:better}}
+  x.beginPath();path(me.pts,false,true);x.strokeStyle=panel;x.lineWidth=7;x.stroke();x.strokeStyle=ink;x.lineWidth=3;x.stroke();
+  const[lt,lv]=me.pts[me.pts.length-1];x.beginPath();x.arc(X(lt),Y(lv),5.5,0,7);x.fillStyle=ink;x.fill();x.strokeStyle=panel;x.lineWidth=2;x.stroke();
+  /* rate-change markers */
+  {let prev=S.rate;x.font=font(narrow?10.5:12);x.textAlign='left';x.textBaseline='top';
+   for(const[k,,c]of rateList()){if(k>Tp)continue;const xx=Math.round(X(k))+.5;x.setLineDash([3,4]);x.strokeStyle=mute;x.lineWidth=1;x.beginPath();x.moveTo(xx,Tm);x.lineTo(xx,Tm+ph);x.stroke();x.setLineDash([]);
+     const lab=(c.r>prev?'▲ ':'▼ ')+c.r+'%';const w=x.measureText(lab).width+10,lx=Math.min(xx+3,L+pw-w);x.fillStyle=panel;x.globalAlpha=.85;const ly=Tm+ph-(narrow?20:23);x.fillRect(lx,ly,w,narrow?16:18);x.globalAlpha=1;x.fillStyle=c.r>prev?'#d1342f':'#15803d';x.fillText(lab,lx+5,ly+2);prev=c.r}}
+  /* one-off repayment markers on your line */
+  {const ks=[];if(S.lump>0)ks.push(Math.round(S.lumpY*S.freq));(S.lumps||[]).forEach(l=>{if(l.a>0)ks.push(Math.round((l.y||0)*S.freq))});
+   for(const k of ks){if(k>lt||k>Tp)continue;let v=me.pts[0][1];for(const[t,val]of me.pts){if(t<=k)v=val;else break}x.beginPath();x.arc(X(k),Y(v),4.5,0,7);x.fillStyle='#15803d';x.fill();x.strokeStyle=panel;x.lineWidth=2;x.stroke()}}
+  /* nodes */
+  {const acc=getComputedStyle($('cAcc')).color;G.nodes=[];
+   for(const[k,,n]of nodeList()){if(k>Tp)continue;let v=me.pts[0][1];for(const[t,val]of me.pts){if(t<=k)v=val;else break}
+     const nx=X(Math.min(k,lt)),ny=Y(v);G.nodes.push({id:n.id,x:nx,y:ny});
+     x.beginPath();x.arc(nx,ny,8,0,7);x.fillStyle=panel;x.fill();x.lineWidth=3;x.strokeStyle=acc;x.stroke();x.beginPath();x.arc(nx,ny,3.5,0,7);x.fillStyle=acc;x.fill()}}
+  x.restore();
+  if(G.ghost&&G.ghost.t){const s_=G.ghost.t;x.font='600 '+font(13);const tw=x.measureText(s_).width+18,lx=Math.max(L+4,Math.min(L+pw-tw-4,G.ghost.x-tw/2)),ly=Math.max(Tm+48,Math.min(Tm+ph-30,G.ghost.y-13));
+    x.fillStyle=getComputedStyle($(G.ghost.good?'cGood':'cBad')).color;x.beginPath();x.roundRect?x.roundRect(lx,ly,tw,26,13):x.rect(lx,ly,tw,26);x.fill();x.fillStyle='#fff';x.textAlign='left';x.textBaseline='middle';x.fillText(s_,lx+9,ly+13)}
+  x.beginPath();x.moveTo(X(0),Math.round(Y(-P))-.5);x.lineTo(X(Tp),Math.round(Y(-P))-.5);x.strokeStyle=ink;x.lineWidth=1.2;x.stroke();
+
+  /* spine label */
+  x.textAlign='left';x.textBaseline='middle';x.fillStyle='#d4a300';x.font=font(narrow?11:13);
+  x.fillText('Equalised',L+pw+8,Y(0)-9);x.fillText(kfmt(I).replace('$','$')+'/'+FL[S.freq],L+pw+8,Y(0)+8);
+  if(I<1e4){x.clearRect(L+pw+6,Y(0)+1,R-6,16);x.fillText(money(I)+'/'+FL[S.freq],L+pw+8,Y(0)+8)}
+
+  /* exit payment labels */
+  if(LAB){
+    const fs=narrow?10:11;x.font=font(fs);
+    const ls=[1,2,5,10].find(s=>pw/(S.T/s)>=fs+9)||10;
+    for(let yr=ls;yr<=S.T;yr+=ls){
+      const xx=Math.round(X(yr*S.freq))+.5,t=money(exitPay(yr*S.freq))+'/'+FL[S.freq],tw=x.measureText(t).width;
+      x.strokeStyle=col(LOW,yr/S.T,.9);x.setLineDash([2,3]);x.lineWidth=1;x.beginPath();x.moveTo(xx,Tm+ph+22);x.lineTo(xx,H-tw-8);x.stroke();x.setLineDash([]);
+      x.save();x.translate(xx,H-3);x.rotate(-Math.PI/2);x.textAlign='left';x.textBaseline='middle';x.fillStyle=mute;x.fillText(t,0,0);x.restore();
+    }
+  }
+}
+
+const PER=new Proxy({52:'week',26:'fortnight',12:'month',4:'quarter',2:'half-year',1:'year',365:'day'},{get:(o,k)=>o[k]||'payment period'});
+const pct=v=>parseFloat(v.toFixed(v<0.1?4:3))+'%';
+function rateSplit(){const f=S.freq,known={52:1,26:1,12:1,4:1,2:1,1:1,365:1}[f];$('rateSplit').innerHTML=parseFloat(S.rate.toFixed(3))+'% ÷ '+f+' = <b>'+pct(S.rate/f)+' per '+(known?PER[f]:'payment')+'</b>'+(known?'':' ('+f+' a year)')}
+function stats(){rateSplit();
+  const I=IO(),p=payFromS(S.s),f=FL[S.freq],R=run(p,true),EX=hasEx(),frozen=Math.abs(p-I)<=I*5e-4&&!EX;
+  const put=(o,l,v)=>{$('sOut').textContent=o;$('sIntL').textContent=l;$('sInt').textContent=v};
+  $('sEq').textContent=money(I)+'/'+f;$('sPay').textContent=money(p)+'/'+f;
+  if(frozen)put('Balance frozen','Interest each year, forever',money(I*S.freq));
+  else if(R.paid!==null)put('Paid off in '+ym(R.paid/S.freq),'Total interest',money(R.int));
+  else if(R.dbl!==null)put('Doubles in '+ym(R.dbl/S.freq),'Owed after '+S.T+' years',money(R.atT));
+  else put('Not paid off in 100 yrs','Owed after '+S.T+' years',money(R.atT));
+  $('payHint').textContent=frozen?'interest only: balance stays the same':R.paid!==null?'pays off in '+ym(R.paid/S.freq):p>I?'pays off in over 100 yrs':'debt grows';
+  /* total paid and the comparison with the standard loan for the term */
+  if(R.paid!==null){$('sTotL').textContent='Total paid';$('sTot').textContent=money(R.tot);$('sTotN').textContent=money(S.P)+' loan + '+money(R.int)+' interest'}
+  else{$('sTotL').textContent='Paid in '+S.T+' years';$('sTot').textContent=money(R.totT);$('sTotN').textContent='and still '+money(R.atT)+' owing'}
+  const pStd=exitPay(S.term*S.freq),RS=run(pStd,false,true);$('sStdL').textContent='vs standard '+S.term+'-yr loan';
+  if(R.paid===null){$('sStd').textContent='Never pays off';$('sStdN').textContent='standard is '+money(pStd)+'/'+f}
+  else{const dI=RS.int-R.int,dT=(RS.paid-R.paid)/S.freq;
+    if(Math.abs(dI)<1&&Math.abs(dT)<1/24){$('sStd').textContent='Same';$('sStdN').textContent='this is the standard payment'}
+    else{$('sStd').textContent=(dI>=0?'Saves ':'Costs ')+money(Math.abs(dI));$('sStdN').textContent=(dT>=0?ym(dT)+' sooner':ym(-dT)+' longer')+' · standard '+money(pStd)+'/'+f}}
+  const box=$('sLumpBox');box.hidden=!EX;
+  if(EX){const R0=run(p,false,true);let t;
+    if(R.paid!==null&&R0.paid!==null)t=money(R0.int-R.int)+' less interest, '+ym((R0.paid-R.paid)/S.freq)+' sooner';
+    else if(R.paid!==null)t='Turns it into a payoff: '+ym(R.paid/S.freq);
+    else t=money(R0.atT-R.atT)+' less owed at year '+S.T;
+    $('sLump').textContent=t}
+  {const ob=$('sOffBox'),has=OFF()>0||S.top>0;ob.hidden=!has;
+   if(has){const k0=S.off,k1=S.top;S.off=0;S.top=0;const R0=run(p,true);S.off=k0;S.top=k1;
+     if(R.paid!==null&&R0.paid!==null){$('sOffS').textContent=money(R0.int-R.int);$('sOffSN').textContent='in interest by the time your loan is paid off'+(R0.paid>R.paid?', '+ym((R0.paid-R.paid)/S.freq)+' sooner':'')}
+     else if(R.paid!==null){$('sOffS').textContent='Pays it off';$('sOffSN').textContent='without it this payment never clears the loan'}
+     else{$('sOffS').textContent=money(R0.atT-R.atT);$('sOffSN').textContent='less owed after '+S.T+' years'}}}
+  const RB=$('sRateBox'),HR=hasRates();RB.hidden=!HR;
+  if(HR){const Rn=run(p,true,false),dI=R.int-Rn.int;let t='',n='';
+    const when=R.paid!==null&&Rn.paid!==null?R.paid-Rn.paid:null;
+    t=(dI>=0?'+':'−')+money(Math.abs(dI))+' interest';
+    if(S.rateMode==='payment'&&R.paid===null){t='Never paid off at this payment';n='A bank wouldn\u2019t allow this: it would raise your repayment. Choose \u201cBank recalculates my repayment\u201d to see that.';$('sRate').textContent=t;$('sRateN').textContent=n;return}
+    if(S.rateMode==='payment'){if(when===null)t+=R.paid===null?' · no longer paid off':'';else if(Math.abs(when)>=1)t+=' · paid off '+ym(Math.abs(when)/S.freq)+(when>0?' later':' sooner');else t+=' · same payoff date'}
+    else{const last=R.pchg.length?R.pchg[R.pchg.length-1][1]:p;t+=' · payment '+money(p)+' → '+money(last)+'/'+f}
+    n=R.pchg.map(([k,pp,rt])=>rt+'% after '+ym(k/S.freq)+(S.rateMode==='term'?' ('+money(pp)+'/'+f+')':'')).join(' · ');
+    $('sRate').textContent=t;$('sRateN').textContent=n}
+}
+
+function sync(){
+  const act=document.activeElement;
+  const set=(id,v)=>{if(act!==$(id))$(id).value=v};
+  set('loanR',S.P);set('loanN',grp(S.P));set('rateR',S.rate);set('rateN',S.rate);set('termR',S.T);set('payR',S.s);set('payN',grp(payFromS(S.s)));
+  $('offR').max=Math.round(S.P*.95);set('offR',OFF());set('offN',grp(OFF()));$('lumpR').max=S.P;set('lumpR',S.lump);set('lumpN',grp(S.lump));$('lumpYR').max=S.T;set('lumpYR',S.lumpY);$('lumpYO').textContent=S.lumpY===0?'at the start':'after '+ym(S.lumpY);
+  $('termO').textContent=S.T+' years'+(S.autoT!==false?' (auto)':'');$('autoT').checked=S.autoT!==false;$('termR').disabled=S.autoT!==false;set('termLR',S.term);set('termN',S.term);
+  const pS=exitPay(S.term*S.freq);$('recR').max=Math.max(500,Math.round(pS/50)*50);set('recR',S.rec);set('recN',grp(S.rec));set('recFrom',S.recFrom);set('recTo',S.recTo);set('topR',S.top);set('topN',grp(S.top));
+  ticks();lists();
+  const isC=showC||!PRESET.includes(S.freq);$('freqCBox').hidden=!isC;$('freqCHint').hidden=!(isC&&S.freq===13);set('freqC',S.freq);
+  document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>{const on=g.dataset.k==='freq'?(isC?b.dataset.v==='custom':String(S.freq)===b.dataset.v):String(S[g.dataset.k])===b.dataset.v;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)}));
+  $('labels').checked=S.labels;$('fill').checked=S.fill;$('beyond').checked=S.beyond;
+  $('yTitle').textContent={change:'Change in Principal ($)',balance:'Balance Owing ($)',percent:'Change in Principal (% of loan)'}[S.mode];
+}
+/* undo history: one step per burst of changes, so a whole slider drag undoes in one go */
+const HIST=[];let cur=null,burstT=0,restoring=false;
+function remember(){const j=JSON.stringify(S),now=Date.now();
+  if(cur===null||restoring){cur=j;restoring=false}
+  else if(j!==cur){if(now-burstT>600){HIST.push(cur);if(HIST.length>100)HIST.shift();REDO.length=0}cur=j;burstT=now}
+  $('undo').disabled=!HIST.length;$('redo').disabled=!REDO.length}
+const REDO=[];
+function undo(){if(!HIST.length)return;REDO.push(cur);S={...DEF,...JSON.parse(HIST.pop())};restoring=true;burstT=0;update()}
+function redo(){if(!REDO.length)return;HIST.push(cur);S={...DEF,...JSON.parse(REDO.pop())};restoring=true;burstT=0;update()}
+const grp=v=>Math.round(v).toLocaleString(loanRegion.locale);
+/* your repayment is kept in dollars: when the offset, loan, rate or frequency changes, the slider moves so the payment stays the same */
+let lastS=null;
+function keepPay(){if(lastS===null||S.pay==null||S.s!==lastS){S._sPay=null;S.pay=payFromS0(S.s);S._sPay=S.s}else{const ns=sFromPay(S.pay);S._sPay=null;if(isFinite(ns)&&ns>=0&&ns<=1000){S.s=ns;S._sPay=S.s}else{S.s=Math.max(0,Math.min(1000,isFinite(ns)?ns:1000));S.pay=payFromS0(S.s);S._sPay=S.s}}}
+function update(){keepPay();if(typeof autoLen==='function')autoLen();lastS=S.s;remember();save();sync();stats();draw();if(typeof pin!=='undefined'&&pin)showAt(pin.px,pin.py);if(window.__nodeSync)window.__nodeSync()}
+
+const num=(v,lo,hi,dflt)=>{v=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isFinite(v)?Math.min(hi,Math.max(lo,v)):dflt};
+$('loanR').addEventListener('input',e=>{S.P=+e.target.value;update()});
+$('loanN').addEventListener('input',e=>{const v=num(e.target.value,1000,1e8,null);if(v){S.P=v;update()}});
+$('rateR').addEventListener('input',e=>{S.rate=+e.target.value;update()});
+$('rateN').addEventListener('input',e=>{const v=num(e.target.value,.25,25,null);if(v){S.rate=v;update()}});
+$('termR').addEventListener('input',e=>{const p=payFromS(S.s);S.T=+e.target.value;S.autoT=false;S.s=sFromPay(p);update()});
+$('autoT').addEventListener('change',e=>{S.autoT=e.target.checked;update()});
+/* chart length that fits your loan: the term, or longer if your line takes longer to pay off (5 to 40 years) */
+let sliding=false;
+function autoLen(){if(S.autoT===false||sliding)return;const p=payFromS(S.s),R=run(p,true);
+  const want=Math.max(5,Math.min(40,Math.max(S.term||30,R.paid!==null?Math.ceil(R.paid/S.freq-1e-9):30)));
+  if(want!==S.T){S.T=want;S.s=sFromPay(p)}}
+$('payR').addEventListener('input',e=>{sliding=true;S.s=+e.target.value;update()});$('payR').addEventListener('change',()=>{sliding=false;update()});
+$('payN').addEventListener('input',e=>{const v=num(e.target.value,0,1e8,null);if(v!==null){S.s=sFromPay(v);update()}});
+document.querySelectorAll('.seg').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=g.dataset.k,v=b.dataset.v;if(k==='freq'&&v==='custom'){S.freq=S.customF||13;S.customF=S.freq;showC=true}else{S[k]=(k==='freq'||k==='cap')?+v:v;if(k==='freq')showC=false}update()}));
+$('freqC').addEventListener('input',e=>{const v=Math.round(num(e.target.value,1,365,null));if(v){S.freq=v;S.customF=v;showC=true;update()}});
+$('freqC').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur()});
+$('offR').addEventListener('input',e=>{S.off=+e.target.value;update()});
+$('offN').addEventListener('input',e=>{const v=num(e.target.value,0,1e9,null);if(v!==null){S.off=v;update()}});
+$('lumpR').addEventListener('input',e=>{S.lump=+e.target.value;update()});
+/* editable lists: more one-offs and rate changes */
+let listSig='';
+function lists(force){
+  const sig=JSON.stringify([S.lumps,S.rates,S.nodes,S.freq]);if(!force&&sig===listSig)return;
+  const a=document.activeElement;if(!force&&a&&(a.closest('#lumpList')||a.closest('#rateList')))return;listSig=sig;
+  $('lumpList').innerHTML=(S.lumps||[]).map((l,i)=>'<div class="lrow"><span class="unit pre"><i>'+loanRegion.sym+'</i><input type="text" inputmode="numeric" data-l="'+i+'" data-f="a" value="'+(l.a?grp(l.a):'')+'" aria-label="Amount" placeholder="Amount"></span><label>after <input type="number" inputmode="decimal" min="0" max="40" step="0.25" data-l="'+i+'" data-f="y" value="'+l.y+'" aria-label="Paid after how many years"> yrs</label><button type="button" class="xRow" data-l="'+i+'" aria-label="Remove">✕</button></div>').join('');
+  $('rateList').innerHTML=(S.rates||[]).map((c,i)=>'<div class="lrow"><label>after <input type="number" inputmode="decimal" min="0.25" max="40" step="0.25" data-r="'+i+'" data-f="y" value="'+c.y+'" aria-label="After how many years"> yrs</label><span class="unit post"><input type="number" inputmode="decimal" min="0.1" max="25" step="0.05" data-r="'+i+'" data-f="r" value="'+c.r+'" aria-label="New rate"><i>%</i></span><button type="button" class="xRow" data-r="'+i+'" aria-label="Remove">✕</button></div>').join('');
+  $('rateModeBox').hidden=!(S.rates||[]).length;
+  $('nodeList').innerHTML=nodeList().map(([k,pay,n])=>'<div class="lrow nrow"><b class="nDot"></b><span class="nWhen">'+ym(n.y)+' in</span><span class="nPay">'+money(pay)+'/'+FL[S.freq]+'</span>'+(n.note?'<span class="nNote">'+n.note.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</span>':'')+'<button type="button" class="nEdit" data-n="'+esc(n.id)+'">Edit</button><button type="button" class="xRow" data-n="'+esc(n.id)+'" aria-label="Delete node">✕</button></div>').join('')}
+$('addLump').addEventListener('click',()=>{burstT=0;S.lumps=[...(S.lumps||[]),{a:5000,y:Math.min(S.T,(S.lumps||[]).length+2)}];lists(true);update();const ins=$('lumpList').querySelectorAll('input[data-f=a]');ins[ins.length-1].focus()});
+$('addRate').addEventListener('click',()=>{burstT=0;const rs=S.rates||[],lastR=rs.length?rs[rs.length-1].r:S.rate,lastY=rs.length?rs[rs.length-1].y:0;S.rates=[...rs,{y:Math.min(S.T,lastY+1),r:Math.round((lastR+0.25)*100)/100}];lists(true);update()});
+for(const id of['lumpList','rateList'])$(id).addEventListener('input',e=>{const t=e.target,isL=t.dataset.l!==undefined,i=+(isL?t.dataset.l:t.dataset.r),f=t.dataset.f;
+  const v=f==='a'?num(t.value,0,1e9,0):num(t.value,0,f==='r'?25:100,0);const arr=isL?[...S.lumps]:[...S.rates];arr[i]={...arr[i],[f]:v};if(isL)S.lumps=arr;else S.rates=arr;listSig=JSON.stringify([S.lumps,S.rates,S.nodes,S.freq]);update()});
+for(const id of['lumpList','rateList'])$(id).addEventListener('click',e=>{const b=e.target.closest('.xRow');if(!b||b.dataset.n)return;burstT=0;if(b.dataset.l!==undefined)S.lumps=S.lumps.filter((_,j)=>j!==+b.dataset.l);else S.rates=S.rates.filter((_,j)=>j!==+b.dataset.r);lists(true);update()});
+for(const id of['lumpList','rateList'])$(id).addEventListener('focusout',()=>setTimeout(()=>lists(),0));
+$('lumpN').addEventListener('input',e=>{const v=num(e.target.value,0,1e9,null);if(v!==null){S.lump=v;update()}});
+$('lumpYR').addEventListener('input',e=>{S.lumpY=+e.target.value;update()});
+$('termLR').addEventListener('input',e=>{S.term=+e.target.value;update()});
+$('termN').addEventListener('input',e=>{const v=num(e.target.value,1,40,null);if(v){S.term=Math.round(v);update()}});
+$('recR').addEventListener('input',e=>{S.rec=+e.target.value;update()});
+$('recN').addEventListener('input',e=>{const v=num(e.target.value,0,1e7,null);if(v!==null){S.rec=v;update()}});
+$('recFrom').addEventListener('input',e=>{const v=num(e.target.value,0,100,null);if(v!==null){S.recFrom=v;update()}});
+$('recTo').addEventListener('input',e=>{const v=num(e.target.value,0,100,null);if(v!==null){S.recTo=v;update()}});
+$('topR').addEventListener('input',e=>{S.top=+e.target.value;update()});
+$('topN').addEventListener('input',e=>{const v=num(e.target.value,0,1e7,null);if(v!==null){S.top=v;update()}});
+$('payTicks').addEventListener('click',e=>{const b=e.target.closest('button');if(b){S.s=+b.dataset.s;burstT=0;update()}});
+$('toTracker').addEventListener('click',()=>{try{localStorage.setItem('loanTracker.handoff',JSON.stringify({P:S.P,rate:S.rate,freq:S.freq,term:S.term,pay:Math.round(payFromS(S.s)*100)/100}))}catch(e){}if(window.loanEmbed)parent.postMessage({loan:'toTracker'},'*');else location.href='tracker.html'});
+/* payment slider landmarks: $0, equalised, then exit years */
+function ticks(){const el=$('payTicks'),T=S.T,at=y=>550+450*(T-y)/(T-1),pts=[[0,'Pay nothing'],[500,'Interest only'],[550,T+' yrs']];
+  for(const y of[S.term,20,10,5,1])if(y<T&&y>=1)pts.push([at(y),y+' yr'+(y>1?'s':'')+(y===S.term?' (term)':'')]);
+  const w=el.clientWidth||600,gap=Math.max(70,1000*50/w),used=[];if(w<300){pts[0][1]='$0';pts[1][1]='Int. only'}el.innerHTML=pts.filter(([v])=>{if(used.some(u=>Math.abs(u-v)<gap))return false;used.push(v);return true}).map(([v,t])=>'<button data-s="'+v+'" style="left:'+(v/10)+'%">'+t+'</button>').join('')}
+$('labels').addEventListener('change',e=>{S.labels=e.target.checked;update()});
+$('fill').addEventListener('change',e=>{S.fill=e.target.checked;update()});
+$('beyond').addEventListener('change',e=>{S.beyond=e.target.checked;update()});
+$('reset').addEventListener('click',()=>{const keep={};for(const k of['mode','dens','cap','labels','fill','beyond','upper','customF'])keep[k]=S[k];S={...DEF,...keep};std30();burstT=0;update()});
+$('redo').addEventListener('click',redo);
+$('undo').addEventListener('click',undo);
+document.querySelectorAll('.unit input').forEach(el=>{el.addEventListener('keydown',e=>{if(e.key==='Enter')el.blur()});el.addEventListener('blur',sync)});
+document.addEventListener('keydown',e=>{if(!(e.ctrlKey||e.metaKey)||document.activeElement?.type==='number')return;const k=e.key.toLowerCase();if(k==='z'&&!e.shiftKey){e.preventDefault();undo()}else if((k==='z'&&e.shiftKey)||k==='y'){e.preventDefault();redo()}});
+
+/* hover readout */
+const hide=()=>{tip.style.display='none';const o=ov.getContext('2d');o.setTransform(1,0,0,1,0,0);o.clearRect(0,0,ov.width,ov.height)};
+let pin=null,downAt=null;
+function showAt(px,py){
+  if(!G||px<G.L||px>G.L+G.pw||py<G.Tm||py>G.Tm+G.ph){hide();return false}
+  const t=(px-G.L)/G.pw*G.Tp,d=window.devicePixelRatio||1,o=ov.getContext('2d');
+  o.setTransform(d,0,0,d,0,0);o.clearRect(0,0,G.W,G.H);o.strokeStyle=G.ink;o.globalAlpha=.5;o.lineWidth=1;o.beginPath();o.moveTo(px+.5,G.Tm);o.lineTo(px+.5,G.Tm+G.ph);o.stroke();o.globalAlpha=1;
+  const p=payFromS(S.s),f=FL[S.freq],me=G.me,last=me.pts[me.pts.length-1],done=me.paid!==null&&t>=last[0];
+  let v=-S.P;if(!done){let i=Math.min(me.pts.length-2,Math.max(0,Math.floor(t)));while(i>0&&me.pts[i][0]>t)i--;while(i<me.pts.length-2&&me.pts[i+1][0]<t)i++;const[a0,b0]=me.pts[i],[a1,b1]=me.pts[i+1]||me.pts[i];v=a1>a0?b0+(b1-b0)*(t-a0)/(a1-a0):b1}
+  if(!done){o.beginPath();o.arc(px,Math.max(G.Tm,Math.min(G.Tm+G.ph,G.Y(v))),5,0,7);o.fillStyle=G.ink;o.fill()}
+  tip.innerHTML=(pin?'<small style="opacity:.7">Pinned · tap again to clear</small><br>':'')+'<b>'+ym(t/S.freq)+' in</b><br>Your path: '+(done?'paid off':ylab(v))+'<br>To exit right here: '+(t>.5?money(exitPay(Math.max(1,Math.round(t))))+'/'+f:'—');
+  tip.style.display='block';const tw=tip.offsetWidth;tip.style.left=Math.min(G.W-tw-4,Math.max(4,px+(px>G.W/2?-tw-14:14)))+'px';tip.style.top=Math.max(4,py-70)+'px';
+  return true}
+const pos=e=>{const r=fig.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+fig.addEventListener('pointermove',e=>{const[px,py]=pos(e);if(pin){if(e.buttons){pin={px,py};showAt(px,py)}return}showAt(px,py)});
+fig.addEventListener('pointerdown',e=>{downAt=pos(e)});
+fig.addEventListener('pointerup',e=>{const[px,py]=pos(e);const tap=downAt&&Math.hypot(px-downAt[0],py-downAt[1])<8;downAt=null;
+  if(pin&&tap){pin=null;hide();return}pin={px,py};if(!showAt(px,py))pin=null});
+fig.addEventListener('pointerleave',()=>{if(pin)showAt(pin.px,pin.py);else hide()});
+
+function selfTest(){
+  const keep=S;S={...DEF};const r=S.rate/1200,P=S.P,c=[],near=(a,b,t)=>Math.abs(a-b)<=t;
+  const top=p=>Math.log((2*P-p/r)/(P-p/r))/Math.log(1+r);
+  c.push(['Equalised $1,500.00',near(IO(),1500,.005)]);
+  [[30,1798.65],[10,3330.62],[5,5799.84],[1,25819.93]].forEach(([y,v])=>c.push([y+'-yr exit $'+v,near(exitPay(y*12),v,.005)]));
+  c.push(['$3,600 exits in about 108.1 mo',near(exitN(3600),108.1,.05)]);
+  c.push(['$0 reaches +$300k in about 139.0 mo',near(top(0),139.0,.05)]);
+  c.push(['$750 reaches +$300k in about 220.3 mo',near(top(750),220.3,.05)]);
+  c.push(['$1,650 after 5 yrs about −$10,466',near(delta(1650,60),-10466,.6)]);
+  c.push(['$1,500 stays at $0',Math.abs(delta(1500,360))<1e-6]);
+  S.P=360000;const sc=exitN(3600*1.2);S.P=300000;c.push(['Scale ×1.2 gives same exit',near(sc,exitN(3600),1e-9)]);
+  let B=P;const p30=exitPay(360);for(let k=0;k<360;k++)B=B*(1+r)-p30;c.push(['Month-by-month loop agrees',Math.abs(B)<1e-6]);
+  S=keep;const bad=c.filter(x=>!x[1]),el=$('selftest');
+  el.textContent=bad.length?'Self-test: '+bad.length+' of '+c.length+' failed: '+bad.map(x=>x[0]).join('; '):'✓ Self-test on load: all '+c.length+' core formula checks passed (standard loan, no extras).';
+  el.className=bad.length?'bad':'good';return c.map(([n,ok])=>({n,ok}))}
+const SELF=selfTest();
+window.LoanMath={selfTest:()=>SELF,exitPay,delta,exitN,run,balAt,OFF,payFromS,sFromPay,IO,state:()=>({...S}),set:o=>{Object.assign(S,o);update()},readout:()=>({lump:$('sLumpBox').hidden?null:$('sLump').textContent,eq:$('sEq').textContent,pay:$('sPay').textContent,out:$('sOut').textContent,intL:$('sIntL').textContent,int:$('sInt').textContent})};
+const std30=()=>{S.s=sFromPay(exitPay(Math.min(S.term||30,S.T)*S.freq))};
+if(!saved)std30();
+const ro=new ResizeObserver(()=>{draw();if(pin)showAt(pin.px,pin.py)});ro.observe(fig);
+const mo=new MutationObserver(draw);mo.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw)}catch(e){}
+window.addEventListener('devicechange',()=>requestAnimationFrame(draw));
+update();
+/* Drag the payoff line. Locked by default (padlock in the chart corner) so a stray tap can't change your payment.
+   Unlocked: drag across the chart, or tap a spot, and your payment is solved so the loan is paid off right there
+   (snapped to whole months; tap below the chart on the year labels to snap to whole years). One drag = one Undo step.
+   With extra repayments or offset top-ups the payment is found by bisection on the exact period-by-period run(). */
+(function(){
+  let unlocked=false,drag=false,relockT=0,raf=0,last=null;
+  const lock=document.createElement('button');lock.id='payLock';lock.type='button';fig.appendChild(lock);
+  function place(){if(typeof G!=='undefined'&&G)lock.style.left=(G.L+8)+'px'}
+  function paint(){lock.classList.toggle('open',unlocked);lock.setAttribute('aria-pressed',String(unlocked));
+    lock.innerHTML=unlocked?'<span>🔓</span>Unlocked: click your line to add a node':'<span>🔒</span>Unlock to edit the line';
+    lock.title=unlocked?'Unlocked: drag across the chart, or tap a time, and your payment changes to match. Tap to lock again.':'Locked so a stray tap can’t change your payment. Tap to unlock, then drag the line to the time you want to be debt-free.';
+    fig.classList.toggle('dragmode',unlocked);place()}
+  function arm(){clearTimeout(relockT);relockT=setTimeout(()=>{if(!drag){unlocked=false;paint()}},120000)}
+  ['pointerdown','pointerup','pointermove'].forEach(t=>lock.addEventListener(t,e=>e.stopPropagation()));
+  lock.addEventListener('click',e=>{e.stopPropagation();unlocked=!unlocked;paint();if(unlocked){arm();if(typeof pin!=='undefined'){pin=null;hide()}}});
+  function exitAt(p){const R=run(p,true);if(R.paid===null)return Infinity;const l=R.pts[R.pts.length-1];return l[1]<=-S.P+1e-6?l[0]:R.paid}
+  function solve(n){
+    if(!(hasEx()||hasRates()||hasNodes()))return exitPay(n);
+    if(exitAt(0)<=n)return 0;let lo=0,hi=S.P*(1+rr())+1;
+    for(let i=0;i<50;i++){const m=(lo+hi)/2;if(exitAt(m)<=n)hi=m;else lo=m}return hi}
+  function target(px,py){
+    const f=S.freq,t=Math.min(G.Tp,Math.max(0,(px-G.L)/G.pw*G.Tp)),axis=py>G.Tm+G.ph;
+    let n=axis?Math.round(t/f)*f:Math.round(Math.round(t/f*12)/12*f);
+    return Math.min(G.Tp,Math.max(f,n,1))}
+  function setTo(px,py){
+    if(!G)return;const n=target(px,py);if(last===n)return;last=n;
+    const p=solve(n);S.s=sFromPay(p);update();
+    const x=G.L+n/G.Tp*G.pw;showAt(Math.min(G.L+G.pw,x),Math.min(G.Tm+G.ph-2,Math.max(G.Tm+2,py)));
+    tip.innerHTML='<b>Debt-free in '+ym(n/S.freq)+'</b><br>Payment: '+money(payFromS(S.s))+'/'+FL[S.freq]+'<br><small style="opacity:.7">Undo puts it back</small>'}
+  const pos=e=>{const r=fig.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+  /* ---- magnetic hover: the spot on your line under the cursor ---- */
+  function lineAt(px){if(!G||!G.me)return null;const pts=G.me.pts,Tp=G.Tp,t=(px-G.L)/G.pw*Tp;if(t<0||t>Tp)return null;
+    const lastT=pts[pts.length-1][0];if(t>lastT+.5)return null;let v=pts[0][1];
+    for(let i=1;i<pts.length;i++){if(pts[i][0]>=t){const[a0,b0]=pts[i-1],[a1,b1]=pts[i];v=a1>a0?b0+(b1-b0)*(t-a0)/(a1-a0):b1;break}v=pts[i][1]}
+    const k=Math.max(1,Math.min(Math.round(t),Math.max(1,Math.floor(lastT))));
+    return{k,x:G.L+k/Tp*G.pw,y:Math.max(G.Tm,Math.min(G.Tm+G.ph,G.Y(Math.max(-S.P,v)))),t}}
+  const reach=e=>e&&e.pointerType==='touch'?34:22;
+  function near(px,py,e){const h=lineAt(px);if(!h)return null;return Math.abs(h.y-py)<=reach(e)?h:null}
+  function nodeHit(px,py,e){if(!G||!G.nodes)return null;const r=e&&e.pointerType==='touch'?24:15;let best=null;for(const n of G.nodes){const d=Math.hypot(n.x-px,n.y-py);if(d<=r&&(!best||d<best.d))best={...n,d}}return best}
+  function ring(h,kind){const d=window.devicePixelRatio||1,o=ov.getContext('2d');o.setTransform(d,0,0,d,0,0);
+    const acc=getComputedStyle($('cAcc')).color;o.beginPath();o.arc(h.x,h.y,kind==='node'?13:10,0,7);o.lineWidth=2.5;o.strokeStyle=acc;o.stroke();o.globalAlpha=.18;o.fillStyle=acc;o.fill();o.globalAlpha=1}
+  let pressT=null,press=null;
+  fig.addEventListener('pointermove',e=>{if(!unlocked||drag||press||e.buttons)return;const[px,py]=pos(e);const nh=nodeHit(px,py,e),h=nh?null:near(px,py,e);
+    if(nh){ring(nh,'node');const n=nodeById(nh.id);if(n)tip.innerHTML='<b>📍 Node, '+ym(n.y)+' in</b><br>Click to edit · right-click for more'}
+    else if(h){ring(h);tip.innerHTML='<b>'+ym(h.k/S.freq)+' in</b><br>Click to add a node here<br><small style="opacity:.7">Right-click for options</small>'}
+    fig.style.cursor=nh||h?'pointer':''});
+  /* ---- nodes ---- */
+  const nodeById=id=>(S.nodes||[]).find(n=>n.id===id);
+  function payAt(k){const p=payFromS(S.s),R=run(p,true);let pp=p;for(const[kk,v]of R.ppl){if(kk<=k-1)pp=v;else break}return pp}
+  function addNode(k){if(!unlocked)return null;let n=(S.nodes||[]).find(m=>Math.round(m.y*S.freq)===k);
+    if(!n){n={id:'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),y:Math.round(k/S.freq*10000)/10000,f:S.freq,pay:payAt(k),note:''};burstT=0;S.nodes=[...(S.nodes||[]),n];update()}return n}
+  function setNode(id,o){S.nodes=(S.nodes||[]).map(n=>n.id===id?{...n,...o}:n);update()}
+  function delNode(id){burstT=0;S.nodes=(S.nodes||[]).filter(n=>n.id!==id);closeEd();update()}
+  /* editor */
+  const ed=document.createElement('div');ed.className='nodeEd';ed.hidden=true;ed.setAttribute('role','dialog');ed.setAttribute('aria-label','Edit node');document.querySelector('.chart').appendChild(ed);let edId=null;
+  function openEd(id){const n=nodeById(id);if(!n)return;edId=id;burstT=0;hide();menu.hidden=true;window.__ghostSkip=id;
+    ed.innerHTML='<div class="neHead"><b>📍 Node, <span class="neWhen"></span> in</b><span class="neHB"><button type="button" class="neMin" aria-label="Minimise" title="Minimise">▁</button><button type="button" class="neX" aria-label="Close">✕</button></span></div>'+
+      '<label class="neLab">Your payment from here</label>'+
+      '<div class="neRow"><button type="button" class="neStep" data-d="-1" aria-label="Pay less">−</button><span class="unit pre"><i>'+loanRegion.sym+'</i><input type="text" inputmode="decimal" class="nePay" aria-label="Payment from this node"></span><button type="button" class="neStep" data-d="1" aria-label="Pay more">+</button><span class="neFreq"></span></div>'+
+      '<div class="neQuick"><button type="button" data-q="-100">−100</button><button type="button" data-q="100">+100</button><button type="button" data-q="500">+500</button><button type="button" data-q="base">Back to before</button></div>'+
+      '<label class="neLab">When (years in)</label><input type="number" class="neY" min="0" max="40" step="0.0833" inputmode="decimal">'+
+      '<label class="neLab">Note (optional)</label><input type="text" class="neNote" maxlength="80" placeholder="e.g. pay rise, second job">'+
+      '<p class="neEff"></p>'+
+      '<div class="neBtns"><button type="button" class="neDel">Delete node</button><button type="button" class="neDone">Done</button></div>';
+    ed.hidden=false;ed.classList.remove('min');dock();edRefresh(true);if(document.documentElement.dataset.device!=='phone')ed.querySelector('.nePay').focus()}
+  function stepAmt(){return S.freq>=52?10:S.freq>=12?50:S.freq>=4?100:500}
+  function edRefresh(full){if(ed.hidden||!edId)return;const n=nodeById(edId);if(!n){closeEd();return}const k=Math.round(n.y*S.freq),pay=n.pay*(n.f||S.freq)/S.freq,f=FL[S.freq];
+    ed.querySelector('.neWhen').textContent=ym(n.y);ed.querySelector('.neFreq').textContent='/'+f;
+    const pi=ed.querySelector('.nePay');if(document.activeElement!==pi)pi.value=grp(pay);
+    const yi=ed.querySelector('.neY');if(document.activeElement!==yi)yi.value=Math.round(n.y*100)/100;
+    if(full)ed.querySelector('.neNote').value=n.note||'';
+    const p=payFromS(S.s),R=run(p,true),keep=S.nodes;S.nodes=keep.filter(m=>m.id!==edId);const R0=run(p,true);S.nodes=keep;
+    let before=p;for(const[kk,v]of R0.ppl){if(kk<=k-1)before=v;else break}
+    let t='Before this node you pay '+money(before)+'/'+f+'. ';
+    if(R.paid!==null&&R0.paid!==null){const dT=R0.paid-R.paid,dI=R0.int-R.int;t+=Math.abs(dT)<1&&Math.abs(dI)<1?'No change yet. Change the payment to see the effect.':'This node: paid off '+ym(Math.abs(dT)/S.freq)+(dT>=0?' sooner':' later')+', '+(dI>=0?money(dI)+' less':money(-dI)+' more')+' interest.'}
+    else if(R.paid===null)t+='At this payment the loan is never paid off.';else t+='Now paid off in '+ym(R.paid/S.freq)+'.';
+    ed.querySelector('.neEff').textContent=t;ed.dataset.before=before;place2()}
+  function dock(){const chEl=document.querySelector('.chart'),on=!ed.hidden&&!ed.classList.contains('min');chEl.classList.toggle('editing',on&&document.documentElement.dataset.device!=='phone');
+    const m=ed.querySelector('.neMin');if(m){m.textContent=ed.classList.contains('min')?'▴':'▁';m.setAttribute('aria-label',ed.classList.contains('min')?'Open':'Minimise')}}
+  function place2(){ed.style.left='';ed.style.top='';return;if(ed.hidden||!G)return;if(document.documentElement.dataset.device==='phone'){ed.style.left='';ed.style.top='';return}
+    const g=(G.nodes||[]).find(m=>m.id===edId),chEl=document.querySelector('.chart'),ch=chEl.getBoundingClientRect(),fr=fig.getBoundingClientRect();
+    const gx=(g?g.x:G.L)+fr.left-ch.left,gy=(g?g.y:G.Tm)+fr.top-ch.top,w=ed.offsetWidth,h=ed.offsetHeight;
+    ed.style.left=Math.max(8,Math.min(ch.width-w-8,gx+(gx>ch.width/2?-w-22:22)))+'px';ed.style.top=Math.max(8,Math.min(ch.height-h-8,gy-h/2))+'px'}
+  function closeEd(){ed.hidden=true;ed.classList.remove('min');document.querySelector('.chart').classList.remove('editing');edId=null;burstT=0;if(window.__ghostSkip){window.__ghostSkip=null;update()}}
+  window.__nodeSync=()=>{if(!ed.hidden){if(!nodeById(edId))closeEd();else edRefresh()}};
+  ed.addEventListener('input',e=>{if(!nodeById(edId))return;
+    if(e.target.matches('.nePay')){const v=num(e.target.value,0,1e8,null);if(v!==null)setNode(edId,{pay:v,f:S.freq})}
+    else if(e.target.matches('.neY')){const v=num(e.target.value,0,S.T,null);if(v!==null)setNode(edId,{y:v})}
+    else if(e.target.matches('.neNote'))setNode(edId,{note:e.target.value})});
+  ed.addEventListener('click',e=>{const n=nodeById(edId);if(!n)return;const pay=n.pay*(n.f||S.freq)/S.freq;
+    if(e.target.closest('.neMin')||(ed.classList.contains('min')&&!e.target.closest('.neX'))){ed.classList.toggle('min');dock();return}
+    if(e.target.closest('.neX,.neDone')){closeEd();return}
+    if(e.target.closest('.neDel')){delNode(edId);return}
+    const st=e.target.closest('.neStep');if(st){setNode(edId,{pay:Math.max(0,pay+(+st.dataset.d)*stepAmt()),f:S.freq});return}
+    const q=e.target.closest('[data-q]');if(q){const v=q.dataset.q==='base'?+ed.dataset.before:Math.max(0,pay+(+q.dataset.q));setNode(edId,{pay:Math.round(v*100)/100,f:S.freq})}});
+  ed.addEventListener('keydown',e=>{if(e.key==='Escape')closeEd()});
+  $('nodeList').addEventListener('click',e=>{const b=e.target.closest('[data-n]');if(!b)return;if(b.classList.contains('xRow'))delNode(b.dataset.n);else openEd(b.dataset.n)});
+  /* menu: right-click, or press and hold on a phone */
+  const menu=document.createElement('div');menu.className='nodeMenu';menu.hidden=true;menu.setAttribute('role','menu');fig.appendChild(menu);
+  function openMenu(px,py,e){if(!unlocked)return false;const nh=nodeHit(px,py,e),h=nh?null:near(px,py,e);if(!nh&&!h)return false;
+    menu.innerHTML=nh?'<button type="button" data-m="edit">✎ Edit node</button><button type="button" data-m="del">✕ Delete node</button>':'<button type="button" data-m="add">📍 Add a node here ('+ym(h.k/S.freq)+' in)</button><button type="button" data-m="addpay">📍 Add a node and pay more from here</button>';
+    menu.dataset.id=nh?nh.id:'';menu.dataset.k=h?h.k:'';menu.hidden=false;hide();
+    menu.style.left=Math.max(4,Math.min(G.W-menu.offsetWidth-6,px+6))+'px';menu.style.top=Math.max(4,Math.min(G.H-menu.offsetHeight-6,py+6))+'px';return true}
+  ['pointerdown','pointerup','pointermove'].forEach(t=>menu.addEventListener(t,e=>e.stopPropagation()));
+  menu.addEventListener('click',e=>{e.stopPropagation();const b=e.target.closest('[data-m]');if(!b)return;const m=b.dataset.m;menu.hidden=true;
+    if(m==='edit')openEd(menu.dataset.id);else if(m==='del')delNode(menu.dataset.id);
+    else{const n=addNode(+menu.dataset.k);if(n){if(m==='addpay')setNode(n.id,{pay:Math.round((n.pay+stepAmt()*2)*100)/100,f:S.freq});openEd(n.id)}}});
+  document.addEventListener('pointerdown',e=>{if(!menu.hidden&&!menu.contains(e.target))menu.hidden=true});
+  ['pointerdown','pointerup','pointermove','click'].forEach(t=>ed.addEventListener(t,e=>e.stopPropagation()));
+  fig.addEventListener('contextmenu',e=>{if(!unlocked)return;e.preventDefault();const[px,py]=pos(e);openMenu(px,py,e)});
+  /* pointer: a node > your line (add a node) > anywhere else (drag to set the payoff time) */
+  fig.addEventListener('pointerdown',e=>{if(!unlocked||e.target===lock||menu.contains(e.target))return;if(e.button===2)return;const[px,py]=pos(e);if(!G||px<G.L-10||px>G.L+G.pw+10)return;
+    e.preventDefault();e.stopImmediatePropagation();arm();
+    const nh=nodeHit(px,py,e),h=nh?null:near(px,py,e);
+    if(nh||h){press={px,py,nh,h};clearTimeout(pressT);pressT=setTimeout(()=>{if(press&&openMenu(press.px,press.py,{pointerType:'touch'}))press.menu=true},550);return}
+    drag=true;last=null;burstT=0;try{fig.setPointerCapture(e.pointerId)}catch(_){}setTo(px,py)},true);
+  fig.addEventListener('pointermove',e=>{if(press){e.stopImmediatePropagation();const[px,py]=pos(e);
+      if(!press.menu&&!press.nh&&Math.hypot(px-press.px,py-press.py)>10){clearTimeout(pressT);press=null;drag=true;last=null;burstT=0;try{fig.setPointerCapture(e.pointerId)}catch(_){}setTo(px,py)}return}
+    if(!drag)return;e.stopImmediatePropagation();const[px,py]=pos(e);cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>setTo(px,py))},true);
+  const end=e=>{if(press){e.stopImmediatePropagation();clearTimeout(pressT);const p0=press;press=null;if(p0.menu||e.type==='pointercancel')return;
+      if(p0.nh)openEd(p0.nh.id);else{const n=addNode(p0.h.k);if(n)openEd(n.id)}return}
+    if(!drag)return;e.stopImmediatePropagation();drag=false;burstT=0;arm()};
+  fig.addEventListener('pointerup',end,true);fig.addEventListener('pointercancel',end,true);
+  window.addEventListener('themechange',()=>requestAnimationFrame(place2));
+  new ResizeObserver(()=>requestAnimationFrame(place)).observe(fig);
+  window.addEventListener('devicechange',()=>requestAnimationFrame(place));
+  paint();requestAnimationFrame(place);
+  window.LoanDrag={unlock:v=>{unlocked=v!==false;paint()},solve,addNode,openEd,lineAt,geo:()=>G&&{L:G.L,pw:G.pw,Tm:G.Tm,ph:G.ph,Tp:G.Tp}};
+})();
+}
+</script>
+<script>window.addEventListener('themechange',()=>{draw()});addEventListener('resize',()=>ticks());addEventListener('devicechange',()=>requestAnimationFrame(ticks));</script>
+</body>
+</html>

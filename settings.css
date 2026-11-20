@@ -111,3 +111,12 @@ html[data-device=phone] .saveCard{display:grid}html[data-device=phone] .saveCard
 .saveCard.slim button{min-height:36px;padding:0 12px;font-size:14px}
 .saveCard.slim .b2{border:0;background:none;color:var(--acc);text-decoration:underline;padding:0 4px}
 html[data-device=phone] .saveCard.slim{display:flex;padding:10px 12px}html[data-device=phone] .saveCard.slim .acts{display:flex}
+
+/* Shared top navigation (nav.js): the same pill buttons on every page */
+#topSw{flex-wrap:wrap;justify-content:flex-end;max-width:min(820px,72vw)}
+#topSw a{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font:inherit;font-size:13px;text-decoration:none;white-space:nowrap}
+#topSw a:hover{color:var(--ink);border-color:var(--acc)}
+#topSw a[aria-current=page]{color:var(--acc);border-color:var(--acc);background:var(--soft);font-weight:600}
+html[data-device=phone] #topSw a{min-height:36px}
+html[data-device=phone] #topSw a#combSw{display:none}
+html[data-device=phone] #topSw{max-width:none}
