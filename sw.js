@@ -1,8 +1,8 @@
 /* Offline support. Network first, so you always get the newest version when online;
    the saved copy is only used when there's no connection. Your loan data is not stored here
    (it lives in the browser's localStorage). */
-const CACHE = 'loan-v1';
-const FILES = ['./', 'index.html', 'tracker.html', 'manifest.webmanifest', 'icons/apple-touch-icon.png', 'icons/icon-192.png'];
+const CACHE = 'loan-v2';
+const FILES = ['./', 'index.html', 'tracker.html', 'desktop.html', 'manifest.webmanifest', 'icons/apple-touch-icon.png', 'icons/icon-192.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {

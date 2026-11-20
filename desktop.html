@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f4f3f0" id="themeColor">
+<title>Bank Loan Visualised</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+/* colour theme: same switch and storage key as the two pages */
+(function(){var K='loanTheme',r=document.documentElement,v='auto';try{v=localStorage.getItem(K)||'auto'}catch(e){}
+ if(v==='light'||v==='dark')r.dataset.theme=v;
+ function bar(){var m=document.getElementById('themeColor');if(m)m.content=getComputedStyle(r).getPropertyValue('--bg').trim()||'#f4f3f0'}
+ window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){if(t==='auto')delete r.dataset.theme;else r.dataset.theme=t;try{localStorage.setItem(K,t)}catch(e){};bar()},bar:bar};
+ document.addEventListener('DOMContentLoaded',bar);
+})();
+</script>
+<style>
+/* Combined desktop view: the loan explorer and the Loan Tracker on one screen.
+   Each page runs unchanged in its own frame (?embed=1 hides its own header bits),
+   so the maths, undo, saving and self-test are exactly the same as on their own. */
+:root{color-scheme:light;--bg:#f4f3f0;--panel:#ffffff;--ink:#1a1c29;--mute:#5d6074;--line:#e3e1db;--acc:#4f46e5;--acc-ink:#ffffff;--soft:#efeefd;--shadow:0 1px 2px rgba(26,28,41,.06),0 6px 20px rgba(26,28,41,.06)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Geist,system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:14px;padding:10px 18px;background:var(--panel);border-bottom:1px solid var(--line);flex:none}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:17px;letter-spacing:-.01em;white-space:nowrap}
+.brand img{width:30px;height:30px;border-radius:8px}
+.sp{flex:1}
+.seg{display:flex;background:var(--bg);border-radius:10px;padding:3px;gap:3px}
+.seg button{min-height:34px;padding:0 14px;border:0;border-radius:8px;background:none;color:var(--ink);font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--acc);color:var(--acc-ink);font-weight:600}
+.pill{display:inline-flex;align-items:center;min-height:34px;padding:0 13px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.pill:hover{color:var(--ink);border-color:var(--acc)}
+.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:600}
+.pri:hover{color:var(--acc-ink);filter:brightness(1.08)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+main{flex:1;display:grid;grid-template-columns:var(--split,55%) 10px minmax(0,1fr);padding:12px;gap:0;min-height:0}
+.pane{display:flex;flex-direction:column;background:var(--panel);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;min-height:0}
+.pane h2{margin:0;padding:8px 14px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.pane h2 a{margin-left:auto;font-size:12px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--mute);text-decoration:none}.pane h2 a:hover{color:var(--acc)}
+iframe{flex:1;width:100%;border:0;background:var(--bg);display:block}
+.div{cursor:col-resize;display:grid;place-items:center}
+.div::after{content:"";width:4px;height:44px;border-radius:4px;background:var(--line)}
+.div:hover::after,.div.drag::after{background:var(--acc)}
+main.drag iframe{pointer-events:none}
+main[data-view=graph]{grid-template-columns:minmax(0,1fr)}main[data-view=graph] .div,main[data-view=graph] #pT{display:none}
+main[data-view=tracker]{grid-template-columns:minmax(0,1fr)}main[data-view=tracker] .div,main[data-view=tracker] #pG{display:none}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:10px 16px;border-radius:10px;font-size:14px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+@media(max-width:1000px){.brand span{display:none}}
+@media(max-width:760px){main{grid-template-columns:minmax(0,1fr)}.div{display:none}main:not([data-view]) #pT,main[data-view=split] #pT{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><img src="icons/icon-192.png" alt=""><span>Bank Loan Visualised</span></div>
+  <div class="seg" id="view" role="group" aria-label="Layout">
+    <button data-v="split">Side by side</button><button data-v="graph">Graph only</button><button data-v="tracker">Tracker only</button>
+  </div>
+  <span class="sp"></span>
+  <button class="pill pri" id="send" title="Copies the loan in the graph into a new Tracker profile">Send graph loan to Tracker →</button>
+  <button class="pill" id="themeSw"></button>
+  <a class="pill" href="index.html" title="The pages on their own, with the phone layout">Single pages</a>
+</header>
+<main id="main">
+  <section class="pane" id="pG"><h2>Every path out of a loan <a href="index.html" target="_blank" rel="noopener">Open on its own ↗</a></h2><iframe id="fG" src="index.html?embed=1" title="Every path out of a loan"></iframe></section>
+  <div class="div" id="div" role="separator" aria-orientation="vertical" aria-label="Drag to resize" tabindex="0"></div>
+  <section class="pane" id="pT"><h2>Loan Tracker <a href="tracker.html" target="_blank" rel="noopener">Open on its own ↗</a></h2><iframe id="fT" src="tracker.html?embed=1" title="Loan Tracker"></iframe></section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const $=id=>document.getElementById(id),main=$('main'),K='loanDesktop.v1';
+let st={view:'split',split:55};try{Object.assign(st,JSON.parse(localStorage.getItem(K))||{})}catch(e){}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(st))}catch(e){}};
+function layout(){main.dataset.view=st.view;main.style.setProperty('--split',st.split+'%');for(const b of $('view').children)b.classList.toggle('on',b.dataset.v===st.view)}
+$('view').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;st.view=b.dataset.v;save();layout()});
+/* drag the divider to resize the two panes */
+const div=$('div');
+div.addEventListener('pointerdown',e=>{div.setPointerCapture(e.pointerId);div.classList.add('drag');main.classList.add('drag')});
+div.addEventListener('pointermove',e=>{if(!div.hasPointerCapture(e.pointerId))return;const r=main.getBoundingClientRect();st.split=Math.round(Math.min(75,Math.max(30,(e.clientX-r.left)/r.width*100)));layout()});
+div.addEventListener('pointerup',()=>{div.classList.remove('drag');main.classList.remove('drag');save()});
+div.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){st.split=Math.min(75,Math.max(30,st.split+(e.key==='ArrowLeft'?-2:2)));layout();save()}});
+div.addEventListener('dblclick',()=>{st.split=55;layout();save()});
+/* theme switch: tells both frames too */
+const L={auto:'◐ Auto',light:'☀ Light',dark:'☾ Dark'},N={auto:'light',light:'dark',dark:'auto'};
+function showTheme(){const v=loanTheme.get();$('themeSw').textContent=L[v];$('themeSw').title='Colours: '+v+'. Click to change.'}
+$('themeSw').onclick=()=>{const v=N[loanTheme.get()];loanTheme.set(v);showTheme();for(const f of[$('fG'),$('fT')])f.contentWindow.postMessage({loanTheme:v},'*')};
+showTheme();
+/* hand-off: the graph saves the loan, then the Tracker frame reloads and picks it up */
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),2600)}
+addEventListener('message',e=>{if(e.source!==$('fG').contentWindow)return;if((e.data||{}).loan==='toTracker'){$('fT').contentWindow.postMessage({loan:'reload'},'*');if(st.view==='graph'){st.view='split';save();layout()}toast('Loan copied into a new Tracker profile')}});
+$('send').onclick=()=>$('fG').contentWindow.postMessage({loan:'sendLoan'},'*');
+layout();
+</script>
+</body>
+</html>

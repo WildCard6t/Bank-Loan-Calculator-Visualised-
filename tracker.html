@@ -14,7 +14,9 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <script>
 /* colour theme: Auto (follows the phone), Light or Dark. Shared by both pages, remembered in this browser. Runs before the page paints. */
-(function(){var K='loanTheme',r=document.documentElement,v='auto';try{v=localStorage.getItem(K)||'auto'}catch(e){}
+(function(){var K='loanTheme',r=document.documentElement,v='auto';
+ if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})}
+try{v=localStorage.getItem(K)||'auto'}catch(e){}
  if(v==='light'||v==='dark')r.dataset.theme=v;
  function bar(){var m=document.getElementById('themeColor');if(m)m.content=getComputedStyle(r).getPropertyValue('--bg').trim()||'#f4f3f0'}
  window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){if(t==='auto')delete r.dataset.theme;else r.dataset.theme=t;try{localStorage.setItem(K,t)}catch(e){};bar();window.dispatchEvent(new Event('themechange'))},bar:bar};
@@ -167,6 +169,18 @@ html[data-device=phone] .f{min-height:46px}
 html[data-device=phone] input[type=date].f{-webkit-appearance:none;appearance:none;display:block;text-align:left}
 html[data-device=phone] .chart{margin-bottom:12px}
 html[data-device=phone] .logp,html[data-device=phone] aside{padding:14px}
+
+#topSw a#combSw{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font-size:13px;text-decoration:none;white-space:nowrap}
+#topSw a#combSw:hover{color:var(--ink);border-color:var(--acc)}
+html[data-device=phone] #topSw a#combSw{display:none}
+/* inside the combined desktop view: the frame supplies the header and switches */
+html.embed .wrap{padding:14px 18px 28px}
+html.embed h1{font-size:26px;margin-bottom:4px}
+html.embed .sub{font-size:14px;margin-bottom:12px}
+html.embed nav,html.embed .go .goTxt,html.embed .go a{display:none}
+html.embed .go{display:none!important}
+html.embed .go button{min-height:42px;font-size:15px}
+html.embed .fig{min-height:300px}
 </style>
 </head>
 <body>
@@ -255,6 +269,7 @@ html[data-device=phone] .logp,html[data-device=phone] aside{padding:14px}
 (function(){
   const K='loanDevice',root=document.documentElement;let saved=null;try{saved=localStorage.getItem(K)}catch(e){}
   const guess=(matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<760)?'phone':'desktop';
+  if(window.loanEmbed)return;
   root.dataset.device=saved||guess;
   const label=()=>root.dataset.device==='phone'?'Phone view ⇄':'Computer view ⇄';
   function apply(v){root.dataset.device=v;try{localStorage.setItem(K,v)}catch(e){};const b=document.getElementById('devSw');if(b)b.textContent=label();window.dispatchEvent(new Event('devicechange'))}
@@ -281,7 +296,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   const L={auto:'◐ Auto',light:'☀ Light',dark:'☾ Dark'},N={auto:'light',light:'dark',dark:'auto'};
   const show=()=>{const v=loanTheme.get();t.textContent=L[v];t.title='Colours: '+v+(v==='auto'?' (follows your phone or computer)':'')+'. Tap to change.'};
   t.onclick=()=>{loanTheme.set(N[loanTheme.get()]);show()};show();
-  box.append(t,dev);
+  const cv=document.createElement('a');cv.id='combSw';cv.href='desktop.html';cv.textContent='⧉ Combined view';cv.title='Graph and Tracker side by side on one screen';
+  box.append(cv,t,dev);
 });
 if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
@@ -514,11 +530,11 @@ fig.addEventListener('pointermove',e=>{if(!G)return;const r=fig.getBoundingClien
 fig.addEventListener('pointerleave',hide);
 new ResizeObserver(()=>{if(PS)draw(PS,FU)}).observe(fig);
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>draw(PS,FU))}catch(e){}
+window.addEventListener('themechange',()=>{if(PS)draw(PS,FU)});
 window.addEventListener('devicechange',()=>requestAnimationFrame(()=>draw(PS,FU)));
 window.Tracker={past,future,payDate,stdPay,regPay,state:()=>ST,PR};
 render();save();
 }
 </script>
-<script>window.addEventListener('themechange',()=>{if(PS)draw(PS,FU)});</script>
 </body>
 </html>
