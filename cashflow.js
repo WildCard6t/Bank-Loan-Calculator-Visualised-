@@ -190,12 +190,26 @@
   function emit(st, type, o, ts) { o = o || {}; const e = { id: 'e' + (st.ledger.length + 1), ts: ts != null ? ts : Date.now(), type, cents: o.cents || 0 }; if (o.potId != null) e.potId = o.potId; if (o.sourceId != null) e.sourceId = o.sourceId; if (o.note) e.note = o.note; st.ledger.push(e); return e; }
   const refresh = st => st.pots.forEach(p => { if (p.status !== 'harvested') p.status = p.saved >= p.price && p.price > 0 ? 'full' : 'active'; });
 
+  /* the owner's real pay rhythm: every 14 days from Tuesday 24 Nov 2026, forever */
+  const MY_PAY = { anchor: '2026-11-24', days: 14 };
+  /* first payday on that 14-day rhythm that is today or later */
+  function payCycleNext(anchorISO, today, days) {
+    const a = parseDate(anchorISO), n = days || 14; today = today != null ? today : todayDay();
+    if (a == null) return null;                     // the rhythm runs both ways, so an older date still lands on a Tuesday payday
+    return fmtISO(a + Math.ceil((today - a) / n) * n);
+  }
+  /* the next k paydays (ISO dates) starting from income.next */
+  function upcomingPays(st, k) {
+    const c = clean(st), out = []; let d = c.income.next;
+    for (let i = 0; i < (k || 5) && d != null; i++) { out.push(fmtISO(d)); d = payStep(c.income, d, 1); }
+    return out;
+  }
   function newState(today) {
     today = today != null ? today : todayDay();
     const t = today, iso = fmtISO, now = Date.now();
     const mk = (id, name, price, due, repeat, priority, firm, saved) => ({ id, name, price, due: iso(due), repeat, priority, firm, saved: 0, valveRate: null, payFreq: 'pay', createdAt: now, startSaved: saved, lastDeal: null, status: 'active', _open: saved });
     const st = { version: 2, settings: { mode: 'guided', bufferAuto: true, bufferAmount: 0, reward: 'subtle', view: 'vessels' },
-      income: { amount: 150000, every: 'fortnightly', days: 14, next: iso(t + 4), anchor: iso(t + 4), reliable: true },
+      income: { amount: 150000, every: 'fortnightly', days: 14, next: payCycleNext(MY_PAY.anchor, t), anchor: payCycleNext(MY_PAY.anchor, t), reliable: true },
       sources: [{ id: 'spare', name: 'Unassigned money', kind: 'spare', balance: 0 }, { id: 'buffer', name: 'Safety buffer', kind: 'buffer', balance: 0 }],
       pots: [mk('p1', 'Rent', 70000, t + 18, 'fortnightly', 1, true, 0), mk('p2', 'Bills', 15000, t + 18, 'fortnightly', 1, true, 0),
         mk('p3', 'Car', 1000000, addMonths(t, 18), 'none', 2, false, 100000), mk('p4', 'Holiday', 300000, addMonths(t, 9), 'none', 4, false, 0)],
@@ -420,6 +434,12 @@
       const due0 = parseDate(rent.due), r1 = harvest(s, 'p1', day), car = potById(s, 'p3'); car.saved = car.price; const r2 = harvest(s, 'p3', day);
       return !early.ok && r1.ok && rent.saved === 500 && parseDate(rent.due) === due0 + 14 && r2.ok && car.status === 'harvested' && s.achieved.length === 1 && s.achieved[0].name === 'Car' && !simulate(s, { today: localDay(day) }).pots.some(p => p.id === 'p3') && s.ledger.filter(e => e.type === 'harvest').length === 2;
     })());
+    ok('Pay rhythm: from 24 Nov 2026 every 14 days, always a Tuesday, never skipping a cycle', (() => {
+      const a = payCycleNext('2026-11-24', toDay(2026, 11, 20)), b = payCycleNext('2026-11-24', toDay(2026, 11, 25)), c = payCycleNext('2026-11-24', toDay(2027, 6, 1));
+      const tue = x => new Date(parseDate(x) * DAY).getUTCDay() === 2, up = upcomingPays({ income: { amount: 1, every: 'fortnightly', next: a } }, 4);
+      return a === '2026-11-24' && b === '2026-12-08' && payCycleNext('2026-11-24', toDay(2026, 12, 8)) === '2026-12-08' && tue(c) && (parseDate(c) - parseDate(a)) % 14 === 0 && parseDate(c) >= toDay(2027, 6, 1) && parseDate(c) - toDay(2027, 6, 1) < 14
+        && up.join() === '2026-11-24,2026-12-08,2026-12-22,2027-01-05' && up.every(tue);
+    })());
     ok('Migration: a phase-0 save becomes version 2 with the same pots and a matching ledger', (() => {
       const old = { v: 1, mode: 'free', income: seed.income, pots: seed.pots.map(p => Object.assign({}, p)), buffer: { auto: true, amount: 0, saved: 1234 }, log: [] };
       const m = migrate(old, day); return m.version === 2 && m.settings.mode === 'free' && m.pots.length === 4 && m.pots[2].saved === 100000 && src(m, 'buffer').balance === 1234 && replayMatches(m);
@@ -427,6 +447,6 @@
     return T;
   }
 
-  root.CashFlow = { note: (st, text) => emit(st, 'guardian', { note: text }), eq, solve, simulate, assess, newState, migrate, advance, levelsAt, previewDeal, flowCheck, valveRoom, transfer, harvest, reconcile, replay, replayMatches, localDay, refresh, clean, paceOf, bufferTarget, selfTest, parseDate, fmtISO, addMonths, todayDay, toDay, AVG, VARY, BUF_DAYS, HORIZON };
+  root.CashFlow = { note: (st, text) => emit(st, 'guardian', { note: text }), eq, solve, simulate, assess, newState, migrate, advance, levelsAt, previewDeal, flowCheck, valveRoom, transfer, harvest, reconcile, replay, replayMatches, localDay, refresh, clean, paceOf, bufferTarget, selfTest, parseDate, fmtISO, MY_PAY, payCycleNext, upcomingPays, addMonths, todayDay, toDay, AVG, VARY, BUF_DAYS, HORIZON };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.CashFlow;
 })(typeof window !== 'undefined' ? window : globalThis);
