@@ -219,6 +219,18 @@ html[data-device=phone] #payLock{max-width:calc(100% - 80px);overflow:hidden;tex
 .homeL{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:2px 10px 2px 4px;margin:0 0 2px -4px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;cursor:pointer;transition:background .15s}
 .homeL img{width:26px;height:26px;border-radius:7px}.homeL:hover{background:var(--soft);color:var(--acc)}.homeL:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 html.embed .homeL{display:none}
+.dispPop{position:fixed;z-index:90;padding:10px;border-radius:16px;background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.25);animation:dpIn .14s ease-out}
+.dispPop[hidden]{display:none}
+.dpT{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:0 4px 8px}
+.dpRow{display:flex;gap:8px}
+.dispPop button{position:relative;display:grid;justify-items:center;gap:4px;width:112px;padding:14px 8px 12px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.dispPop button i{font-style:normal;font-size:30px;line-height:1}
+.dispPop button:hover{border-color:var(--acc)}
+.dispPop button.on{border-color:var(--acc);background:var(--soft);color:var(--acc);font-weight:600;box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 22%,transparent),0 0 18px color-mix(in srgb,var(--acc) 45%,transparent)}
+.dispPop button em{font-style:normal;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.dispPop button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+@keyframes dpIn{from{opacity:0;transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){.dispPop{animation:none}}
 </style>
 <link rel="stylesheet" href="settings.css">
 <script src="settings.js" defer></script>
@@ -363,11 +375,20 @@ html.embed .homeL{display:none}
   const guess=(matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<760)?'phone':'desktop';
   if(window.loanEmbed)return;
   root.dataset.device=saved||guess;
-  const label=()=>root.dataset.device==='phone'?'Phone view ⇄':'Computer view ⇄';
+  const label=()=>(root.dataset.device==='phone'?'📱':'🖥️')+' Display ▾';
   function apply(v){root.dataset.device=v;try{localStorage.setItem(K,v)}catch(e){};const b=document.getElementById('devSw');if(b)b.textContent=label();window.dispatchEvent(new Event('devicechange'))}
   window.addEventListener('DOMContentLoaded',()=>{
-    const w=document.querySelector('.wrap'),b=document.createElement('button');b.id='devSw';b.title='Switch between phone and computer layout';b.textContent=label();
-    b.onclick=()=>apply(root.dataset.device==='phone'?'desktop':'phone');w.prepend(b);
+    const w=document.querySelector('.wrap'),b=document.createElement('button');b.id='devSw';b.title='Choose how the page is laid out';b.textContent=label();b.setAttribute('aria-haspopup','true');b.setAttribute('aria-expanded','false');
+    /* Display: a small bubble with both layouts; the one in use glows */
+    const pop=document.createElement('div');pop.className='dispPop';pop.hidden=true;pop.setAttribute('role','menu');pop.setAttribute('aria-label','Display');
+    const paintPop=()=>{const cur=root.dataset.device;pop.innerHTML='<div class="dpT">Display</div><div class="dpRow">'+[['desktop','🖥️','Computer'],['phone','📱','Phone']].map(([v,i,n])=>'<button type="button" role="menuitemradio" aria-checked="'+(v===cur)+'" data-v="'+v+'" class="'+(v===cur?'on':'')+'"><i>'+i+'</i><span>'+n+'</span>'+(v===cur?'<em>In use</em>':'')+'</button>').join('')+'</div>'};
+    const closePop=()=>{pop.hidden=true;b.setAttribute('aria-expanded','false')};
+    b.onclick=e=>{e.stopPropagation();if(!pop.hidden){closePop();return}paintPop();pop.hidden=false;b.setAttribute('aria-expanded','true');const r=b.getBoundingClientRect(),pw=pop.offsetWidth;pop.style.top=(r.bottom+8)+'px';pop.style.left=Math.max(8,Math.min(innerWidth-pw-8,r.right-pw))+'px';const on=pop.querySelector('.on');if(on)on.focus()};
+    pop.addEventListener('click',e=>{e.stopPropagation();const t=e.target.closest('[data-v]');if(!t)return;apply(t.dataset.v);paintPop();setTimeout(closePop,350)});
+    document.addEventListener('click',e=>{if(!pop.hidden&&!pop.contains(e.target))closePop()});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden){closePop();b.focus()}});
+    window.addEventListener('resize',closePop);window.addEventListener('scroll',closePop,{passive:true});
+    document.body.appendChild(pop);w.prepend(b);
     const home=/[?&]home=1/.test(location.search);if(home)try{history.replaceState(null,'',location.pathname)}catch(e){}
     if(saved&&!home)return;
     const o=document.createElement('div');o.id='welcome';o.setAttribute('role','dialog');o.setAttribute('aria-label','Choose a layout');
