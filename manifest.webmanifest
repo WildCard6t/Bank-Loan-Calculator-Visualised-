@@ -1,7 +1,7 @@
 {
-  "name": "Bank Loan Visualised",
-  "short_name": "Loan Paths",
-  "description": "Every path out of a loan, plus a tracker for your real loan.",
+  "name": "Finance Visualised",
+  "short_name": "Finance Vis",
+  "description": "See your money move: loan paths, a tracker for your real loan, and cash-flow planning.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

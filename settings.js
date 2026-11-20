@@ -136,9 +136,9 @@
   function badge(){const b=document.getElementById('setSw');if(!b)return;const d=due();b.classList.toggle('due',d);b.title=d?'Time to save a backup of your loan data':'Colours, country, layout and backups'}
   function exportFile(){
     const now=new Date(),y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0'),dd=String(now.getDate()).padStart(2,'0');
-    const body={app:'Bank Loan Visualised',kind:'backup',version:1,saved:now.toISOString(),data:snapshot()};
+    const body={app:'Finance Visualised',kind:'backup',version:1,saved:now.toISOString(),data:snapshot()};
     const blob=new Blob([JSON.stringify(body,null,2)],{type:'application/json'}),a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);a.download='bank-loan-backup_'+y+'-'+m+'-'+dd+'.json';document.body.appendChild(a);a.click();a.remove();
+    a.href=URL.createObjectURL(blob);a.download='finance-backup_'+y+'-'+m+'-'+dd+'.json';document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href),5000);markBackup();
     msg('Backup saved. On iPhone it goes to Files › Downloads; on a computer, your Downloads folder.')}
   function msg(t){const p=ov&&ov.querySelector('#setBk');if(p){p.textContent=t;p.classList.add('flash');setTimeout(()=>{p.classList.remove('flash');sync()},4500)}}

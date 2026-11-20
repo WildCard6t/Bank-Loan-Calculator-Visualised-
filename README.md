@@ -1,4 +1,4 @@
-# Bank Loan Visualised
+# Finance Visualised
 
 Plain HTML/CSS/JS with no build step:
 
