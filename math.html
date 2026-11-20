@@ -105,7 +105,7 @@ canvas{display:block;width:100%;height:min(70vh,620px);touch-action:none;cursor:
     </div>
     <div class="card plot">
       <canvas id="cv"></canvas>
-      <div class="ctl"><button id="zin" type="button" title="Zoom in">+</button><button id="zout" type="button" title="Zoom out">−</button><button id="zre" type="button" title="Reset view">⟲</button></div>
+      <div class="ctl"><button id="zin" type="button" title="Zoom in">+</button><button id="zout" type="button" title="Zoom out">−</button><button id="zre" type="button" title="Zoom to fit">⟲</button></div>
       <div class="hint">Drag to move · pinch or scroll to zoom</div>
     </div>
   </div>
@@ -257,12 +257,23 @@ cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 cv.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.offsetX,e.offsetY,Math.exp(-e.deltaY*0.0015))},{passive:false});
 function zoomAt(px,py,f){const x=iX(px),y=iY(py);view.s=Math.min(Math.max(view.s*f,0.5),5000);view.cx=x-(px-W()/2)/view.s;view.cy=y+(py-H()/2)/view.s;draw()}
 $('zin').onclick=()=>zoomAt(W()/2,H()/2,1.4);$('zout').onclick=()=>zoomAt(W()/2,H()/2,1/1.4);
-$('zre').onclick=()=>{view={cx:0,cy:0,s:Math.min(W(),H())/16};draw()};
+/* zoom to fit: sample every curve, frame the whole picture with a margin. Plain y = f(x) graphs keep the default -8..8 view. */
+function fit(){
+  let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;const add=(x,y)=>{if(isFinite(x)&&isFinite(y)&&Math.abs(x)<1e4&&Math.abs(y)<1e4){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}};
+  scenes.forEach(s=>{
+    if(s.kind==='param')for(let i=0;i<=400;i++){const t=i/400*2*Math.PI,sc=scope({t});add(ev(s.fx,sc),ev(s.fy,sc))}
+    else if(s.kind==='polar')for(let i=0;i<=400;i++){const t=i/400*4*Math.PI,r=ev(s.f,scope({theta:t,t}));add(r*Math.cos(t),r*Math.sin(t))}
+    else {add(-8,-8);add(8,8)}});
+  if(!(x1>=x0)){view={cx:0,cy:0,s:Math.min(W(),H())/16};draw();return}
+  const pad=1.25,wx=Math.max(x1-x0,0.5)*pad,wy=Math.max(y1-y0,0.5)*pad;
+  view={cx:(x0+x1)/2,cy:(y0+y1)/2,s:Math.min(W()/wx,H()/wy)};draw();
+}
+$('zre').onclick=fit;
 
 /* ---------- presets ---------- */
 const KEY='mathVisualizer.presets.v1';
 function mine(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
-function load(src,lang){$('lang').value=lang||(src.includes('\\')?'latex':'plain');$('src').value=src;params={};rebuild()}
+function load(src,lang){$('lang').value=lang||(src.includes('\\')?'latex':'plain');$('src').value=src;params={};rebuild();fit()}
 function chips(){
   const ex=$('examples');ex.innerHTML='';for(const n in EXAMPLES){const b=document.createElement('button');b.type='button';b.textContent=n;b.onclick=()=>load(EXAMPLES[n]);ex.appendChild(b)}
   const m=$('mine'),p=mine();m.innerHTML='';const names=Object.keys(p);
@@ -273,7 +284,7 @@ function chips(){
 $('save').onclick=()=>{const n=(prompt('Name this Preset')||'').trim();if(!n)return;const q=mine(),pv={};for(const k in params)pv[k]=params[k].v;
   q[n]={src:$('src').value,lang:$('lang').value,params:pv};try{localStorage.setItem(KEY,JSON.stringify(q))}catch(e){alert('Could not save: browser storage is full or blocked.')}chips()};
 
-$('src').addEventListener('input',rebuild);$('lang').addEventListener('change',rebuild);
+$('src').addEventListener('input',e=>{rebuild();if(e.inputType==='insertFromPaste')fit()});$('lang').addEventListener('change',rebuild);
 addEventListener('resize',size);addEventListener('themechange',draw);
 chips();$('src').value='y = a*sin(b*x)\nr = cos(k*theta)';
 size();view.s=Math.min(W(),H())/16;rebuild();
