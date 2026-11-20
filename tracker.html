@@ -179,6 +179,9 @@ html[data-device=phone] .logp,html[data-device=phone] aside{padding:14px}
 #topSw a#combSw{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font-size:13px;text-decoration:none;white-space:nowrap}
 #topSw a#combSw:hover{color:var(--ink);border-color:var(--acc)}
 html[data-device=phone] #topSw a#combSw{display:none}
+#topSw a#cfSw{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font-size:13px;text-decoration:none;white-space:nowrap}
+#topSw a#cfSw:hover{color:var(--ink);border-color:var(--acc)}
+html[data-device=phone] #topSw a#cfSw{min-height:36px}
 /* inside the combined desktop view: the frame supplies the header and switches */
 html.embed .wrap{padding:14px 18px 28px}
 html.embed h1{font-size:26px;margin-bottom:4px}
@@ -536,7 +539,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   const box=document.createElement('div');box.id='topSw';dev.replaceWith(box);
   const t=document.createElement('button');t.id='setSw';t.type='button';t.textContent='⚙ Settings';t.title='Colours, layout and country';t.onclick=()=>window.loanSettings&&loanSettings.open();
   const cv=document.createElement('a');cv.id='combSw';cv.href='desktop.html';cv.textContent='⧉ Combined view';cv.title='Graph and Tracker side by side on one screen';
-  box.append(cv,t,dev);
+  const cf=document.createElement('a');cf.id='cfSw';cf.href='cashflow.html';cf.textContent='💰 Cash-flow';cf.title='Plan your pays, bills and goals';
+  box.append(cf,cv,t,dev);
 });
 if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>

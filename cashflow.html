@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f3f0" id="themeColor">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Loan Paths">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>
+/* colour theme: Auto (follows the phone), Light or Dark. Shared by both pages, remembered in this browser. Runs before the page paints. */
+(function(){var K='loanTheme',r=document.documentElement,v='auto';
+ if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){if(e.source!==window.parent||e.origin!==location.origin)return;var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loanSettings)window.loanTheme.refresh();if(d.loan==='reloadAll')location.reload();if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})};if(window.loanEmbed)document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('toTracker');if(b)b.textContent='Send this loan to the Tracker →'})
+ var KS='loanSettings.v1',sc='indigo';
+ function cfg(){try{return JSON.parse(localStorage.getItem(KS))||{}}catch(e){return {}}}
+ var REG={AU:['en-AU','$'],NZ:['en-NZ','$'],UK:['en-GB','£'],US:['en-US','$'],CA:['en-CA','$']},c0=cfg(),cc=REG[c0.country]?c0.country:'AU';
+ window.loanRegion={country:cc,locale:REG[cc][0],sym:REG[cc][1],mdy:cc==='US'};
+ function bar(){var m=document.getElementById('themeColor');if(m)m.content=getComputedStyle(r).getPropertyValue('--bg').trim()||'#f4f3f0'}
+ function apply(){try{v=localStorage.getItem(K)||v}catch(e){}if(v==='light'||v==='dark')r.dataset.theme=v;else delete r.dataset.theme;sc=cfg().scheme||sc;if(sc!=='indigo')r.dataset.scheme=sc;else delete r.dataset.scheme;bar()}
+ function fire(){window.dispatchEvent(new Event('themechange'))}
+ apply();
+ window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){v=t;try{localStorage.setItem(K,t)}catch(e){};apply();fire()},setScheme:function(s){sc=s;var o=cfg();o.scheme=s;try{localStorage.setItem(KS,JSON.stringify(o))}catch(e){};apply();fire()},refresh:function(){apply();fire()},bar:bar};
+ addEventListener('storage',function(e){if(e.key===K||e.key===KS)window.loanTheme.refresh()});
+ document.addEventListener('DOMContentLoaded',bar);
+ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){bar();fire()})}catch(e){}
+})();
+</script>
+<title>Cash-flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Cash-flow, phase 0: plain and working. Looks come later. The maths lives in cashflow.js so a picture (e.g. a Sankey flow) can reuse it. */
+:root{color-scheme:light;--bg:#f4f3f0;--panel:#ffffff;--ink:#1a1c29;--mute:#5d6074;--line:#e3e1db;--acc:#4f46e5;--acc-ink:#ffffff;--soft:#efeefd;--good:#15803d;--bad:#d1342f;--good-bg:#e3f4e8;--bad-bg:#fde6e4;--info:#2563eb;--info-bg:#e3ebfd;--shadow:0 1px 2px rgba(26,28,41,.06),0 6px 20px rgba(26,28,41,.06)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--good:#4cc38a;--bad:#ff6b63;--good-bg:#12301f;--bad-bg:#3a1716;--info:#7aa5ff;--info-bg:#16233d;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--good:#4cc38a;--bad:#ff6b63;--good-bg:#12301f;--bad-bg:#3a1716;--info:#7aa5ff;--info-bg:#16233d;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Geist,system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:980px;margin:0 auto;padding:clamp(16px,3vw,32px) max(4vw,14px) 60px;position:relative}
+h1{font-size:clamp(28px,4vw,40px);line-height:1.1;margin:0 0 6px;font-weight:600;letter-spacing:-.02em}
+h2{font-size:13px;margin:0 0 10px;color:var(--mute);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.sub{color:var(--mute);margin:0 0 16px;max-width:68ch}
+[hidden]{display:none!important}
+.homeL{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:2px 10px 2px 4px;margin:0 0 2px -4px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;cursor:pointer;transition:background .15s}
+.homeL img{width:26px;height:26px;border-radius:7px}.homeL:hover{background:var(--soft);color:var(--acc)}.homeL:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+html.embed .homeL{display:none}
+#topSw{position:absolute;top:clamp(14px,2.4vw,30px);right:max(4vw,14px);display:flex;gap:6px;z-index:6;flex-wrap:wrap;justify-content:flex-end}
+#topSw button,#topSw a{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap;text-decoration:none}
+#topSw button:hover,#topSw a:hover{color:var(--ink);border-color:var(--acc)}
+@media(max-width:700px){#topSw{position:static;margin:0 0 8px}#topSw button,#topSw a{min-height:36px}}
+html[data-device=phone] #topSw{position:static;margin:0 0 8px}
+html[data-device=phone] #topSw button,html[data-device=phone] #topSw a{min-height:36px}
+.dispPop{position:fixed;z-index:90;padding:10px;border-radius:16px;background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.25);animation:dpIn .14s ease-out}
+.dispPop[hidden]{display:none}
+.dpT{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:0 4px 8px}
+.dpRow{display:flex;gap:8px}
+.dispPop button{position:relative;display:grid;justify-items:center;gap:4px;width:112px;padding:14px 8px 12px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.dispPop button i{font-style:normal;font-size:30px;line-height:1}
+.dispPop button:hover{border-color:var(--acc)}
+.dispPop button.on{border-color:var(--acc);background:var(--soft);color:var(--acc);font-weight:600;box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 22%,transparent),0 0 18px color-mix(in srgb,var(--acc) 45%,transparent)}
+.dispPop button em{font-style:normal;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.dispPop button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+@keyframes dpIn{from{opacity:0;transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){.dispPop{animation:none}}
+.card{background:var(--panel);border-radius:14px;padding:16px;margin:0 0 16px;box-shadow:var(--shadow)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label.f{display:grid;gap:4px;font-size:13px;color:var(--mute);font-weight:500}
+input[type=number],input[type=text],input[type=date],select{width:100%;font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);min-height:42px}
+input:focus-visible,button:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg{display:flex;background:var(--bg);border-radius:9px;padding:3px;gap:3px}
+.seg button{flex:1;min-height:40px;border:0;border-radius:7px;background:none;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.seg button.on{background:var(--acc);color:var(--acc-ink);font-weight:600}
+.btn{min-height:42px;padding:0 16px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:9px;font:inherit;font-size:14px;cursor:pointer}
+.btn.pri{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+.btn.del{color:var(--bad)}
+.hint{font-size:13px;color:var(--mute);margin:6px 0 0}
+.chk{display:flex;align-items:center;gap:10px;min-height:42px;font-size:15px}.chk input{width:20px;height:20px;accent-color:var(--acc)}
+.verdict{border-radius:14px;padding:16px 18px;margin:0 0 16px;border:2px solid var(--line);background:var(--panel)}
+.verdict h3{margin:0 0 6px;font-size:20px;letter-spacing:-.01em}
+.verdict p{margin:4px 0}
+.verdict.green{border-color:var(--good);background:var(--good-bg)}.verdict.green h3{color:var(--good)}
+.verdict.amber{border-color:#d98a00;background:#fff3d6;color:#3b2a00}.verdict.amber h3{color:#8a5a00}
+.verdict.red{border-color:var(--bad);background:var(--bad-bg)}.verdict.red h3{color:var(--bad)}
+:root[data-theme=dark] .verdict.amber{background:#3a2c0c;color:#f7e3b0}:root[data-theme=dark] .verdict.amber h3{color:#ffc857}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .verdict.amber{background:#3a2c0c;color:#f7e3b0}:root:not([data-theme=light]) .verdict.amber h3{color:#ffc857}}
+.banner{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;margin:0 0 16px;background:var(--info-bg);border:1px solid var(--info)}
+.banner.bad{background:var(--bad-bg);border-color:var(--bad)}
+.banner div{flex:1}.banner button{min-height:34px}
+.pot{border-top:1px solid var(--line);padding:12px 0}.pot:first-child{border-top:0}
+.sum{display:grid;gap:6px}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.top b{font-size:17px}.rem{font-weight:600;padding:2px 10px;border-radius:99px;background:var(--soft);color:var(--acc);white-space:nowrap}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;background:var(--good);border-radius:99px}
+.bar.behind i{background:#d98a00}.bar.miss i{background:var(--bad)}
+.meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--mute)}
+.badge{font-size:12px;font-weight:600;padding:1px 8px;border-radius:99px}
+.badge.ontrack,.badge.full{background:var(--good-bg);color:var(--good)}.badge.behind{background:#fff3d6;color:#8a5a00}.badge.miss{background:var(--bad-bg);color:var(--bad)}
+.acts{display:flex;gap:8px;flex-wrap:wrap}.acts .btn{min-height:38px}
+.edit,.add{margin-top:8px;padding:12px;border-radius:10px;background:var(--bg)}
+.edit .grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--mute);font-weight:500;font-size:12px}
+td.n,th.n{text-align:right}
+.tot{display:grid;gap:2px;font-size:15px}.tot div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line);padding:3px 0}
+#selftest{font-size:13px;margin:12px 0 0;font-weight:500}#selftest.good{color:var(--good)}#selftest.bad{color:var(--bad)}
+.note{font-size:13px;color:var(--mute)}
+</style>
+<link rel="stylesheet" href="settings.css">
+<script src="settings.js" defer></script>
+<script src="cashflow.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="homeL" href="index.html?home=1" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Bank Loan Visualised</span></a>
+  <div id="topSw"><a href="index.html">Loan graph</a><a href="tracker.html">Loan Tracker</a><button id="setSw" type="button" title="Colours, layout and country" onclick="window.loanSettings&&loanSettings.open()">⚙ Settings</button><button id="devSw" type="button" aria-haspopup="true" aria-expanded="false" title="Choose how the page is laid out"></button></div>
+  <h1>Cash-flow</h1>
+  <p class="sub">Plan your pays, bills and goals. Put in what comes in and what has to be paid. The page works out how much to set aside each payday and tells you straight away if it won't fit.</p>
+
+  <div class="card"><h2>How strict should I be?</h2>
+    <div class="seg" id="mode" role="group" aria-label="Mode"><button type="button" data-v="guided">Guided</button><button type="button" data-v="free">Free</button></div>
+    <p class="hint" id="modeHint"></p></div>
+
+  <div id="banner"></div>
+  <div class="verdict" id="verdict" aria-live="polite"></div>
+
+  <div class="card"><h2>Pots, in order of priority</h2>
+    <p class="hint" style="margin:0 0 6px">A pot is anything you need money for: a bill, a goal, a holiday. A bill is just a firm pot that repeats. Tap + Add to move money into a pot yourself.</p>
+    <div id="pots"></div>
+    <div class="acts" style="margin-top:10px"><button type="button" class="btn pri" id="addPot">+ New pot</button><button type="button" class="btn" id="example">Reset to the example budget</button></div></div>
+
+  <div class="card"><h2>Income</h2>
+    <div class="grid">
+      <label class="f">Amount each pay<input type="number" inputmode="decimal" step="0.01" min="0" data-i="amount" id="iAmount"></label>
+      <label class="f">How often<select data-i="every"><option value="weekly">Weekly</option><option value="fortnightly">Fortnightly</option><option value="monthly">Monthly</option><option value="custom">Every … days</option></select></label>
+      <label class="f" id="iDaysL" hidden>Days between pays<input type="number" inputmode="numeric" min="1" max="365" data-i="days"></label>
+      <label class="f">Next payday<input type="date" data-i="next"></label>
+      <label class="f">Is it steady?<select data-i="reliable"><option value="1">Reliable</option><option value="0">Varies</option></select></label>
+    </div>
+    <p class="hint" id="varyHint"></p></div>
+
+  <div class="card"><h2>Safety buffer</h2>
+    <label class="chk"><input type="checkbox" data-b="auto" id="bAuto"> Use the default: 2 weeks of your firm repeating pots</label>
+    <div class="grid"><label class="f" id="bAmtL">Buffer target<input type="number" inputmode="decimal" step="0.01" min="0" data-b="amount"></label>
+      <label class="f">Already in the buffer<input type="number" inputmode="decimal" step="0.01" min="0" data-b="saved"></label></div>
+    <p class="hint" id="bHint"></p></div>
+
+  <div class="card"><h2>The numbers</h2><div class="tot" id="tot"></div></div>
+  <div class="card"><h2>Pot by pot</h2><div class="tw"><table><thead><tr><th>Pot</th><th class="n">Still needed</th><th>Due</th><th class="n">Set aside each pay</th><th>Full on</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div></div>
+  <p class="note">How it works: each payday, firm pots get their share first, then the safety buffer, then the rest by priority (1 first). Anything left over moves on to the next pot. Pots with a firm date are never cut to help a flexible one. This is a planning aid, not financial advice.</p>
+  <p id="selftest"></p>
+</div>
+<script>
+(function(){
+'use strict';
+const CF=window.CashFlow,$=id=>document.getElementById(id),KEY='cashFlow.v1';
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sym=()=>window.loanRegion?loanRegion.sym:'$',loc=()=>window.loanRegion?loanRegion.locale:'en-AU';
+const money=c=>(c<0?'−':'')+sym()+(Math.abs(c)/100).toLocaleString(loc(),{minimumFractionDigits:2,maximumFractionDigits:2});
+const dstr=d=>d==null?'not within 5 years':new Date(d*864e5).toLocaleDateString(loc(),{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
+const dollars=c=>c?(c/100).toFixed(2).replace(/\.00$/,''):'';
+const toC=v=>Math.round((parseFloat(v)||0)*100);
+const WORD={weekly:'week',fortnightly:'fortnight',monthly:'month',custom:'pay'};
+const REPS=[['none','Does not repeat'],['weekly','Weekly'],['fortnightly','Fortnightly'],['monthly','Monthly'],['quarterly','Quarterly'],['yearly','Yearly']];
+let S=null,last=null,lastVerdict='none',open=new Set(),adding=new Set(),dismissed='',uid=0;
+const clone=o=>JSON.parse(JSON.stringify(o));
+const today=()=>CF.todayDay();
+
+/* ---------- starting data ---------- */
+function example(){
+  const t=today(),iso=d=>CF.fmtISO(d),pay=t+4;
+  return {v:1,mode:'guided',income:{amount:150000,every:'fortnightly',days:14,next:iso(pay),reliable:true},
+    pots:[
+      {id:'p1',name:'Rent',price:70000,due:iso(pay+14),repeat:'fortnightly',priority:1,firm:true,saved:0,payFreq:'pay'},
+      {id:'p2',name:'Bills',price:15000,due:iso(pay+14),repeat:'fortnightly',priority:1,firm:true,saved:0,payFreq:'pay'},
+      {id:'p3',name:'Car',price:1000000,due:iso(CF.addMonths(t,18)),repeat:'none',priority:2,firm:false,saved:100000,payFreq:'pay'},
+      {id:'p4',name:'Holiday',price:300000,due:iso(CF.addMonths(t,9)),repeat:'none',priority:4,firm:false,saved:0,payFreq:'pay'}],
+    buffer:{auto:true,amount:0,saved:0},log:[]};
+}
+function load(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+  if(!s||typeof s!=='object'||!Array.isArray(s.pots))return example();
+  s.mode=s.mode==='free'?'free':'guided';s.log=Array.isArray(s.log)?s.log.slice(-200):[];s.income=s.income||{};s.buffer=s.buffer||{auto:true,amount:0,saved:0};
+  s.pots.forEach((p,i)=>{if(p.id==null)p.id='p'+(++uid)+'_'+i});return s}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const nid=()=>'p'+Date.now().toString(36)+(++uid);
+
+/* ---------- reading and showing results ---------- */
+function status(r){return r.firm&&r.misses?'miss':r.status}
+const STX={ontrack:'On track',full:'Full',behind:'Behind',miss:'Will miss date'};
+function countdown(d){const n=d-today();if(n<0)return'overdue by '+(-n)+(n===-1?' day':' days');if(n===0)return'due today';if(n<=90)return'due in '+n+(n===1?' day':' days');return'due in about '+Math.round(n/30.44)+' months'}
+function sorted(res){return res.rows.slice().sort((a,b)=>(a.priority||9)-(b.priority||9)||(a.due||0)-(b.due||0))}
+function perWord(){return WORD[S.income.every]||'pay'}
+
+function sumHTML(r){
+  if(r.invalid)return '<div class="top"><b>'+esc(r.name)+'</b><span class="rem">'+esc(r.note)+'</span></div>';
+  const st=status(r),pct=r.price?Math.min(100,Math.round(r.saved*100/r.price)):0;
+  return '<div class="top"><b>'+esc(r.name)+(r.firm?' <span class="badge" style="background:var(--soft);color:var(--acc)">Firm</span>':'')+'</b><span class="rem">'+money(r.remaining)+' to go</span></div>'+
+    '<div class="bar '+(st==='miss'?'miss':st==='behind'?'behind':'')+'" role="img" aria-label="'+pct+'% full"><i style="width:'+pct+'%"></i></div>'+
+    '<div class="meta"><span>'+countdown(r.due)+' ('+dstr(r.due)+')</span><span>Priority '+r.priority+'</span><span>Set aside '+money(r.perPay)+' each '+perWord()+'</span><span class="badge '+st+'">'+STX[st]+'</span></div>';
+}
+function editHTML(p){
+  const o=(arr,v)=>arr.map(([k,n])=>'<option value="'+k+'"'+(k===v?' selected':'')+'>'+n+'</option>').join('');
+  return '<div class="grid">'+
+    '<label class="f">Name<input type="text" data-f="name" value="'+esc(p.name)+'"></label>'+
+    '<label class="f">Price<input type="number" inputmode="decimal" step="0.01" min="0" data-f="price" value="'+dollars(p.price)+'"></label>'+
+    '<label class="f">Due date<input type="date" data-f="due" value="'+esc(p.due||'')+'"></label>'+
+    '<label class="f">Repeats<select data-f="repeat">'+o(REPS,p.repeat||'none')+'</select></label>'+
+    '<label class="f">Priority (1 = first)<select data-f="priority">'+o([1,2,3,4,5].map(n=>[n,n]),p.priority)+'</select></label>'+
+    '<label class="f">Firm or flexible<select data-f="firm"><option value="1"'+(p.firm?' selected':'')+'>Firm (must be paid on time)</option><option value="0"'+(p.firm?'':' selected')+'>Flexible (can slip)</option></select></label>'+
+    '<label class="f">Already saved<input type="number" inputmode="decimal" step="0.01" min="0" data-f="saved" value="'+dollars(p.saved)+'"></label>'+
+    '<label class="f">Pay into it<select data-f="payFreq">'+o([['pay','Every payday'],['weekly','Weekly'],['fortnightly','Fortnightly'],['monthly','Monthly']],p.payFreq||'pay')+'</select></label></div>'+
+    '<div class="acts" style="margin-top:10px"><button type="button" class="btn del" data-act="del">Delete this pot</button></div>';
+}
+function addHTML(p){
+  return '<div class="grid"><label class="f">Amount<input type="number" inputmode="decimal" step="0.01" min="0" data-a="amt" placeholder="0.00"></label>'+
+    '<label class="f">Take it from<select data-a="src"><option value="spare">Spare this pay</option><option value="buffer">Buffer</option></select></label></div>'+
+    '<div class="acts" style="margin-top:10px"><button type="button" class="btn pri" data-act="doAdd">Add to '+esc(p.name)+'</button><button type="button" class="btn" data-act="cancelAdd">Cancel</button></div><p class="hint" data-a="msg"></p>';
+}
+function renderPots(res){
+  const box=$('pots');box.innerHTML='';
+  const rows=sorted(res);
+  rows.forEach(r=>{
+    const p=S.pots.find(x=>x.id===r.id);if(!p)return;
+    const d=document.createElement('div');d.className='pot';d.dataset.id=p.id;
+    d.innerHTML='<div class="sum">'+sumHTML(r)+'</div><div class="acts" style="margin-top:8px"><button type="button" class="btn pri" data-act="add">+ Add</button><button type="button" class="btn" data-act="edit">'+(open.has(p.id)?'Close':'Edit')+'</button></div>'+
+      '<div class="add" hidden>'+addHTML(p)+'</div><div class="edit" hidden>'+editHTML(p)+'</div>';
+    if(open.has(p.id))d.querySelector('.edit').hidden=false;
+    if(adding.has(p.id))d.querySelector('.add').hidden=false;
+    box.appendChild(d)});
+  if(!rows.length)box.innerHTML='<p class="hint">No pots yet. Tap + New pot.</p>';
+}
+function renderLive(res){          // refresh numbers without touching the open forms
+  document.querySelectorAll('#pots .pot').forEach(d=>{const r=res.rows.find(x=>x.id===d.dataset.id);if(r)d.querySelector('.sum').innerHTML=sumHTML(r)});
+  $('tbody').innerHTML=res.rows.filter(r=>!r.invalid).map(r=>{const st=status(r);return '<tr><td>'+esc(r.name)+'</td><td class="n">'+money(r.remaining)+'</td><td>'+dstr(r.due)+'</td><td class="n">'+money(r.perPay)+' / '+perWord()+'</td><td>'+(r.repeat!=='none'?'(repeats) ':'')+dstr(r.fullOn)+'</td><td><span class="badge '+st+'">'+STX[st]+'</span></td></tr>'}).join('')||'<tr><td colspan="6">Nothing yet</td></tr>';
+  const t=res.totals,w=perWord();
+  $('tot').innerHTML=t?[['Income each '+w+(t.varies?' (planned at 85%, as it varies)':''),money(t.income)],['Safety buffer top-up each '+w+' (target '+money(t.bufferTarget)+')',money(t.bufferTopUp)],['Spare after the buffer',money(t.spare)],['All pots need, each '+w,money(t.paceTotal)],['Left over each '+w,money(t.left)]].map(a=>'<div><span>'+a[0]+'</span><b>'+a[1]+'</b></div>').join(''):'<div><span>Enter your income to see the numbers.</span></div>';
+  $('bHint').textContent=t?'Target now: '+money(t.bufferTarget)+'. It is built up over about 6 months, after your firm pots are covered.':'';
+}
+/* what the guardian says, and one fix that can be applied */
+function suggestion(res){
+  if(res.verdict==='amber'){const ch=(res.option.moves||[]).map(m=>({name:m.name,to:m.to}));if(ch.length)return {text:'Move '+ch.map(c=>c.name+' to '+dstr(c.to)).join(' and '),moves:ch}}
+  if(res.verdict==='red'&&res.why){const r=res.rows.find(x=>x.name===res.why.pot&&x.repeat==='none'&&x.fullOn!=null);
+    if(r)return {text:'Move '+r.name+' to '+dstr(r.fullOn),moves:[{name:r.name,to:r.fullOn}]}}
+  return null}
+function verdictHTML(res){
+  const w=perWord(),t=res.totals;let h='',cls=res.verdict==='none'?'':res.verdict;
+  if(res.verdict==='none')h='<h3>Not enough to go on yet</h3><p>'+res.headline+'</p>';
+  else if(res.verdict==='green')h='<h3>Green: yes, you can afford all of this</h3><p>Every pot is full by its date. Spare after everything: <b>'+money(t.left)+'</b> each '+w+'.</p>';
+  else if(res.verdict==='amber'){h='<h3>Amber: possible, but some flexible pots will be late</h3>'+(res.slips||[]).map(s=>'<p><b>'+esc(s.name)+'</b> '+(s.fullOn!=null?'would be full on '+dstr(s.fullOn)+', '+(s.slipDays>0?Math.max(1,Math.round(s.slipDays/7))+(Math.round(s.slipDays/7)<=1?' week':' weeks')+' after its date ('+dstr(s.due)+').':'on time.'):'would be short by '+money(s.short||0)+' on '+dstr(s.due)+'.')+'</p>').join('')+'<p>Your firm pots are all safe.</p>'}
+  else{const y=res.why;h='<h3>Red: '+(y.pot?esc(y.pot)+' would miss its date':'firm costs are more than you earn')+'</h3>';
+    if(y.pot)h+='<p>It would be short by <b>'+money(y.short)+'</b> on '+dstr(y.due)+(y.count>1?' (and '+(y.count-1)+' more times later)':'')+'.</p>';
+    h+='<p>Why: your firm pots need about <b>'+money(y.firmNeed)+'</b> each '+w+' and you have <b>'+money(y.income)+'</b>'+(t&&t.spare<0?', before the safety buffer top-up is even counted':'')+'.</p>';
+    if(res.option&&res.option.extra)h+='<p>Nearest way to make it work: <b>'+money(res.option.extra)+' more each '+w+'</b> ('+money(y.income)+' → '+money(y.income+res.option.extra)+').</p>'}
+  const sg=res.verdict==='amber'||res.verdict==='red'?suggestion(res):null;
+  if(sg)h+='<p>Suggestion: '+esc(sg.text)+'. <button type="button" class="btn pri" data-act="applySug">Apply</button></p>';
+  $('verdict').className='verdict '+cls;$('verdict').innerHTML=h;res._sg=sg}
+function renderBanner(res,msg){
+  const b=$('banner');b.innerHTML='';
+  if(msg){b.innerHTML='<div class="banner bad" role="alert"><div>'+msg+'</div><button type="button" class="btn" data-act="closeBanner">OK</button></div>';return}
+  if(S.mode==='free'&&res.verdict==='red'){const sig=(res.why&&res.why.pot||'x')+res.why.short;if(dismissed===sig)return;
+    const y=res.why,sg=res._sg;
+    b.innerHTML='<div class="banner" data-sig="'+esc(sig)+'"><div><b>'+(y.pot?'Heads up: '+esc(y.pot)+' will miss its date.':'Heads up: the money runs out.')+'</b> Free mode lets you carry on, so nothing was changed. '+(sg?'One way to sort it: '+esc(sg.text)+'.':(res.option&&res.option.extra?'It would work with '+money(res.option.extra)+' more each '+perWord()+'.':''))+'</div>'+(sg?'<button type="button" class="btn pri" data-act="applySug">Apply</button>':'')+'<button type="button" class="btn" data-act="dismiss">Dismiss</button></div>'}
+}
+let res=null;
+function calc(){res=CF.assess(S,{today:today()});return res}
+function paint(msg,full){calc();verdictHTML(res);if(full)renderPots(res);renderLive(res);renderBanner(res,msg);lastVerdict=res.verdict;paintStatic()}
+function paintStatic(){
+  document.querySelectorAll('#mode button').forEach(b=>{const on=b.dataset.v===S.mode;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
+  $('modeHint').textContent=S.mode==='guided'?'Guided: if a change would make a firm pot miss its date, I will warn you and undo it. Flexible pots can slip, and I will say which.':'Free: you can do anything. If the money runs out I will show a hint and one suggested fix, but I will not stop you.';
+  $('bAuto').checked=S.buffer.auto!==false;$('bAmtL').hidden=S.buffer.auto!==false;
+  $('iDaysL').hidden=S.income.every!=='custom';
+  $('varyHint').textContent=S.income.reliable===false?'Because your pay varies, the plan uses 85% of this amount to stay safe.':'';
+}
+function fillStatic(){
+  const i=S.income;document.querySelectorAll('[data-i]').forEach(el=>{const k=el.dataset.i;el.value=k==='amount'?dollars(i.amount):k==='reliable'?(i.reliable===false?'0':'1'):(i[k]==null?'':i[k])});
+  document.querySelectorAll('[data-b]').forEach(el=>{const k=el.dataset.b;if(k==='auto')el.checked=S.buffer.auto!==false;else el.value=dollars(S.buffer[k])})}
+
+/* ---------- reading inputs ---------- */
+function setField(el){
+  if(el.dataset.i){const k=el.dataset.i;S.income[k]=k==='amount'?toC(el.value):k==='reliable'?el.value==='1':k==='days'?Math.max(1,parseInt(el.value)||14):el.value}
+  else if(el.dataset.b){const k=el.dataset.b;S.buffer[k]=k==='auto'?el.checked:toC(el.value)}
+  else if(el.dataset.f){const d=el.closest('.pot'),p=S.pots.find(x=>x.id===d.dataset.id),k=el.dataset.f;if(!p)return;
+    p[k]=(k==='price'||k==='saved')?toC(el.value):k==='priority'?+el.value:k==='firm'?el.value==='1':el.value}
+}
+document.addEventListener('input',e=>{const el=e.target;if(!el.matches('[data-i],[data-b],[data-f]'))return;setField(el);
+  paint(null,false)});
+document.addEventListener('change',e=>{const el=e.target;if(!el.matches('[data-i],[data-b],[data-f]'))return;setField(el);
+  commit(true)});
+/* Guided mode: a change that turns green or amber into red is undone, with a plain explanation */
+function commit(full){
+  calc();
+  if(S.mode==='guided'&&res.verdict==='red'&&lastGood!=='red'&&last){
+    const y=res.why,msg='<b>Not allowed in Guided mode.</b> That change would '+(y.pot?'make <b>'+esc(y.pot)+'</b> miss its date on '+dstr(y.due)+' (short by '+money(y.short)+').':'leave your firm costs bigger than your income.')+' I put it back. '+(res.option&&res.option.extra?'It would work with '+money(res.option.extra)+' more each '+perWord()+'. ':'')+'Switch to Free mode if you want to do it anyway.';
+    S=clone(last);fillStatic();paint(msg,true);return false}
+  last=clone(S);lastGood=res.verdict;save();paint(null,full);return true}
+let lastGood='none';
+
+/* ---------- buttons ---------- */
+document.addEventListener('click',e=>{
+  const a=e.target.closest('[data-act]'),pe=e.target.closest('.pot'),id=pe&&pe.dataset.id;
+  if(e.target.closest('#mode button')){const v=e.target.closest('#mode button').dataset.v;S.mode=v;dismissed='';last=clone(S);save();paint(null,false);return}
+  if(e.target.id==='addPot'){const t=today();S.pots.push({id:nid(),name:'New pot',price:0,due:CF.fmtISO(CF.addMonths(t,6)),repeat:'none',priority:3,firm:false,saved:0,payFreq:'pay'});open.add(S.pots[S.pots.length-1].id);last=clone(S);save();paint(null,true);return}
+  if(e.target.id==='example'){if(confirm('Replace everything on this page with the example budget?')){S=example();fillStatic();open.clear();adding.clear();last=clone(S);lastGood='none';save();paint(null,true)}return}
+  if(!a)return;const act=a.dataset.act;
+  if(act==='edit'){open.has(id)?open.delete(id):open.add(id);pe.querySelector('.edit').hidden=!open.has(id);a.textContent=open.has(id)?'Close':'Edit';return}
+  if(act==='add'){adding.has(id)?adding.delete(id):adding.add(id);pe.querySelector('.add').hidden=!adding.has(id);return}
+  if(act==='cancelAdd'){adding.delete(id);pe.querySelector('.add').hidden=true;return}
+  if(act==='del'){const p=S.pots.find(x=>x.id===id);if(p&&confirm('Delete "'+p.name+'"?')){S.pots=S.pots.filter(x=>x.id!==id);open.delete(id);commit(true)}return}
+  if(act==='doAdd'){topUp(pe,id);return}
+  if(act==='applySug'){const sg=res&&res._sg;if(!sg)return;sg.moves.forEach(m=>{const p=S.pots.find(x=>x.name===m.name);if(p)p.due=CF.fmtISO(m.to)});dismissed='';commit(true);return}
+  if(act==='dismiss'){dismissed=a.closest('.banner').dataset.sig;$('banner').innerHTML='';return}
+  if(act==='closeBanner'){$('banner').innerHTML='';return}
+});
+/* a manual top-up: the money is recorded and the plan re-checked */
+function topUp(pe,id){
+  const p=S.pots.find(x=>x.id===id),amt=toC(pe.querySelector('[data-a=amt]').value),src=pe.querySelector('[data-a=src]').value,msg=pe.querySelector('[data-a=msg]');
+  if(!p||amt<=0){msg.textContent='Enter an amount first.';return}
+  const room=Math.max(0,p.price-p.saved);if(amt>room){msg.textContent='That pot only needs '+money(room)+' more.';return}
+  if(src==='buffer'&&amt>S.buffer.saved){msg.textContent='The buffer only holds '+money(S.buffer.saved)+'.';if(S.mode==='guided')return}
+  const spare=res&&res.totals?res.totals.left:0;
+  if(src==='spare'&&amt>Math.max(0,spare)&&S.mode==='guided'){msg.textContent='Only '+money(Math.max(0,spare))+' is spare this '+perWord()+'. Use Free mode to go over.';return}
+  const before=clone(S);
+  p.saved+=amt;if(src==='buffer')S.buffer.saved=Math.max(0,S.buffer.saved-amt);
+  S.log.push({on:CF.fmtISO(today()),pot:p.name,amount:amt,from:src});if(S.log.length>200)S.log.shift();
+  if(commit(true)){adding.delete(id);paint('<b>Added '+money(amt)+' to '+esc(p.name)+'</b> from '+(src==='buffer'?'the buffer':'spare money')+'. It is saved in your history.',true)}
+}
+
+/* ---------- Display button (same two layouts as the loan pages) ---------- */
+(function(){
+  const root=document.documentElement,b=$('devSw'),K='loanDevice';let cur=null;try{cur=localStorage.getItem(K)}catch(e){}
+  if(!cur)cur=(matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<760)?'phone':'desktop';
+  root.dataset.device=cur;
+  const label=()=>(root.dataset.device==='phone'?'📱':'🖥️')+' Display ▾';b.textContent=label();
+  const pop=document.createElement('div');pop.className='dispPop';pop.hidden=true;pop.setAttribute('role','menu');document.body.appendChild(pop);
+  const paintPop=()=>{const c=root.dataset.device;pop.innerHTML='<div class="dpT">Display</div><div class="dpRow">'+[['desktop','🖥️','Computer'],['phone','📱','Phone']].map(([v,i,n])=>'<button type="button" role="menuitemradio" aria-checked="'+(v===c)+'" data-v="'+v+'" class="'+(v===c?'on':'')+'"><i>'+i+'</i><span>'+n+'</span>'+(v===c?'<em>In use</em>':'')+'</button>').join('')+'</div>'};
+  const close=()=>{pop.hidden=true;b.setAttribute('aria-expanded','false')};
+  b.addEventListener('click',e=>{e.stopPropagation();if(!pop.hidden){close();return}paintPop();pop.hidden=false;b.setAttribute('aria-expanded','true');const r=b.getBoundingClientRect(),pw=pop.offsetWidth;pop.style.top=(r.bottom+8)+'px';pop.style.left=Math.max(8,Math.min(innerWidth-pw-8,r.right-pw))+'px'});
+  pop.addEventListener('click',e=>{e.stopPropagation();const t=e.target.closest('[data-v]');if(!t)return;root.dataset.device=t.dataset.v;try{localStorage.setItem(K,t.dataset.v)}catch(x){}b.textContent=label();window.dispatchEvent(new Event('devicechange'));paintPop();setTimeout(close,300)});
+  document.addEventListener('click',e=>{if(!pop.hidden&&!pop.contains(e.target))close()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden){close();b.focus()}});
+})();
+window.addEventListener('themechange',()=>{});
+
+/* ---------- go ---------- */
+S=load();last=clone(S);fillStatic();
+(function(){const r=CF.assess(S,{today:today()});lastGood=r.verdict})();
+paint(null,true);
+const T=CF.selfTest(),bad=T.filter(x=>!x[1]),st=$('selftest');
+st.className=bad.length?'bad':'good';st.textContent=bad.length?'✗ Self-check failed: '+bad.map(x=>x[0]).join('; '):'✓ Self-checks passed ('+T.length+' of '+T.length+')';
+window.CashFlowPage={get state(){return S},assess:()=>res};
+})();
+</script>
+</body>
+</html>
