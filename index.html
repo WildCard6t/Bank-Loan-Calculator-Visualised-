@@ -219,6 +219,18 @@ html[data-device=phone] #payLock{max-width:calc(100% - 80px);overflow:hidden;tex
 .homeL{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:2px 10px 2px 4px;margin:0 0 2px -4px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;cursor:pointer;transition:background .15s}
 .homeL img{width:26px;height:26px;border-radius:7px}.homeL:hover{background:var(--soft);color:var(--acc)}.homeL:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 html.embed .homeL{display:none}
+
+/* node editor: docked beside the chart on a computer (the chart shrinks, nothing is covered); minimise to a small pill */
+html:not([data-device=phone]) .chart.editing{padding-right:356px}
+html:not([data-device=phone]) .chart.editing .nodeEd{left:auto!important;right:12px;top:12px!important;width:332px;max-height:calc(100% - 24px);overflow:auto;box-shadow:0 6px 24px rgba(0,0,0,.16)}
+.neHB{display:flex;gap:6px;flex:none}
+.neMin{width:34px;height:34px;border:0;border-radius:50%;background:var(--bg);color:var(--ink);cursor:pointer;font:inherit;font-size:15px;line-height:1}
+.neMin:hover,.neX:hover{background:var(--soft)}
+.nodeEd.min{width:auto!important;max-width:min(380px,calc(100% - 24px));padding:5px 5px 5px 14px;border-radius:99px;left:auto!important;right:12px!important;top:auto!important;bottom:12px;cursor:pointer;overflow:hidden}
+.nodeEd.min>:not(.neHead){display:none!important}
+.nodeEd.min .neHead b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[data-device=phone] .nodeEd{max-height:46vh}
+html[data-device=phone] .nodeEd.min{position:fixed;left:auto!important;right:12px!important;bottom:calc(12px + env(safe-area-inset-bottom));max-height:none;padding:5px 5px 5px 14px;border-radius:99px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 .dispPop{position:fixed;z-index:90;padding:10px;border-radius:16px;background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.25);animation:dpIn .14s ease-out}
 .dispPop[hidden]{display:none}
 .dpT{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:0 4px 8px}
@@ -825,7 +837,7 @@ update();
   /* editor */
   const ed=document.createElement('div');ed.className='nodeEd';ed.hidden=true;ed.setAttribute('role','dialog');ed.setAttribute('aria-label','Edit node');document.querySelector('.chart').appendChild(ed);let edId=null;
   function openEd(id){const n=nodeById(id);if(!n)return;edId=id;burstT=0;hide();menu.hidden=true;window.__ghostSkip=id;
-    ed.innerHTML='<div class="neHead"><b>📍 Node, <span class="neWhen"></span> in</b><button type="button" class="neX" aria-label="Close">✕</button></div>'+
+    ed.innerHTML='<div class="neHead"><b>📍 Node, <span class="neWhen"></span> in</b><span class="neHB"><button type="button" class="neMin" aria-label="Minimise" title="Minimise">▁</button><button type="button" class="neX" aria-label="Close">✕</button></span></div>'+
       '<label class="neLab">Your payment from here</label>'+
       '<div class="neRow"><button type="button" class="neStep" data-d="-1" aria-label="Pay less">−</button><span class="unit pre"><i>'+loanRegion.sym+'</i><input type="text" inputmode="decimal" class="nePay" aria-label="Payment from this node"></span><button type="button" class="neStep" data-d="1" aria-label="Pay more">+</button><span class="neFreq"></span></div>'+
       '<div class="neQuick"><button type="button" data-q="-100">−100</button><button type="button" data-q="100">+100</button><button type="button" data-q="500">+500</button><button type="button" data-q="base">Back to before</button></div>'+
@@ -833,7 +845,7 @@ update();
       '<label class="neLab">Note (optional)</label><input type="text" class="neNote" maxlength="80" placeholder="e.g. pay rise, second job">'+
       '<p class="neEff"></p>'+
       '<div class="neBtns"><button type="button" class="neDel">Delete node</button><button type="button" class="neDone">Done</button></div>';
-    ed.hidden=false;edRefresh(true);if(document.documentElement.dataset.device!=='phone')ed.querySelector('.nePay').focus()}
+    ed.hidden=false;ed.classList.remove('min');dock();edRefresh(true);if(document.documentElement.dataset.device!=='phone')ed.querySelector('.nePay').focus()}
   function stepAmt(){return S.freq>=52?10:S.freq>=12?50:S.freq>=4?100:500}
   function edRefresh(full){if(ed.hidden||!edId)return;const n=nodeById(edId);if(!n){closeEd();return}const k=Math.round(n.y*S.freq),pay=n.pay*(n.f||S.freq)/S.freq,f=FL[S.freq];
     ed.querySelector('.neWhen').textContent=ym(n.y);ed.querySelector('.neFreq').textContent='/'+f;
@@ -846,17 +858,20 @@ update();
     if(R.paid!==null&&R0.paid!==null){const dT=R0.paid-R.paid,dI=R0.int-R.int;t+=Math.abs(dT)<1&&Math.abs(dI)<1?'No change yet. Change the payment to see the effect.':'This node: paid off '+ym(Math.abs(dT)/S.freq)+(dT>=0?' sooner':' later')+', '+(dI>=0?money(dI)+' less':money(-dI)+' more')+' interest.'}
     else if(R.paid===null)t+='At this payment the loan is never paid off.';else t+='Now paid off in '+ym(R.paid/S.freq)+'.';
     ed.querySelector('.neEff').textContent=t;ed.dataset.before=before;place2()}
-  function place2(){if(ed.hidden||!G)return;if(document.documentElement.dataset.device==='phone'){ed.style.left='';ed.style.top='';return}
+  function dock(){const chEl=document.querySelector('.chart'),on=!ed.hidden&&!ed.classList.contains('min');chEl.classList.toggle('editing',on&&document.documentElement.dataset.device!=='phone');
+    const m=ed.querySelector('.neMin');if(m){m.textContent=ed.classList.contains('min')?'▴':'▁';m.setAttribute('aria-label',ed.classList.contains('min')?'Open':'Minimise')}}
+  function place2(){ed.style.left='';ed.style.top='';return;if(ed.hidden||!G)return;if(document.documentElement.dataset.device==='phone'){ed.style.left='';ed.style.top='';return}
     const g=(G.nodes||[]).find(m=>m.id===edId),chEl=document.querySelector('.chart'),ch=chEl.getBoundingClientRect(),fr=fig.getBoundingClientRect();
     const gx=(g?g.x:G.L)+fr.left-ch.left,gy=(g?g.y:G.Tm)+fr.top-ch.top,w=ed.offsetWidth,h=ed.offsetHeight;
     ed.style.left=Math.max(8,Math.min(ch.width-w-8,gx+(gx>ch.width/2?-w-22:22)))+'px';ed.style.top=Math.max(8,Math.min(ch.height-h-8,gy-h/2))+'px'}
-  function closeEd(){ed.hidden=true;edId=null;burstT=0;if(window.__ghostSkip){window.__ghostSkip=null;update()}}
+  function closeEd(){ed.hidden=true;ed.classList.remove('min');document.querySelector('.chart').classList.remove('editing');edId=null;burstT=0;if(window.__ghostSkip){window.__ghostSkip=null;update()}}
   window.__nodeSync=()=>{if(!ed.hidden){if(!nodeById(edId))closeEd();else edRefresh()}};
   ed.addEventListener('input',e=>{if(!nodeById(edId))return;
     if(e.target.matches('.nePay')){const v=num(e.target.value,0,1e8,null);if(v!==null)setNode(edId,{pay:v,f:S.freq})}
     else if(e.target.matches('.neY')){const v=num(e.target.value,0,S.T,null);if(v!==null)setNode(edId,{y:v})}
     else if(e.target.matches('.neNote'))setNode(edId,{note:e.target.value})});
   ed.addEventListener('click',e=>{const n=nodeById(edId);if(!n)return;const pay=n.pay*(n.f||S.freq)/S.freq;
+    if(e.target.closest('.neMin')||(ed.classList.contains('min')&&!e.target.closest('.neX'))){ed.classList.toggle('min');dock();return}
     if(e.target.closest('.neX,.neDone')){closeEd();return}
     if(e.target.closest('.neDel')){delNode(edId);return}
     const st=e.target.closest('.neStep');if(st){setNode(edId,{pay:Math.max(0,pay+(+st.dataset.d)*stepAmt()),f:S.freq});return}

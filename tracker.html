@@ -295,6 +295,18 @@ html[data-device=phone] .nodeMenu button{min-height:44px}
 .homeL{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:2px 10px 2px 4px;margin:0 0 2px -4px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;cursor:pointer;transition:background .15s}
 .homeL img{width:26px;height:26px;border-radius:7px}.homeL:hover{background:var(--soft);color:var(--acc)}.homeL:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 html.embed .homeL{display:none}
+
+/* node editor: docked beside the chart on a computer (the chart shrinks, nothing is covered); minimise to a small pill */
+html:not([data-device=phone]) .chart.editing{padding-right:356px}
+html:not([data-device=phone]) .chart.editing .nodeEd{left:auto!important;right:12px;top:12px!important;width:332px;max-height:calc(100% - 24px);overflow:auto;box-shadow:0 6px 24px rgba(0,0,0,.16)}
+.neHB{display:flex;gap:6px;flex:none}
+.neMin{width:34px;height:34px;border:0;border-radius:50%;background:var(--bg);color:var(--ink);cursor:pointer;font:inherit;font-size:15px;line-height:1}
+.neMin:hover,.neX:hover{background:var(--soft)}
+.nodeEd.min{width:auto!important;max-width:min(380px,calc(100% - 24px));padding:5px 5px 5px 14px;border-radius:99px;left:auto!important;right:12px!important;top:auto!important;bottom:12px;cursor:pointer;overflow:hidden}
+.nodeEd.min>:not(.neHead){display:none!important}
+.nodeEd.min .neHead b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[data-device=phone] .nodeEd{position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;top:auto!important;width:auto;margin:10px 0 4px;padding:14px;border-radius:14px;border:2px solid var(--acc);box-shadow:none;max-height:none;overflow:visible;z-index:2}
+html[data-device=phone] .nodeEd.min{border-radius:99px;margin:8px 0;padding:5px 5px 5px 14px;max-width:none}
 .dispPop{position:fixed;z-index:90;padding:10px;border-radius:16px;background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.25);animation:dpIn .14s ease-out}
 .dispPop[hidden]{display:none}
 .dpT{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:0 4px 8px}
@@ -1010,10 +1022,10 @@ $('pOffTop').addEventListener('input',e=>{const v=num(e.target.value);change(p=>
   function mark(id,did){burstT=0;change(p=>{const e=p.log.find(q=>q.id===id);if(!e)return;if(did){e.done=true;e.skip=false}else{e.skip=true;e.done=false}})}
   function delE(id){burstT=0;if(edId===id)closeEd(true);change(p=>p.log=p.log.filter(q=>q.id!==id));$('eMsg').textContent='Deleted. Undo brings it back.'}
   /* editor */
-  const ed=document.createElement('div');ed.className='nodeEd';ed.hidden=true;ed.setAttribute('role','dialog');ed.setAttribute('aria-label','Edit node');chart.appendChild(ed);let edId=null,isNew=false;
+  const ed=document.createElement('div');ed.className='nodeEd';ed.hidden=true;ed.setAttribute('role','dialog');ed.setAttribute('aria-label','Edit node');chart.insertBefore(ed,fig.nextSibling);let edId=null,isNew=false;
   function openEd(id,fresh){const e=byId(id);if(!e)return;edId=id;isNew=!!fresh;edSkip=id;burstT=0;menu.hidden=true;hide();
     const hasA=e.type!=='note',pct=e.type==='rate';
-    ed.innerHTML='<div class="neHead"><b><span class="neIc"></span> <span class="neName"></span></b><button type="button" class="neX" aria-label="Close">✕</button></div>'+
+    ed.innerHTML='<div class="neHead"><b><span class="neIc"></span> <span class="neName"></span></b><span class="neHB"><button type="button" class="neMin" aria-label="Minimise" title="Minimise">▁</button><button type="button" class="neX" aria-label="Close">✕</button></span></div>'+
       '<label class="neLab">What is it?</label><select class="f neT">'+Object.entries(TY).map(([k,v])=>'<option value="'+k+'">'+v.i+' '+v.m+'</option>').join('')+'</select>'+
       '<label class="neLab">Date</label><input type="date" class="f neD">'+
       (hasA?'<label class="neLab neAL"></label><div class="neRow"><button type="button" class="neStep" data-d="-1" aria-label="Less">−</button><span class="unit '+(pct?'post':'pre')+'">'+(pct?'':'<i>'+loanRegion.sym+'</i>')+'<input class="f neA" inputmode="decimal" autocomplete="off">'+(pct?'<i>%</i>':'')+'</span><button type="button" class="neStep" data-d="1" aria-label="More">+</button><span class="neFreq"></span></div>':'')+
@@ -1021,7 +1033,7 @@ $('pOffTop').addEventListener('input',e=>{const v=num(e.target.value);change(p=>
       '<label class="neLab">Note (optional)</label><input class="f neNote" maxlength="80" placeholder="e.g. tax refund, pay rise, new job">'+
       '<div class="neStat"></div><p class="neEff"></p><p class="neErr" hidden></p>'+
       '<div class="neBtns"><button type="button" class="neDel">Delete</button><button type="button" class="neDone">Done</button></div>';
-    ed.hidden=false;ed.querySelector('.neNote').value=e.note||'';render();if(!isPhone()){const a=ed.querySelector('.neA');if(a){a.focus();a.select()}}}
+    ed.hidden=false;ed.classList.remove('min');dock(true);ed.querySelector('.neNote').value=e.note||'';render();if(!isPhone()){const a=ed.querySelector('.neA');if(a){a.focus();a.select()}}}
   const stepOf=e=>{const p=PR();return e.type==='rate'?.25:e.type==='pay'||e.type==='goal'?(p.freq>=52?10:p.freq>=12?50:100):1000};
   function edRefresh(){if(ed.hidden||!edId)return;const e=byId(edId),p=PR();if(!e){closeEd(true);return}const fut=parse(e.date)>TODAY,ty=TY[e.type],act=document.activeElement;
     ed.querySelector('.neIc').textContent=ty.i;ed.querySelector('.neName').textContent=(fut?'Plan: ':'')+ty.n;ed.querySelector('.neT').value=e.type;
@@ -1037,11 +1049,15 @@ $('pOffTop').addEventListener('input',e=>{const v=num(e.target.value);change(p=>
     else{const g=GH;if(!g)t=e.skip?'Marked as didn’t happen, so it isn’t counted.':'No change to your interest yet.';
       else t=(g.dInt>0?'💚 This saves you <b>'+money(g.dInt)+'</b>':'This costs <b>'+money(-g.dInt)+'</b> more')+' in interest by the time the loan is paid off'+(g.dMo?', and you’re debt-free <b>'+ymo(g.dMo)+(g.dMo>0?' sooner':' later')+'</b>':'')+'.'+(FU.mid.off?' Debt-free: '+my(FU.mid.off)+'.':' At this rate the loan is never paid off.')}
     const ef=ed.querySelector('.neEff');ef.innerHTML=t;ef.classList.toggle('good',!!(GH&&GH.dInt>0));place2()}
-  function place2(){if(ed.hidden||!G)return;if(isPhone()){ed.style.left='';ed.style.top='';return}
+  /* dock: beside the chart on a computer, just under it on a phone; the chart is never covered */
+  function dock(opening){const on=!ed.hidden&&!ed.classList.contains('min');chart.classList.toggle('editing',on&&!isPhone());
+    ed.querySelector('.neMin').textContent=ed.classList.contains('min')?'▴':'▁';ed.querySelector('.neMin').setAttribute('aria-label',ed.classList.contains('min')?'Open':'Minimise');
+    if(opening&&isPhone())setTimeout(()=>{const r=fig.getBoundingClientRect();if(r.top<0||r.top>innerHeight*.3)window.scrollBy({top:r.top-8,behavior:'smooth'})},60)}
+  function place2(){ed.style.left='';ed.style.top='';return;if(ed.hidden||!G)return;if(isPhone()){ed.style.left='';ed.style.top='';return}
     const g=G.nodes.find(m=>m.id===edId),ch=chart.getBoundingClientRect(),fr=fig.getBoundingClientRect();
     const gx=(g?g.x:G.L)+fr.left-ch.left,gy=(g?g.y:G.Tm)+fr.top-ch.top,w=ed.offsetWidth,h=ed.offsetHeight;
     ed.style.left=Math.max(8,Math.min(ch.width-w-8,gx+(gx>ch.width/2?-w-24:24)))+'px';ed.style.top=Math.max(8,Math.min(ch.height-h-8,gy-h/2))+'px'}
-  function closeEd(quiet){const id=edId,was=isNew;ed.hidden=true;edId=null;edSkip=null;burstT=0;if(!quiet){render();if(was)savedNote(id)}}
+  function closeEd(quiet){const id=edId,was=isNew;ed.hidden=true;ed.classList.remove('min');chart.classList.remove('editing');edId=null;edSkip=null;burstT=0;if(!quiet){render();if(was)savedNote(id)}}
   window.__trNodeSync=()=>{if(!ed.hidden){if(!byId(edId))closeEd(true);else edRefresh()}};
   const setE=o=>change(p=>{const e=p.log.find(q=>q.id===edId);if(e)Object.assign(e,o)});
   const err=s=>{const n=ed.querySelector('.neErr');n.textContent=s||'';n.hidden=!s};
@@ -1055,6 +1071,7 @@ $('pOffTop').addEventListener('input',e=>{const v=num(e.target.value);change(p=>
     else if(tg.matches('.neT')){const ty=tg.value;if(ty==='balance'&&parse(e.date)>TODAY){tg.value=e.type;return err('A bank check can only be in the past.')}
       const o={type:ty,amt:defAmt(ty,+parse(e.date))};if(ty==='goal'&&!e.until){const u=parse(e.date);u.setFullYear(u.getFullYear()+1);o.until=iso(u)}setE(o);openEd(edId,isNew)}});
   ed.addEventListener('click',ev=>{const e=byId(edId);if(!e)return;
+    if(ev.target.closest('.neMin')||(ed.classList.contains('min')&&!ev.target.closest('.neX'))){ed.classList.toggle('min');dock();return}
     if(ev.target.closest('.neX,.neDone')){closeEd();return}
     if(ev.target.closest('.neDel')){delE(edId);return}
     const k=ev.target.closest('[data-k]');if(k){mark(edId,k.dataset.k==='did');return}
@@ -1062,7 +1079,7 @@ $('pOffTop').addEventListener('input',e=>{const v=num(e.target.value);change(p=>
   ed.addEventListener('keydown',e=>{if(e.key==='Escape')closeEd();if(e.key==='Enter'&&e.target.matches('input'))e.target.blur()});
   ['pointerdown','pointerup','pointermove','click'].forEach(t=>ed.addEventListener(t,e=>e.stopPropagation()));
   window.addEventListener('themechange',()=>requestAnimationFrame(place2));
-  window.addEventListener('devicechange',()=>requestAnimationFrame(()=>{paint();place2()}));
+  window.addEventListener('devicechange',()=>requestAnimationFrame(()=>{paint();if(!ed.hidden)dock()}));
   /* drag away from your line: set a new regular payment from tomorrow so you're debt-free on that date */
   function setTo(px,snap){if(!G)return;let t=tAt(px);if(snap&&G.years.length){let best=G.years[0];for(const y of G.years)if(Math.abs(y[1]-px)<Math.abs(best[1]-px))best=y;t=+new Date(best[0],0,1)}
     const p=PR(),ps=PS;if(ps.paidOff||t<=TODAY.getTime()+45*DAY)return;
