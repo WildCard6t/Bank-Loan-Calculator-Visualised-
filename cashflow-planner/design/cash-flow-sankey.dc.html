@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cash-flow Sankey</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet">
+</helmet>
+<div style="position: relative; width: 1440px; height: 830px; background: {{c.bg}}; font-family: 'Geist', system-ui, sans-serif; color: {{c.ink}}">
+
+<svg role="img" aria-label="Sankey diagram of one payday: wages $1,235 and a tax refund $200 make $1,435 of spare cash, which splits into firm pots $850 (Rent $700, Bills $150), safety buffer $197, and goals $388 (Car $232, Holiday $156)" width="1440" height="830" viewBox="0 0 1440 830" style="position: absolute; left: 0; top: 0; width: 1440px; height: 830px">
+<defs>
+<linearGradient id="g1" gradientUnits="userSpaceOnUse" x1="216" y1="0" x2="530" y2="0"><stop offset="0" stop-color="{{c.wages}}"/><stop offset="1" stop-color="{{c.spare}}"/></linearGradient>
+<linearGradient id="g2" gradientUnits="userSpaceOnUse" x1="216" y1="0" x2="530" y2="0"><stop offset="0" stop-color="{{c.refund}}"/><stop offset="1" stop-color="{{c.spare}}"/></linearGradient>
+<linearGradient id="g3" gradientUnits="userSpaceOnUse" x1="546" y1="0" x2="860" y2="0"><stop offset="0" stop-color="{{c.spare}}"/><stop offset="1" stop-color="{{c.firm}}"/></linearGradient>
+<linearGradient id="g4" gradientUnits="userSpaceOnUse" x1="546" y1="0" x2="860" y2="0"><stop offset="0" stop-color="{{c.spare}}"/><stop offset="1" stop-color="{{c.safety}}"/></linearGradient>
+<linearGradient id="g5" gradientUnits="userSpaceOnUse" x1="546" y1="0" x2="860" y2="0"><stop offset="0" stop-color="{{c.spare}}"/><stop offset="1" stop-color="{{c.goals}}"/></linearGradient>
+<linearGradient id="g6" gradientUnits="userSpaceOnUse" x1="876" y1="0" x2="1190" y2="0"><stop offset="0" stop-color="{{c.firm}}"/><stop offset="1" stop-color="{{c.rent}}"/></linearGradient>
+<linearGradient id="g7" gradientUnits="userSpaceOnUse" x1="876" y1="0" x2="1190" y2="0"><stop offset="0" stop-color="{{c.firm}}"/><stop offset="1" stop-color="{{c.bills}}"/></linearGradient>
+<linearGradient id="g8" gradientUnits="userSpaceOnUse" x1="876" y1="0" x2="1190" y2="0"><stop offset="0" stop-color="{{c.safety}}"/><stop offset="1" stop-color="{{c.safety}}"/></linearGradient>
+<linearGradient id="g9" gradientUnits="userSpaceOnUse" x1="876" y1="0" x2="1190" y2="0"><stop offset="0" stop-color="{{c.goals}}"/><stop offset="1" stop-color="{{c.car}}"/></linearGradient>
+<linearGradient id="g10" gradientUnits="userSpaceOnUse" x1="876" y1="0" x2="1190" y2="0"><stop offset="0" stop-color="{{c.goals}}"/><stop offset="1" stop-color="{{c.holiday}}"/></linearGradient>
+</defs>
+
+<g fill-opacity="{{c.ribbon}}">
+<path d="M216,210 C373,210 373,230 530,230 L530,650 C373,650 373,630 216,630 Z" fill="url(#g1)"/>
+<path d="M216,670 C373,670 373,650 530,650 L530,718 C373,718 373,738 216,738 Z" fill="url(#g2)"/>
+<path d="M546,230 C703,230 703,190 860,190 L860,479 C703,479 703,519 546,519 Z" fill="url(#g3)"/>
+<path d="M546,519 C703,519 703,515 860,515 L860,582 C703,582 703,586 546,586 Z" fill="url(#g4)"/>
+<path d="M546,586 C703,586 703,618 860,618 L860,750 C703,750 703,718 546,718 Z" fill="url(#g5)"/>
+<path d="M876,190 L1190,190 L1190,428 L876,428 Z" fill="url(#g6)"/>
+<path d="M876,428 C1033,428 1033,448 1190,448 L1190,499 C1033,499 1033,479 876,479 Z" fill="url(#g7)"/>
+<path d="M876,515 C1033,515 1033,519 1190,519 L1190,586 C1033,586 1033,582 876,582 Z" fill="url(#g8)"/>
+<path d="M876,618 C1033,618 1033,606 1190,606 L1190,685 C1033,685 1033,697 876,697 Z" fill="url(#g9)"/>
+<path d="M876,697 C1033,697 1033,705 1190,705 L1190,758 C1033,758 1033,750 876,750 Z" fill="url(#g10)"/>
+</g>
+
+<rect x="200" y="210" width="16" height="420" rx="3" fill="{{c.wages}}"/>
+<rect x="200" y="670" width="16" height="68" rx="3" fill="{{c.refund}}"/>
+<rect x="530" y="230" width="16" height="488" rx="3" fill="{{c.spare}}"/>
+<rect x="860" y="190" width="16" height="289" rx="3" fill="{{c.firm}}"/>
+<rect x="860" y="515" width="16" height="67" rx="3" fill="{{c.safety}}"/>
+<rect x="860" y="618" width="16" height="132" rx="3" fill="{{c.goals}}"/>
+<rect x="1190" y="190" width="16" height="238" rx="3" fill="{{c.rent}}"/>
+<rect x="1190" y="448" width="16" height="51" rx="3" fill="{{c.bills}}"/>
+<rect x="1190" y="519" width="16" height="67" rx="3" fill="{{c.safety}}"/>
+<rect x="1190" y="606" width="16" height="79" rx="3" fill="{{c.car}}"/>
+<rect x="1190" y="705" width="16" height="53" rx="3" fill="{{c.holiday}}"/>
+</svg>
+
+<div style="position: absolute; left: 64px; top: 64px; font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.01em">Where this payday goes</div>
+<div style="position: absolute; left: 64px; top: 106px; width: 760px; font-size: 15px; line-height: 22px; color: {{c.mute}}">Sample figures. Each ribbon is drawn to scale: its width is its share of the $1,435 spare cash.</div>
+
+<div style="position: absolute; left: 200px; top: 160px; font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.08em; color: {{c.mute}}">MONEY IN</div>
+<div style="position: absolute; left: 530px; top: 160px; font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.08em; color: {{c.mute}}">SPARE CASH</div>
+<div style="position: absolute; left: 860px; top: 160px; font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.08em; color: {{c.mute}}">PRIORITY</div>
+<div style="position: absolute; left: 1190px; top: 160px; font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.08em; color: {{c.mute}}">POTS</div>
+
+<div style="position: absolute; left: 64px; top: 400px; width: 124px; text-align: right; font-size: 14px; line-height: 20px"><b style="font-weight: 600">Wages</b><br><span style="color: {{c.mute}}">$1,235 · 86.1%</span></div>
+<div style="position: absolute; left: 64px; top: 684px; width: 124px; text-align: right; font-size: 14px; line-height: 20px"><b style="font-weight: 600">Tax refund</b><br><span style="color: {{c.mute}}">$200 · 13.9%</span></div>
+
+<div style="position: absolute; left: 368px; top: 454px; width: 150px; text-align: right; font-size: 14px; line-height: 20px"><b style="font-weight: 600">Spare cash</b><br><span style="color: {{c.mute}}">$1,435 · 100%</span></div>
+
+<div style="position: absolute; left: 698px; top: 314px; width: 150px; text-align: right; font-size: 14px; line-height: 20px"><b style="font-weight: 600">Firm pots</b><br><span style="color: {{c.mute}}">$850 · 59.2%</span></div>
+<div style="position: absolute; left: 698px; top: 528px; width: 150px; text-align: right; font-size: 14px; line-height: 20px"><b style="font-weight: 600">Safety buffer</b><br><span style="color: {{c.mute}}">$197 · 13.7%</span></div>
+<div style="position: absolute; left: 698px; top: 664px; width: 150px; text-align: right; font-size: 14px; line-height: 20px"><b style="font-weight: 600">Goals</b><br><span style="color: {{c.mute}}">$388 · 27.0%</span></div>
+
+<div style="position: absolute; left: 1214px; top: 289px; width: 162px; font-size: 14px; line-height: 20px"><b style="font-weight: 600">Rent</b><br><span style="color: {{c.mute}}">$700 · 48.8%</span></div>
+<div style="position: absolute; left: 1214px; top: 453px; width: 162px; font-size: 14px; line-height: 20px"><b style="font-weight: 600">Bills</b><br><span style="color: {{c.mute}}">$150 · 10.5%</span></div>
+<div style="position: absolute; left: 1214px; top: 532px; width: 162px; font-size: 14px; line-height: 20px"><b style="font-weight: 600">Safety buffer</b><br><span style="color: {{c.mute}}">$197 · 13.7%</span></div>
+<div style="position: absolute; left: 1214px; top: 625px; width: 162px; font-size: 14px; line-height: 20px"><b style="font-weight: 600">Car</b><br><span style="color: {{c.mute}}">$232 · 16.2%</span></div>
+<div style="position: absolute; left: 1214px; top: 711px; width: 162px; font-size: 14px; line-height: 20px"><b style="font-weight: 600">Holiday</b><br><span style="color: {{c.mute}}">$156 · 10.9%</span></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":830}}'>
+class Component extends DCLogic {
+renderVals() {
+const dark = this.props.dark ?? false;
+const light = { bg:'#f4f3f0', ink:'#1a1c29', mute:'#5d6074', ribbon:'0.4', wages:'#15803d', refund:'#65a30d', spare:'#4f46e5', firm:'#2563eb', safety:'#0d9488', goals:'#c2410c', rent:'#1d4ed8', bills:'#0891b2', car:'#d97706', holiday:'#be185d' };
+const night = { bg:'#0f111a', ink:'#eceef5', mute:'#9ba0b6', ribbon:'0.45', wages:'#4cc38a', refund:'#a3e635', spare:'#8f88ff', firm:'#7aa5ff', safety:'#3fd1c0', goals:'#ff9a6b', rent:'#6b9bff', bills:'#4cc9e0', car:'#ffc857', holiday:'#ff7eb3' };
+return { c: dark ? night : light };
+}
+}
+</script>
+</body>
+</html>
