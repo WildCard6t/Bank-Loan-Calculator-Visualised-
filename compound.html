@@ -109,8 +109,8 @@ html[data-device=phone] input[type=range]{height:48px}
 
   <div class="stats" aria-live="polite">
     <div class="stat big" style="--c:#ffd000"><span id="lBal">Final balance</span><b id="sBal">–</b><small id="sBalNote"></small></div>
-    <div class="stat" style="--c:#4da3ff"><span>Total paid in</span><b id="sPaid">–</b><small id="sPaidNote"></small></div>
-    <div class="stat" style="--c:#3db54a"><span>Interest earned</span><b id="sInt">–</b><small id="sIntNote"></small></div>
+    <div class="stat" style="--c:#4da3ff"><span>Total Paid In</span><b id="sPaid">–</b><small id="sPaidNote"></small></div>
+    <div class="stat" style="--c:#3db54a"><span>Interest Earned</span><b id="sInt">–</b><small id="sIntNote"></small></div>
   </div>
 
   <div class="chart">
@@ -122,54 +122,54 @@ html[data-device=phone] input[type=range]{height:48px}
   <div class="ctl">
     <div class="f prof"><label for="prof">Where is your money growing?</label>
       <select id="prof">
-        <option value="savings">Savings account</option>
-        <option value="term">Term deposit</option>
-        <option value="etf">Index fund or ETF (shares)</option>
+        <option value="savings">Savings Account</option>
+        <option value="term">Term Deposit</option>
+        <option value="etf">Index Fund or ETF (Shares)</option>
         <option value="super">Super</option>
-        <option value="custom">Custom (set your own)</option>
+        <option value="custom">Custom (Set Your Own)</option>
       </select>
       <p class="hint" id="profHint"></p></div>
-    <div class="f"><label for="startR">Starting amount <span id="startV"></span></label>
+    <div class="f"><label for="startR">Starting Amount <span id="startV"></span></label>
       <div class="row"><input type="range" id="startR" min="0" max="200000" step="500"><input class="num" id="startN" type="number" inputmode="decimal" min="0" step="100" aria-label="Starting amount"></div></div>
-    <div class="f"><label for="depR"><span id="depLab">Regular deposit</span> <span id="depV"></span></label>
+    <div class="f"><label for="depR"><span id="depLab">Regular Deposit</span> <span id="depV"></span></label>
       <div class="row"><input type="range" id="depR" min="0" max="2000" step="5"><input class="num" id="depN" type="number" inputmode="decimal" min="0" step="5" aria-label="Regular deposit"></div>
       <div class="seg" id="freq" role="group" aria-label="How often" style="margin-top:6px"><button type="button" data-v="52">Weekly</button><button type="button" data-v="26">Fortnightly</button><button type="button" data-v="12">Monthly</button></div></div>
-    <div class="f"><label for="yrsR">How many years <span id="yrsV"></span></label>
+    <div class="f"><label for="yrsR">How Many Years <span id="yrsV"></span></label>
       <div class="row"><input type="range" id="yrsR" min="1" max="50" step="1"><input class="num" id="yrsN" type="number" inputmode="numeric" min="1" max="60" step="1" aria-label="Years"></div></div>
-    <div class="f" id="salF"><label for="salR">Your yearly salary (before tax) <span id="salV"></span></label>
+    <div class="f" id="salF"><label for="salR">Your Yearly Salary (Before Tax) <span id="salV"></span></label>
       <div class="row"><input type="range" id="salR" min="0" max="300000" step="1000"><input class="num" id="salN" type="number" inputmode="decimal" min="0" step="1000" aria-label="Yearly salary"></div>
       <p class="hint" id="salHint"></p></div>
-    <div class="f" id="ageF"><label for="ageR">Your age now <span id="ageV"></span></label>
+    <div class="f" id="ageF"><label for="ageR">Your Age Now <span id="ageV"></span></label>
       <div class="row"><input type="range" id="ageR" min="15" max="75" step="1"><input class="num" id="ageN" type="number" inputmode="numeric" min="15" max="90" step="1" aria-label="Your age"></div></div>
 
-    <details class="more" id="more"><summary>Fine-tune this account <span id="moreSum"></span></summary>
+    <details class="more" id="more"><summary>Fine-Tune This Account <span id="moreSum"></span></summary>
       <div class="grid2">
-        <div class="f"><label for="rateR">Growth rate per year <span id="rateV"></span></label>
+        <div class="f"><label for="rateR">Growth Rate per Year <span id="rateV"></span></label>
           <div class="row"><input type="range" id="rateR" min="0" max="15" step="0.05"><input class="num" id="rateN" type="number" inputmode="decimal" min="-10" max="30" step="0.05" aria-label="Growth rate % per year"></div>
           <p class="hint" id="rateHint"></p></div>
-        <div class="f"><label for="comp">Interest is added</label>
-          <select id="comp"><option value="365">Daily</option><option value="52">Weekly</option><option value="12">Monthly</option><option value="4">Quarterly</option><option value="1">Yearly</option><option value="term">At the end of each term</option></select></div>
-        <div class="f" id="termF"><label for="termR">Term length <span id="termV"></span></label>
+        <div class="f"><label for="comp">Interest is Added</label>
+          <select id="comp"><option value="365">Daily</option><option value="52">Weekly</option><option value="12">Monthly</option><option value="4">Quarterly</option><option value="1">Yearly</option><option value="term">At the End of Each Term</option></select></div>
+        <div class="f" id="termF"><label for="termR">Term Length <span id="termV"></span></label>
           <div class="row"><input type="range" id="termR" min="1" max="60" step="1"><input class="num" id="termN" type="number" inputmode="numeric" min="1" max="120" step="1" aria-label="Term in months"></div></div>
-        <div class="f"><label for="volR">Ups and downs (volatility) <span id="volV"></span></label>
+        <div class="f"><label for="volR">Ups and Downs (Volatility) <span id="volV"></span></label>
           <div class="row"><input type="range" id="volR" min="0" max="30" step="1"><input class="num" id="volN" type="number" inputmode="decimal" min="0" max="60" step="1" aria-label="Volatility %"></div>
           <p class="hint">0 means steady. Above 0 shows a fan of good and bad luck.</p></div>
-        <div class="f"><label for="feeR">Fee, % of balance per year <span id="feeV"></span></label>
+        <div class="f"><label for="feeR">Fee, % of Balance per Year <span id="feeV"></span></label>
           <div class="row"><input type="range" id="feeR" min="0" max="3" step="0.05"><input class="num" id="feeN" type="number" inputmode="decimal" min="0" max="10" step="0.05" aria-label="Fee % per year"></div></div>
-        <div class="f"><label for="flatR">Fee, dollars per year <span id="flatV"></span></label>
+        <div class="f"><label for="flatR">Fee, Dollars per Year <span id="flatV"></span></label>
           <div class="row"><input type="range" id="flatR" min="0" max="600" step="5"><input class="num" id="flatN" type="number" inputmode="decimal" min="0" step="5" aria-label="Fee dollars per year"></div></div>
-        <div class="f"><label for="taxgR">Tax on the interest or growth <span id="taxgV"></span></label>
+        <div class="f"><label for="taxgR">Tax on the Interest or Growth <span id="taxgV"></span></label>
           <div class="row"><input type="range" id="taxgR" min="0" max="47" step="1"><input class="num" id="taxgN" type="number" inputmode="decimal" min="0" max="60" step="1" aria-label="Tax on growth %"></div>
           <p class="hint" id="taxgHint"></p></div>
-        <div class="f" id="taxcF"><label for="taxcR">Tax on money going in <span id="taxcV"></span></label>
+        <div class="f" id="taxcF"><label for="taxcR">Tax on Money Going in <span id="taxcV"></span></label>
           <div class="row"><input type="range" id="taxcR" min="0" max="47" step="1"><input class="num" id="taxcN" type="number" inputmode="decimal" min="0" max="60" step="1" aria-label="Contributions tax %"></div>
           <p class="hint">Super takes 15% of your employer's payments as they go in.</p></div>
-        <div class="f" id="empF"><label for="empR">Employer pays in (% of salary) <span id="empV"></span></label>
+        <div class="f" id="empF"><label for="empR">Employer Pays in (% of Salary) <span id="empV"></span></label>
           <div class="row"><input type="range" id="empR" min="0" max="20" step="0.5"><input class="num" id="empN" type="number" inputmode="decimal" min="0" max="30" step="0.5" aria-label="Employer contribution %"></div></div>
         <div class="f"><label for="acc">When can you take it out?</label>
-          <select id="acc"><option value="any">Any time</option><option value="term">Only at the end of each term</option><option value="age">Not until a set age</option></select>
-          <div class="row" id="lockF" style="margin-top:8px"><span class="hint" style="margin:0;flex:none">Locked until age</span><input type="range" id="lockR" min="40" max="75" step="1"><input class="num" id="lockN" type="number" inputmode="numeric" min="18" max="100" step="1" aria-label="Locked until age"></div></div>
-        <button class="reset" id="reset" type="button">Reset this account to its usual settings</button>
+          <select id="acc"><option value="any">Any Time</option><option value="term">Only at the End of Each Term</option><option value="age">Not Until a Set Age</option></select>
+          <div class="row" id="lockF" style="margin-top:8px"><span class="hint" style="margin:0;flex:none">Locked Until Age</span><input type="range" id="lockR" min="40" max="75" step="1"><input class="num" id="lockN" type="number" inputmode="numeric" min="18" max="100" step="1" aria-label="Locked until age"></div></div>
+        <button class="reset" id="reset" type="button">Reset This Account to Its Usual Settings</button>
       </div>
     </details>
   </div>
@@ -429,7 +429,7 @@ function hover(e){if(!G||!RES)return;const r=fig.getBoundingClientRect(),px=e.cl
   const xx=Math.round(G.X(q.t))+.5;o.strokeStyle=getComputedStyle($('cInk')).color;o.globalAlpha=.4;o.lineWidth=1;o.beginPath();o.moveTo(xx,G.Tm);o.lineTo(xx,G.Tm+G.ph);o.stroke();o.globalAlpha=1;
   o.beginPath();o.arc(xx,G.Y(q.B),5,0,7);o.fillStyle='#ffd000';o.fill();
   const g=q.B-q.start-q.dep,yr=q.t,yl=yr<1?Math.round(yr*12)+' months':(Math.round(yr*10)/10)+' years';
-  tip.innerHTML='<b>After '+yl+': '+money(q.B)+'</b><br>Starting amount '+money(q.start)+'<br>Deposits '+money(q.dep)+'<br>'+(g>=0?'Interest '+money(g):'Lost to fees '+money(-g));
+  tip.innerHTML='<b>After '+yl+': '+money(q.B)+'</b><br>Starting Amount '+money(q.start)+'<br>Deposits '+money(q.dep)+'<br>'+(g>=0?'Interest '+money(g):'Lost to fees '+money(-g));
   tip.style.display='block';const tw=tip.offsetWidth;tip.style.left=Math.max(4,Math.min(G.W-tw-4,xx+12-(xx>G.W/2?tw+24:0)))+'px';tip.style.top=Math.max(4,G.Y(q.B)-tip.offsetHeight-12)+'px'}
 function unhover(){tip.style.display='none';const o=ov.getContext('2d');o.setTransform(1,0,0,1,0,0);o.clearRect(0,0,ov.width,ov.height)}
 fig.addEventListener('pointermove',hover);fig.addEventListener('pointerdown',hover);fig.addEventListener('pointerleave',unhover);
@@ -462,7 +462,7 @@ function go(full){
   if(S.years<50&&RES.B>RES.paid){const o2={...opts(),years:Math.min(60,S.years+5)},r2=simulate(o2);s+='Five more years would make it <b>'+money(r2.B)+'</b>.'}
   $('story').innerHTML=s;
   /* legend */
-  $('legend').innerHTML='<span><i style="background:'+C_START+'"></i>Starting amount</span><span><i style="background:'+C_DEP+'"></i>Your deposits'+(RES.empPer>0?' + employer':'')+'</span><span><i style="background:linear-gradient(90deg,#0e9488,#ffd000,#ff3d7f)"></i>Interest earning interest</span>'+(FAN?'<span><i style="background:linear-gradient(90deg,#ff5d6c,#4da3ff)"></i>Bad luck to good luck</span>':'')+(lk&&lk.t>0?'<span><i style="background:repeating-linear-gradient(45deg,var(--mute) 0 2px,transparent 2px 5px);opacity:.6"></i>Locked</span>':'');
+  $('legend').innerHTML='<span><i style="background:'+C_START+'"></i>Starting Amount</span><span><i style="background:'+C_DEP+'"></i>Your Deposits'+(RES.empPer>0?' + employer':'')+'</span><span><i style="background:linear-gradient(90deg,#0e9488,#ffd000,#ff3d7f)"></i>Interest Earning Interest</span>'+(FAN?'<span><i style="background:linear-gradient(90deg,#ff5d6c,#4da3ff)"></i>Bad luck to good luck</span>':'')+(lk&&lk.t>0?'<span><i style="background:repeating-linear-gradient(45deg,var(--mute) 0 2px,transparent 2px 5px);opacity:.6"></i>Locked</span>':'');
   /* target scale */
   const top=Math.max(RES.B,...RES.pts.map(q=>q.B),FAN?FAN[FAN.length-1][8]:0,FAN?Math.max(...FAN.map(r=>r[8])):0,1);
   yTarget=top*1.06;

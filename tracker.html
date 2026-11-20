@@ -351,16 +351,16 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
 <body>
 <div class="wrap">
   <p class="printHead" id="printHead"></p>
-  <div class="broken" id="broken" hidden role="alert"><b>Something in this loan’s data couldn’t be shown.</b> Your other loans are safe. <button type="button" class="mini" onclick="document.getElementById('undo').click()">Undo last change</button> <button type="button" class="mini" onclick="document.getElementById('preImp').click()">Restore before import</button></div>
-  <nav><a href="graph.html">← Every path out of a loan</a></nav>
+  <div class="broken" id="broken" hidden role="alert"><b>Something in this loan’s data couldn’t be shown.</b> Your other loans are safe. <button type="button" class="mini" onclick="document.getElementById('undo').click()">Undo Last Change</button> <button type="button" class="mini" onclick="document.getElementById('preImp').click()">Restore Before Import</button></div>
+  <nav class="back"><a href="graph.html">← Every Path Out of a Loan</a></nav>
   <a class="homeL" href="index.html" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Finance Visualised</span></a>
   <h1>Loan Tracker</h1>
   <p class="sub">Your real loan, from the day it started. Before Today the line is your history, coloured by how hard you were paying. From Today it becomes your plan, with a fan of better and worse paths. Add nodes on the line to record what happened or plan what’s next, and watch what it saves you.</p>
 
   <div class="bar">
     <select id="prof" aria-label="Profile"></select>
-    <button class="btn" id="newP">+ New profile</button>
-    <button class="btn" id="delP">Delete profile</button>
+    <button class="btn" id="newP">+ New Profile</button>
+    <button class="btn" id="delP">Delete Profile</button>
     <span class="sp"></span>
     <button class="btn" id="undo" disabled title="Undo last change (Ctrl+Z)">↶ Undo</button>
     <button class="btn" id="prt" title="Print a summary or save it as a PDF">🖨 Summary</button>
@@ -370,16 +370,16 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
   </div>
 
   <div class="stats">
-    <div class="stat"><span>Balance today</span><b id="sBal">–</b><small id="sBalN"></small></div>
-    <div class="stat"><span>Debt-free (on your plan)</span><b id="sOff">–</b><small id="sOffN"></small></div>
-    <div class="stat"><span>Interest paid so far</span><b id="sInt">–</b><small id="sIntN"></small></div>
-    <div class="stat"><span>Extra paid so far (net)</span><b id="sExt">–</b><small id="sExtN"></small></div>
+    <div class="stat"><span>Balance Today</span><b id="sBal">–</b><small id="sBalN"></small></div>
+    <div class="stat"><span>Debt-Free (On Your Plan)</span><b id="sOff">–</b><small id="sOffN"></small></div>
+    <div class="stat"><span>Interest Paid So Far</span><b id="sInt">–</b><small id="sIntN"></small></div>
+    <div class="stat"><span>Extra Paid So Far (Net)</span><b id="sExt">–</b><small id="sExtN"></small></div>
   </div>
 
   <section class="score" id="score" aria-live="polite">
     <div class="scMain"><span class="scLead" id="scLead">You’re on track to save</span><b class="scBig" id="scSaved">$0</b><span class="scSub" id="scSub"></span></div>
     <div class="scSide">
-      <div><span>Debt-free</span><b id="scMo">–</b><small id="scMoN"></small></div>
+      <div><span>Debt-Free</span><b id="scMo">–</b><small id="scMoN"></small></div>
       <div><span>Streak</span><b id="scStreak">0 mo</b><small id="scStreakN"></small></div>
     </div>
     <div class="scParts" id="scParts"></div>
@@ -388,7 +388,7 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
 
   <section class="panel chart">
     <p class="cap" id="trCap"></p>
-    <div class="axis"><span>Balance owing ($)</span><span>Date →</span></div>
+    <div class="axis"><span>Balance Owing ($)</span><span>Date →</span></div>
     <div class="fig" id="fig" style="touch-action:pan-y"><canvas id="cv" role="img" aria-label="Chart: your loan balance over time. The solid line is what has happened; the lines after today are projections. The key figures are in the boxes above the chart."></canvas><canvas id="ov" aria-hidden="true"></canvas><div class="tip" id="tip"></div></div>
     <div class="legend" id="legend"></div>
     <div class="plist" id="plist"></div>
@@ -396,90 +396,90 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
   </section>
 
   <section class="panel story" id="story" aria-labelledby="storyH">
-    <h2 id="storyH" class="storyH">Your loan story</h2>
+    <h2 id="storyH" class="storyH">Your Loan Story</h2>
     <div class="sGrid"><div class="sBox" id="hAge"></div><div class="sBox" id="hVs"></div><div class="sBox" id="hPlan"></div><div class="sBox" id="hMs"></div></div>
-    <h3 class="sSub">Where your money goes</h3>
+    <h3 class="sSub">Where Your Money Goes</h3>
     <div class="sGrid three"><div class="sBox" id="hSplit"></div><div class="sBox" id="hNext"></div><div class="sBox" id="hEq"></div></div>
     <div class="sPace" id="hPace"></div>
-    <div class="assume" id="assume"><h3>What these numbers assume</h3><ul>
+    <div class="assume" id="assume"><h3>What These Numbers Assume</h3><ul>
       <li>Interest is worked out once per repayment on the balance at that time. Banks work it out daily, so your bank’s figures will differ a little: usually slightly higher for monthly repayments and lower for weekly or fortnightly ones.</li>
       <li>Rates change only where you add a rate change. When they do, the bank recalculates your repayment to keep the same end date, unless you choose “I keep paying the same”.</li>
       <li>Savings are always measured until the loan is paid off, against the same loan paid at the standard repayment with the same rate changes.</li>
       <li>Offset money counts from today. No fees, lenders mortgage insurance or tax are included.</li>
       <li>Everything comes from what you entered. Educational tool, not financial advice.</li></ul></div>
-    <details id="hMon" class="sMon"><summary>Month by month</summary>
-      <div class="monWrap"><table class="mon"><thead><tr><th>Month</th><th style="text-align:right">Regular paid</th><th style="text-align:right">Extra / redraw</th><th style="text-align:right">Interest</th><th style="text-align:right">Owed at end</th><th>Pace</th></tr></thead><tbody id="monRows"></tbody></table></div>
+    <details id="hMon" class="sMon"><summary>Month by Month</summary>
+      <div class="monWrap"><table class="mon"><thead><tr><th>Month</th><th style="text-align:right">Regular Paid</th><th style="text-align:right">Extra / Redraw</th><th style="text-align:right">Interest</th><th style="text-align:right">Owed at End</th><th>Pace</th></tr></thead><tbody id="monRows"></tbody></table></div>
     </details>
   </section>
 
   <section class="panel refi" id="refi" aria-labelledby="refiH">
-    <h2 id="refiH" class="storyH">Refinance check</h2>
+    <h2 id="refiH" class="storyH">Refinance Check</h2>
     <p class="hint">Found a lower rate? See if switching is worth it once the costs are counted. Everything is measured until your loan is paid off.</p>
     <div class="refiIn">
-      <div class="ctl"><label for="rRate">New interest rate</label><span class="unit post"><input class="f" type="number" id="rRate" min="0" max="25" step="0.01" inputmode="decimal"><i>%</i></span></div>
-      <div class="ctl"><label for="rFee"><span>Switching costs</span><span>fees, valuation, etc.</span></label><span class="unit pre"><i>$</i><input class="f" id="rFee" inputmode="numeric" autocomplete="off" placeholder="0"></span></div>
-      <div><div class="lab">After switching</div><div class="seg" id="rMode"><button data-v="pay" class="on">Keep my payment</button><button data-v="date">Lower my payment</button></div></div>
+      <div class="ctl"><label for="rRate">New Interest Rate</label><span class="unit post"><input class="f" type="number" id="rRate" min="0" max="25" step="0.01" inputmode="decimal"><i>%</i></span></div>
+      <div class="ctl"><label for="rFee"><span>Switching Costs</span><span>fees, valuation, etc.</span></label><span class="unit pre"><i>$</i><input class="f" id="rFee" inputmode="numeric" autocomplete="off" placeholder="0"></span></div>
+      <div><div class="lab">After Switching</div><div class="seg" id="rMode"><button data-v="pay" class="on">Keep My Payment</button><button data-v="date">Lower My Payment</button></div></div>
     </div>
     <div class="refiOut" id="refiOut"></div>
   </section>
 
   <section class="saveCard slim" id="saveCard" aria-label="Save your progress">
     <p>💾 Your loans save on this device. Keep a backup file so they’re safe for good.</p>
-    <div class="acts"><button type="button" class="b1" onclick="window.loanSettings&&loanSettings.exportFile()">Save backup</button><button type="button" class="b2" onclick="window.loanSettings&&loanSettings.howTo()">How saving works</button></div>
+    <div class="acts"><button type="button" class="b1" onclick="window.loanSettings&&loanSettings.exportFile()">Save Backup</button><button type="button" class="b2" onclick="window.loanSettings&&loanSettings.howTo()">How Saving Works</button></div>
   </section>
   <div class="cols">
     <aside class="panel">
-      <div class="ctl"><label for="pName">Profile name</label><input class="f" id="pName" maxlength="40"></div>
+      <div class="ctl"><label for="pName">Profile Name</label><input class="f" id="pName" maxlength="40"></div>
       <div class="grp">
-        <h2>Loan details</h2>
+        <h2>Loan Details</h2>
         <div class="two">
-          <div class="ctl"><label for="pStart">Start date</label><input class="f" type="date" id="pStart"></div>
-          <div class="ctl"><label for="pTerm">Term (years)</label><input class="f" type="number" id="pTerm" min="1" max="40" step="1"></div>
+          <div class="ctl"><label for="pStart">Start Date</label><input class="f" type="date" id="pStart"></div>
+          <div class="ctl"><label for="pTerm">Term (Years)</label><input class="f" type="number" id="pTerm" min="1" max="40" step="1"></div>
         </div>
-        <div class="ctl"><label for="pP">Principal (loan amount)</label><span class="unit pre"><i>$</i><input class="f" id="pP" inputmode="numeric" autocomplete="off"></span></div>
-        <div class="ctl"><label for="pHome"><span>Home value</span><span>optional</span></label><span class="unit pre"><i>$</i><input class="f" id="pHome" inputmode="numeric" autocomplete="off" placeholder="for equity and LVR"></span></div>
-        <div class="ctl"><label for="pRate">Interest rate (% a year)</label><span class="unit post"><input class="f" type="number" id="pRate" min="0.1" max="25" step="0.05"><i>%</i></span></div>
-        <div><div class="lab">Payment frequency</div>
-          <div class="seg eight" data-k="freq"><button data-v="365">Daily</button><button data-v="52">Weekly</button><button data-v="26">Fortnightly</button><button data-v="12">Monthly</button><button data-v="4">Quarterly</button><button data-v="2">Half-yearly</button><button data-v="1">Yearly</button><button data-v="custom">Custom</button></div>
+        <div class="ctl"><label for="pP">Principal (Loan Amount)</label><span class="unit pre"><i>$</i><input class="f" id="pP" inputmode="numeric" autocomplete="off"></span></div>
+        <div class="ctl"><label for="pHome"><span>Home Value</span><span>optional</span></label><span class="unit pre"><i>$</i><input class="f" id="pHome" inputmode="numeric" autocomplete="off" placeholder="for equity and LVR"></span></div>
+        <div class="ctl"><label for="pRate">Interest Rate (% a Year)</label><span class="unit post"><input class="f" type="number" id="pRate" min="0.1" max="25" step="0.05"><i>%</i></span></div>
+        <div><div class="lab">Payment Frequency</div>
+          <div class="seg eight" data-k="freq"><button data-v="365">Daily</button><button data-v="52">Weekly</button><button data-v="26">Fortnightly</button><button data-v="12">Monthly</button><button data-v="4">Quarterly</button><button data-v="2">Half-Yearly</button><button data-v="1">Yearly</button><button data-v="custom">Custom</button></div>
         </div>
-        <div class="ctl" id="freqCBox" hidden><label for="freqC"><span>Custom: payments per year</span><span>1–365</span></label><input class="f" type="number" id="freqC" min="1" max="365" step="1" inputmode="numeric"></div>
+        <div class="ctl" id="freqCBox" hidden><label for="freqC"><span>Custom: Payments per Year</span><span>1–365</span></label><input class="f" type="number" id="freqC" min="1" max="365" step="1" inputmode="numeric"></div>
           <p class="hint" id="freqCHint" hidden>13 a year is a payment about every 4 weeks. Tip: paying half your monthly amount every fortnight works out the same as 13 monthly payments a year. Choose Fortnightly for that.</p>
-        <div class="ctl"><label for="pPay"><span>Regular payment</span><span id="payTag"></span></label><span class="unit pre"><i>$</i><input class="f" id="pPay" inputmode="numeric" autocomplete="off" placeholder="worked out from the term"></span></div>
+        <div class="ctl"><label for="pPay"><span>Regular Payment</span><span id="payTag"></span></label><span class="unit pre"><i>$</i><input class="f" id="pPay" inputmode="numeric" autocomplete="off" placeholder="worked out from the term"></span></div>
         <p class="hint" id="payHint"></p>
       </div>
       <div class="grp offGrp">
-        <h2>Offset account</h2>
+        <h2>Offset Account</h2>
         <div class="two">
-          <div class="ctl"><label for="pOffBal">Balance today</label><span class="unit pre"><i>$</i><input class="f" id="pOffBal" inputmode="numeric" autocomplete="off" placeholder="0"></span></div>
-          <div class="ctl"><label for="pOffTop" id="offTopL">Added each month</label><span class="unit pre"><i>$</i><input class="f" id="pOffTop" inputmode="numeric" autocomplete="off" placeholder="0"></span></div>
+          <div class="ctl"><label for="pOffBal">Balance Today</label><span class="unit pre"><i>$</i><input class="f" id="pOffBal" inputmode="numeric" autocomplete="off" placeholder="0"></span></div>
+          <div class="ctl"><label for="pOffTop" id="offTopL">Added Each Month</label><span class="unit pre"><i>$</i><input class="f" id="pOffTop" inputmode="numeric" autocomplete="off" placeholder="0"></span></div>
         </div>
         <div class="offRes" id="offRes"></div>
         <p class="hint">Counts from today. To record money going in or out later, add an offset node on the chart.</p>
       </div>
       <div class="grp">
-        <h2>Projected trajectory</h2>
-        <div><div class="lab">Projection lines</div>
+        <h2>Projected Trajectory</h2>
+        <div><div class="lab">Projection Lines</div>
           <div class="seg four" data-k="lines"><button data-v="1">1</button><button data-v="3">3</button><button data-v="5">5</button><button data-v="7">7</button></div>
         </div>
-        <div><div class="lab">Chart shows</div>
-          <div class="seg" data-k="view"><button data-v="10">Past + 10 years</button><button data-v="0">Whole loan</button></div>
+        <div><div class="lab">Chart Shows</div>
+          <div class="seg" data-k="view"><button data-v="10">Past + 10 years</button><button data-v="0">Whole Loan</button></div>
         </div>
-        <div class="ctl"><label for="pStep">Gap between lines (per payment)</label><span class="unit pre"><i>$</i><input class="f" id="pStep" inputmode="numeric" autocomplete="off"></span></div>
+        <div class="ctl"><label for="pStep">Gap Between Lines (Per Payment)</label><span class="unit pre"><i>$</i><input class="f" id="pStep" inputmode="numeric" autocomplete="off"></span></div>
         <p class="hint">The middle line keeps your regular payment. Lines below it pay more each time; lines above it pay less.</p>
       </div>
     </aside>
 
     <section class="panel logp">
-      <h2>Your log: history and plans</h2><p class="hint">Anything dated after today is a plan. Everything here also shows as a node on your line.</p>
+      <h2>Your Log: History and Plans</h2><p class="hint">Anything dated after today is a plan. Everything here also shows as a node on your line.</p>
       <div class="add">
         <div class="ctl"><label for="eDate">Date</label><input class="f" type="date" id="eDate"></div>
-        <div class="ctl"><label for="eType">Type</label><select class="f" id="eType"><option value="extra">💰 Extra repayment</option><option value="redraw">↩ Redraw (added to loan)</option><option value="balance">🧾 Bank balance check</option><option value="pay">🔁 New regular payment</option><option value="goal">🎯 Pay a set amount until…</option><option value="offset">🏦 Offset deposit</option><option value="rate">📈 Interest rate change</option><option value="note">📝 Note</option></select></div>
+        <div class="ctl"><label for="eType">Type</label><select class="f" id="eType"><option value="extra">💰 Extra Repayment</option><option value="redraw">↩ Redraw (Added to Loan)</option><option value="balance">🧾 Bank Balance Check</option><option value="pay">🔁 New Regular Payment</option><option value="goal">🎯 Pay a Set Amount Until…</option><option value="offset">🏦 Offset Deposit</option><option value="rate">📈 Interest Rate Change</option><option value="note">📝 Note</option></select></div>
         <div class="ctl" id="eAmtBox"><label for="eAmt" id="eAmtL">Amount</label><span class="unit pre"><i id="eAmtU">$</i><input class="f" id="eAmt" inputmode="decimal" autocomplete="off"></span></div>
         <div class="ctl" id="eUntilBox" hidden><label for="eUntil">Until</label><input class="f" type="date" id="eUntil"></div>
-        <div class="ctl"><label for="eNote">Note (optional)</label><input class="f" id="eNote" maxlength="80"></div>
+        <div class="ctl"><label for="eNote">Note (Optional)</label><input class="f" id="eNote" maxlength="80"></div>
         <button class="btn pri" id="eAdd">Add</button>
       </div>
-      <p class="hint" id="eMsg"></p><button type="button" class="mini" id="preImp" hidden>Restore what I had before importing</button>
+      <p class="hint" id="eMsg"></p><button type="button" class="mini" id="preImp" hidden>Restore What I Had Before Importing</button>
       <table><thead><tr><th>Date</th><th>Type</th><th style="text-align:right">Amount</th><th>Note</th><th>Check</th><th>Logged</th><th></th></tr></thead><tbody id="rows"></tbody></table>
     </section>
   </div>
@@ -546,7 +546,7 @@ const uid=()=>Math.random().toString(36).slice(2,10);
 /* ---------- storage ---------- */
 function blank(name){const s=new Date(TODAY);s.setFullYear(s.getFullYear()-2);
   return{name,start:iso(s),P:300000,rate:6,freq:12,term:30,pay:null,lines:5,step:250,view:10,log:[]}}
-function example(){const p=blank('Example loan'),s=parse(p.start),at=m=>{const d=new Date(s);d.setMonth(d.getMonth()+m);return iso(d)};
+function example(){const p=blank('Example Loan'),s=parse(p.start),at=m=>{const d=new Date(s);d.setMonth(d.getMonth()+m);return iso(d)};
   p.log=[{id:uid(),date:at(7),type:'extra',amt:10000,note:'Example: tax refund',added:Date.now()},
          {id:uid(),date:at(15),type:'redraw',amt:6000,note:'Example: car repairs',added:Date.now()},
          {id:uid(),date:at(20),type:'extra',amt:4000,note:'Example: bonus',added:Date.now()}];return p}
@@ -803,7 +803,7 @@ function stats(ps,fu){const p=PR(),pay=regPay(p);
     '<span class="capTip">🔒 Unlock the padlock on the chart, then click your line to add a node: a lump sum, a new payment, an offset deposit, a rate change, a note and more. Before Today it records what happened; after Today it is a plan.</span>';
   $('plist').innerHTML=[...fu.lines].sort((a,b)=>b.j-a.j).map(l=>'<div><span><i style="background:'+(l.j===0?'var(--acc)':lineCol(l.j,half))+'"></i>'+money(l.amt)+'/'+FL[p.freq]+(l.j===0?' (your plan)':'')+'</span><span>'+(l.off?'paid off '+my(l.off):grows(l)?'never: doesn’t cover the interest':'never paid off')+'</span></div>').join('');
   const used=new Set(p.log.filter(e=>TY[e.type]).map(e=>e.type));
-  lg.innerHTML='<span><i style="background:linear-gradient(90deg,'+mix(LESS,1)+','+mix(LESS,.5)+','+mix(MORE,0)+','+mix(MORE,.5)+','+mix(MORE,1)+');height:5px"></i>Your history (colour = pace)</span><span><i style="background:repeating-linear-gradient(90deg,var(--acc) 0 6px,transparent 6px 10px);height:4px"></i><b style="color:var(--ink)">Your plan</b>: '+money(pay)+'/'+FL[p.freq]+'</span>'+
+  lg.innerHTML='<span><i style="background:linear-gradient(90deg,'+mix(LESS,1)+','+mix(LESS,.5)+','+mix(MORE,0)+','+mix(MORE,.5)+','+mix(MORE,1)+');height:5px"></i>Your History (Colour = Pace)</span><span><i style="background:repeating-linear-gradient(90deg,var(--acc) 0 6px,transparent 6px 10px);height:4px"></i><b style="color:var(--ink)">Your Plan</b>: '+money(pay)+'/'+FL[p.freq]+'</span>'+
     (half?'<span><i style="background:linear-gradient(90deg,'+mix(MORE,1)+','+mix(MORE,0)+','+mix(LESS,1)+');height:8px;opacity:.6"></i>Pay more · same · less</span>':'')+
     (GH?'<span><i style="background:var(--acc);opacity:.35;height:4px"></i>Before your change (ghost)</span><span><i style="background:var(--good);opacity:.4;height:10px"></i>Money saved</span>':'')+
     '<span><i class="dia"></i>Milestone</span>'+[...used].map(t=>'<span><i class="dot" style="background:'+MK[t]+'"></i>'+TY[t].n+'</span>').join('')+'<span><i class="dot ring"></i>Planned</span>';
@@ -835,7 +835,7 @@ function score(ps0,fu0){const p0=PR(),chk=p0.log.some(e=>e.type==='balance'&&!e.
     (Math.abs(gapTotal(ps0))>=1?'. Your bank checks found <b>'+(gapTotal(ps0)>0?'+':'\u2212')+money(Math.abs(gapTotal(ps0)))+'</b> the log doesn\u2019t explain (fees, daily interest, or a redraw you didn\u2019t log). That gap is left out of your score':'');
   $('scMo').textContent=mo==null?'–':ymo(mo);$('scMoN').textContent=mo==null?'not paid off':mo>=0?'sooner than '+my(bEnd):'later than '+my(bEnd);
   $('scStreak').textContent=streak+' mo';$('scStreakN').textContent=streak?'in a row at or above schedule'+(best>streak?' · best '+best:''):best?'best run: '+best+' mo. Pay a little extra to restart it':'pay at or above schedule to start one';
-  const parts=[['History so far',SC.fromHist],['Your offset',SC.fromOff],['Plans ahead',SC.fromPlans]].filter(([,v])=>Math.abs(v)>=1);
+  const parts=[['History So Far',SC.fromHist],['Your offset',SC.fromOff],['Plans ahead',SC.fromPlans]].filter(([,v])=>Math.abs(v)>=1);
   $('scParts').innerHTML=(parts.length?parts.map(([n,v])=>'<span><i>'+n+'</i><b'+(v<0?' class="m"':'')+'>'+(v<0?'−':'+')+money(Math.abs(v)).replace('−','')+'</b></span>').join(''):'<span><i>Add an extra repayment, an offset balance or a higher payment and your savings show up here.</i></span>')+
     (Math.abs(rateFx)>=1?'<span class="rfx" title="Not counted in your score: you didn\u2019t choose it"><i>Rate changes (not counted)</i><b>'+(rateFx>0?'the market saved you ':'cost you ')+money(Math.abs(rateFx))+'</b></span>':'')}
 /* numbers count up to their new value */
@@ -863,27 +863,27 @@ function stress(p,ps){const n=Math.max(1,p.term*p.freq-(ps.nextK-1)),B=Math.max(
   return'<p class="stress">📈 <b>If rates rose 3%</b> (to '+(ps.s.rate+3).toFixed(2).replace(/\.?0+$/,'')+'%), the minimum repayment would be about <b>'+money(up)+'/'+FL[p.freq]+'</b>, '+money(up-now)+' more than now. Lenders check you could manage this.</p>'}
 /* your loan story: age, actual vs schedule, plans kept, milestones, pace by year, month by month */
 function hist(ps,fu){const p=PR(),s0=parse(p.start),k=ps.steps.length,N=p.term*p.freq,age=moBetween(s0,TODAY);
-  $('hAge').innerHTML='<h3>Loan age</h3><b>'+ymo(age)+'</b><p>Started '+nice(s0)+'. '+k+' of '+N+' scheduled payments made ('+Math.round(k/N*100)+'% of the '+p.term+'-year term).</p>';
+  $('hAge').innerHTML='<h3>Loan Age</h3><b>'+ymo(age)+'</b><p>Started '+nice(s0)+'. '+k+' of '+N+' scheduled payments made ('+Math.round(k/N*100)+'% of the '+p.term+'-year term).</p>';
   const bpP=baseProfile(p,ps),bp=past(bpP),bf=future(bpP,bp,{noFan:true}),sb=bp.B,diff=sb-ps.B,sInt=bp.int,bAll=[...bp.pts,...bf.mid.pts];
   let aMo=0;if(Math.abs(diff)>=1){const hit=bAll.find(q=>q[1]<=ps.B+.005);aMo=hit?moBetween(TODAY,hit[0]):0}
-  $('hVs').innerHTML='<h3>Actual vs the bank\u2019s schedule</h3><b class="'+(diff>=-.5?'g':'r')+'">'+(diff>=-.5?money(diff)+' ahead':money(-diff)+' behind')+'</b><p>At the standard repayment (now '+money(bp.s.pay)+'/'+FL[p.freq]+', no extras) you\u2019d owe '+money(sb)+' today. You owe '+money(ps.B)+(Math.abs(aMo)>=1?', about <b>'+ymo(aMo)+(aMo>0?' ahead':' behind')+'</b>':'')+'. Interest so far: '+money(ps.int)+' (schedule: '+money(sInt)+').</p>';
+  $('hVs').innerHTML='<h3>Actual vs the Bank\u2019s Schedule</h3><b class="'+(diff>=-.5?'g':'r')+'">'+(diff>=-.5?money(diff)+' ahead':money(-diff)+' behind')+'</b><p>At the standard repayment (now '+money(bp.s.pay)+'/'+FL[p.freq]+', no extras) you\u2019d owe '+money(sb)+' today. You owe '+money(ps.B)+(Math.abs(aMo)>=1?', about <b>'+ymo(aMo)+(aMo>0?' ahead':' behind')+'</b>':'')+'. Interest so far: '+money(ps.int)+' (schedule: '+money(sInt)+').</p>';
   const L=p.log.filter(e=>e.plan&&TY[e.type]),fut=L.filter(e=>parse(e.date)>TODAY),pastP=L.filter(e=>parse(e.date)<=TODAY),kept=pastP.filter(e=>e.done&&!e.skip),miss=pastP.filter(e=>e.skip),ask=pastP.filter(e=>!e.done&&!e.skip);
-  $('hPlan').innerHTML='<h3>Your plans</h3><b>'+(pastP.length?kept.length+' kept'+(miss.length?' · '+miss.length+' missed':''):fut.length?fut.length+' planned':'None yet')+'</b><p>'+(pastP.length?fut.length+' still ahead'+(ask.length?'. '+ask.length+' date'+(ask.length>1?'s have':' has')+' passed. Did it happen?':'.'):fut.length?'When each date passes you can tick it off here.':'Add a node after Today to plan a lump sum, a pay rise or an offset deposit. When the date passes you can tick it off.')+'</p>'+
+  $('hPlan').innerHTML='<h3>Your Plans</h3><b>'+(pastP.length?kept.length+' kept'+(miss.length?' · '+miss.length+' missed':''):fut.length?fut.length+' planned':'None Yet')+'</b><p>'+(pastP.length?fut.length+' still ahead'+(ask.length?'. '+ask.length+' date'+(ask.length>1?'s have':' has')+' passed. Did it happen?':'.'):fut.length?'When each date passes you can tick it off here.':'Add a node after Today to plan a lump sum, a pay rise or an offset deposit. When the date passes you can tick it off.')+'</p>'+
     ask.slice(0,4).map(e=>'<div class="ask">'+TY[e.type].i+' '+nice(parse(e.date))+': '+amtTxt(e,p)+' <button class="mini" data-conf="'+esc(e.id)+'">Yes</button><button class="mini" data-skip="'+esc(e.id)+'">No</button></div>').join('');
   $('hMs').innerHTML='<h3>Milestones</h3>'+MS.map(m=>'<div class="ms'+(m.t!=null&&m.t<=TODAY.getTime()?' done':'')+'"><i>'+(m.t!=null&&m.t<=TODAY.getTime()?'✓':'◇')+'</i><span>'+(m.q===1?'Debt-free':Math.round(m.q*100)+'% paid off')+'</span><b>'+(m.t==null?'not on your plan':(m.t<=TODAY.getTime()?'':'on track for ')+my(new Date(m.t)))+'</b></div>').join('');
   /* pace by loan year */
   const Yr=365.25*864e5,yrs=[];for(const st of ps.steps){const i=Math.max(0,Math.floor((st.d-s0-1)/Yr));(yrs[i]=yrs[i]||{s:0,n:0,a:st.d,b:st.d});yrs[i].s+=st.pace;yrs[i].n++;yrs[i].b=st.d}
-  $('hPace').innerHTML=yrs.length?'<h3>Your pace, year by year</h3>'+yrs.map((y,i)=>{if(!y)return'';const v=y.s/y.n;return'<div class="py"><span>Year '+(i+1)+' <small>'+my(y.a)+' – '+my(y.b)+'</small></span><span class="pb"><i style="width:'+Math.min(100,v/2*100)+'%;background:'+paceCol(v)+'"></i><u></u></span><b>'+Math.round(v*100)+'% · '+paceWord(v)+'</b></div>'}).join('')+'<p class="hint">100% is the bank’s standard payment. Extra repayments count across the year around them; redraws take away.</p>':'<h3>Your pace, year by year</h3><p class="hint">Shows up after your first payment.</p>';
+  $('hPace').innerHTML=yrs.length?'<h3>Your Pace, Year by Year</h3>'+yrs.map((y,i)=>{if(!y)return'';const v=y.s/y.n;return'<div class="py"><span>Year '+(i+1)+' <small>'+my(y.a)+' – '+my(y.b)+'</small></span><span class="pb"><i style="width:'+Math.min(100,v/2*100)+'%;background:'+paceCol(v)+'"></i><u></u></span><b>'+Math.round(v*100)+'% · '+paceWord(v)+'</b></div>'}).join('')+'<p class="hint">100% is the bank’s standard payment. Extra repayments count across the year around them; redraws take away.</p>':'<h3>Your Pace, Year by Year</h3><p class="hint">Shows up after your first payment.</p>';
   /* principal vs interest */
   {const prin=Math.max(0,ps.paidTot-ps.int),tot=ps.paidTot||1,pi=prin/tot*100;
-   $('hSplit').innerHTML='<h3>Paid so far</h3><b>'+money(ps.paidTot)+'</b><div class="split"><i class="sp" style="width:'+pi+'%"></i><i class="si" style="width:'+(100-pi)+'%"></i></div><p><span class="kP">■</span> '+money(prin)+' to the loan itself ('+Math.round(pi)+'%)<br><span class="kI">■</span> '+money(ps.int)+' to interest ('+Math.round(100-pi)+'%)</p>'}
+   $('hSplit').innerHTML='<h3>Paid So Far</h3><b>'+money(ps.paidTot)+'</b><div class="split"><i class="sp" style="width:'+pi+'%"></i><i class="si" style="width:'+(100-pi)+'%"></i></div><p><span class="kP">■</span> '+money(prin)+' to the loan itself ('+Math.round(pi)+'%)<br><span class="kI">■</span> '+money(ps.int)+' to interest ('+Math.round(100-pi)+'%)</p>'}
   {const f=fu.mid.first,cr=ps.cross||fu.mid.cross;
    if(f&&!ps.paidOff){const pr=Math.max(0,f.amt-f.i),pp=pr/(f.amt||1)*100;
-     $('hNext').innerHTML='<h3>Your next payment</h3><b>'+money(f.amt)+'</b><div class="split"><i class="sp" style="width:'+pp+'%"></i><i class="si" style="width:'+(100-pp)+'%"></i></div><p><span class="kP">■</span> '+money(pr)+' off the loan · <span class="kI">■</span> '+money(f.i)+' interest</p>'+stress(p,ps)+'<p>'+(cr?(+cr<=+TODAY?'Since <b>'+my(cr)+'</b> most of each payment goes to the loan itself.':'From <b>'+my(cr)+'</b> most of each payment will go to the loan itself, not interest.'):'At this payment, interest takes most of each payment for the whole loan.')+'</p>'}
-   else $('hNext').innerHTML='<h3>Your next payment</h3><b>Paid off</b><p>Nothing left to pay. 🎉</p>'}
+     $('hNext').innerHTML='<h3>Your Next Payment</h3><b>'+money(f.amt)+'</b><div class="split"><i class="sp" style="width:'+pp+'%"></i><i class="si" style="width:'+(100-pp)+'%"></i></div><p><span class="kP">■</span> '+money(pr)+' off the loan · <span class="kI">■</span> '+money(f.i)+' interest</p>'+stress(p,ps)+'<p>'+(cr?(+cr<=+TODAY?'Since <b>'+my(cr)+'</b> most of each payment goes to the loan itself.':'From <b>'+my(cr)+'</b> most of each payment will go to the loan itself, not interest.'):'At this payment, interest takes most of each payment for the whole loan.')+'</p>'}
+   else $('hNext').innerHTML='<h3>Your Next Payment</h3><b>Paid off</b><p>Nothing left to pay. 🎉</p>'}
   {const h=p.home;if(h>0){const eq=h-ps.B,lvr=ps.B/h*100;
-     $('hEq').innerHTML='<h3>Your equity</h3><b class="g">'+money(eq)+'</b><div class="split"><i class="sp" style="width:'+Math.max(0,Math.min(100,100-lvr))+'%"></i><i class="sl" style="width:'+Math.min(100,lvr)+'%"></i></div><p>Home worth '+money(h)+'. You owe '+Math.round(lvr*10)/10+'% of it (your LVR).'+(lvr>80?' Many lenders look for 80% or less.':' That’s under the 80% many lenders look for.')+'</p>'}
-   else $('hEq').innerHTML='<h3>Your equity</h3><p>Add what your home is worth under Loan details (optional) to see how much of it you own.</p>'}
+     $('hEq').innerHTML='<h3>Your Equity</h3><b class="g">'+money(eq)+'</b><div class="split"><i class="sp" style="width:'+Math.max(0,Math.min(100,100-lvr))+'%"></i><i class="sl" style="width:'+Math.min(100,lvr)+'%"></i></div><p>Home worth '+money(h)+'. You owe '+Math.round(lvr*10)/10+'% of it (your LVR).'+(lvr>80?' Many lenders look for 80% or less.':' That’s under the 80% many lenders look for.')+'</p>'}
+   else $('hEq').innerHTML='<h3>Your Equity</h3><p>Add what your home is worth under Loan details (optional) to see how much of it you own.</p>'}
   if($('hMon').open)months(ps)}
 function months(ps){const p=PR(),M=new Map(),key=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),g=d=>{const kk=key(d);if(!M.has(kk))M.set(kk,{d,reg:0,ex:0,rd:0,off:0,int:0,end:null,ps:0,n:0});return M.get(kk)};
   for(const st of ps.steps){const r=g(st.d);r.reg+=st.pay;r.int+=st.i;r.ps+=st.pace;r.n++}
@@ -1000,7 +1000,7 @@ fig.addEventListener('pointermove',e=>{if(!G)return;const r=fig.getBoundingClien
   o.setTransform(dp,0,0,dp,0,0);o.clearRect(0,0,G.W,G.H);o.strokeStyle=G.ink;o.globalAlpha=.4;o.beginPath();o.moveTo(px+.5,G.Tm);o.lineTo(px+.5,G.Tm+G.ph);o.stroke();o.globalAlpha=1;
   let h='<b>'+nice(d)+'</b>';
   if(t<=TODAY.getTime()){const v=at(G.ps.pts,t);if(v!=null)h+='<br>Balance: '+money(v);const st=G.ps.steps.find(q=>+q.d>=t)||G.ps.steps[G.ps.steps.length-1];if(st)h+='<br>Pace: <b style="color:'+paceCol(st.pace)+'">'+Math.round(st.pace*100)+'%</b> of the standard payment ('+paceWord(st.pace)+')'}
-  else{for(const l of[...G.fu.lines].sort((a,b)=>a.j-b.j)){const v=at(l.pts,t);h+='<br>'+(l.j===0?'<b>Your plan</b>':money(l.amt)+'/'+FL[p.freq])+': '+(v==null?(l.off&&t>l.off.getTime()?'paid off':'–'):money(v))}
+  else{for(const l of[...G.fu.lines].sort((a,b)=>a.j-b.j)){const v=at(l.pts,t);h+='<br>'+(l.j===0?'<b>Your Plan</b>':money(l.amt)+'/'+FL[p.freq])+': '+(v==null?(l.off&&t>l.off.getTime()?'paid off':'–'):money(v))}
     if(GH){const g=seriesAt(GH.ps,GH.mid,t);if(g!=null)h+='<br><span style="opacity:.75">Before your change: '+money(g)+'</span>'}}
   tip.innerHTML=h;tip.style.display='block';const tw=tip.offsetWidth;tip.style.left=Math.min(G.W-tw-4,Math.max(4,px+(px>G.W/2?-tw-14:14)))+'px';tip.style.top=Math.max(4,py-40)+'px'});
 fig.addEventListener('pointerleave',hide);
@@ -1028,7 +1028,7 @@ $('pOffTop').addEventListener('input',e=>{const v=num(e.target.value);change(p=>
   const clr=()=>{const o=ov.getContext('2d');o.setTransform(1,0,0,1,0,0);o.clearRect(0,0,ov.width,ov.height)};
   const arm=()=>{clearTimeout(relockT);if(unlocked)relockT=setTimeout(()=>{if(!drag&&ed.hidden&&menu.hidden){unlocked=false;paint()}else arm()},120000)};
   function paint(){lock.classList.toggle('open',unlocked);lock.setAttribute('aria-pressed',unlocked);
-    lock.innerHTML=unlocked?'<span>🔓</span>'+(isPhone()?'Tap your line to add a node':'Click your line to add a node · drag elsewhere to set your payoff'):'<span>🔒</span>Unlock to add nodes';
+    lock.innerHTML=unlocked?'<span>🔓</span>'+(isPhone()?'Tap your line to add a node':'Click your line to add a node · drag elsewhere to set your payoff'):'<span>🔒</span>Unlock to Add Nodes';
     fig.style.touchAction=unlocked?'none':'pan-y';fig.style.cursor='';if(!unlocked){clr();menu.hidden=true}}
   lock.addEventListener('click',e=>{e.stopPropagation();unlocked=!unlocked;paint();arm()});
   const pos=e=>{const r=fig.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
@@ -1082,7 +1082,7 @@ $('pOffTop').addEventListener('input',e=>{const v=num(e.target.value);change(p=>
       (hasA?'<label class="neLab neAL"></label><div class="neRow"><button type="button" class="neStep" data-d="-1" aria-label="Less">−</button><span class="unit '+(pct?'post':'pre')+'">'+(pct?'':'<i>'+loanRegion.sym+'</i>')+'<input class="f neA" inputmode="decimal" autocomplete="off">'+(pct?'<i>%</i>':'')+'</span><button type="button" class="neStep" data-d="1" aria-label="More">+</button><span class="neFreq"></span></div>':'')+
       (e.type==='goal'?'<label class="neLab">Until</label><input type="date" class="f neU">':'')+
       (e.type==='rate'?'<label class="neLab">When the rate changes</label><div class="seg neKeep"><button type="button" data-keep="term">Bank recalculates my repayment</button><button type="button" data-keep="pay">I keep paying the same</button></div>':'')+
-      '<label class="neLab">Note (optional)</label><input class="f neNote" maxlength="80" placeholder="e.g. tax refund, pay rise, new job">'+
+      '<label class="neLab">Note (Optional)</label><input class="f neNote" maxlength="80" placeholder="e.g. tax refund, pay rise, new job">'+
       '<div class="neStat"></div><p class="neEff"></p><p class="neErr" hidden></p>'+
       '<div class="neBtns"><button type="button" class="neDel">Delete</button><button type="button" class="neDone">Done</button></div>';
     ed.hidden=false;ed.classList.remove('min');dock(true);ed.querySelector('.neNote').value=e.note||'';render();if(!isPhone()){const a=ed.querySelector('.neA');if(a){a.focus();a.select()}}}
@@ -1146,7 +1146,7 @@ $('pOffTop').addEventListener('input',e=>{const v=num(e.target.value);change(p=>
     if(e)change(q=>{q.log.find(y=>y.id===e.id).amt=amt});
     else{const n={...tmp,id:uid(),amt,plan:true,drag:true,note:'Set by dragging the line'};change(q=>q.log.push(n))}
     const o=ov.getContext('2d'),d=window.devicePixelRatio||1;o.setTransform(d,0,0,d,0,0);const xx=G.X(t);o.strokeStyle=getComputedStyle($('cAcc')).color;o.lineWidth=2;o.setLineDash([4,4]);o.beginPath();o.moveTo(xx,G.Tm);o.lineTo(xx,G.Tm+G.ph);o.stroke();o.setLineDash([]);
-    tip.innerHTML='<b>Debt-free '+my(new Date(t))+'</b><br>Pay '+money(amt)+'/'+FL[p.freq]+' from tomorrow'+(GH?'<br>'+(GH.dInt>0?'Saves '+money(GH.dInt):'Costs '+money(-GH.dInt)+' more'):'');tip.style.display='block';
+    tip.innerHTML='<b>Debt-Free '+my(new Date(t))+'</b><br>Pay '+money(amt)+'/'+FL[p.freq]+' from tomorrow'+(GH?'<br>'+(GH.dInt>0?'Saves '+money(GH.dInt):'Costs '+money(-GH.dInt)+' more'):'');tip.style.display='block';
     const tw=tip.offsetWidth;tip.style.left=Math.min(G.W-tw-4,Math.max(4,xx+(xx>G.W/2?-tw-14:14)))+'px';tip.style.top=(G.Tm+8)+'px'}
   fig.addEventListener('contextmenu',e=>{if(!unlocked)return;e.preventDefault();const[px,py]=pos(e);openMenu(px,py,e)});
   fig.addEventListener('pointerdown',e=>{if(!unlocked||e.target===lock||lock.contains(e.target)||menu.contains(e.target)||e.button===2||!G)return;const[px,py]=pos(e);if(px<G.L-10||px>G.L+G.pw+10)return;

@@ -127,3 +127,33 @@ html[data-device=phone] .saveCard.slim{display:flex;padding:10px 12px}html[data-
 /* Layout dropdown (phone or computer) */
 .set-sel{display:block;width:100%;min-height:44px;margin:6px 0 2px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit;font-size:15px;cursor:pointer}
 .set-sel:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+
+/* ===== iPhone layer: only in the phone layout (html[data-device=phone]) ===== */
+#tabBar{display:none}
+html[data-device=phone] #tabBar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:70;justify-content:space-around;
+  padding:6px max(8px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-right));
+  background:color-mix(in srgb,var(--panel,#fff) 88%,transparent);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);
+  border-top:1px solid var(--line,#ddd)}
+html[data-device=phone] #tabBar a{flex:1 1 0;min-width:0;margin:0;padding:0!important;border:0!important;background:none;box-shadow:none;white-space:nowrap;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;
+  color:var(--mute,#666);text-decoration:none;font-size:11px;font-weight:600;letter-spacing:.01em;border-radius:12px;-webkit-tap-highlight-color:transparent}
+html[data-device=phone] #tabBar a.on{color:var(--acc,#4f46e5)}
+html[data-device=phone] #tabBar a:active{background:var(--soft,#eef)}
+html[data-device=phone] #tabBar a:focus-visible{outline:2px solid var(--acc,#4f46e5);outline-offset:-2px}
+html[data-device=phone] body{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+html.embed #tabBar{display:none!important}
+html[data-device=phone] nav.back{display:none}
+/* the tab bar replaces the row of page links at the top; Settings and Display stay */
+html[data-device=phone] #topSw>a,html[data-device=phone] #cgSw,html[data-device=phone] #cfSw,html[data-device=phone] #combSw{display:none!important}
+html[data-device=phone] #topSw{position:absolute!important;top:calc(10px + env(safe-area-inset-top))!important;right:16px!important;left:auto!important;margin:0!important;flex-wrap:nowrap!important;gap:6px;justify-content:flex-end;z-index:20}
+html[data-device=phone] #topSw button,html[data-device=phone] #devSw{min-height:44px;position:static!important;margin:0!important}
+html[data-device=phone] #setSw{font-size:0!important;width:44px;min-height:44px;padding:0!important;justify-content:center}
+html[data-device=phone] #setSw::before{content:"⚙";font-size:20px;line-height:1}
+html[data-device=phone] body{position:relative}
+/* iPhone zooms in on any text box smaller than 16px: stop that */
+html[data-device=phone] input:not([type=range]):not([type=checkbox]):not([type=radio]),html[data-device=phone] select,html[data-device=phone] textarea{font-size:16px}
+/* wide tables scroll sideways inside themselves instead of pushing the page */
+html[data-device=phone] table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* thumb-sized buttons */
+html[data-device=phone] .btn{min-height:44px}
+html[data-device=phone] .trkFab{bottom:calc(84px + env(safe-area-inset-bottom))!important}
+html[data-device=phone] .nodeEd.min{bottom:calc(84px + env(safe-area-inset-bottom))!important}
