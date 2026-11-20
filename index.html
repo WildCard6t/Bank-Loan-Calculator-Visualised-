@@ -56,6 +56,7 @@ details.more summary{cursor:pointer;font-size:14px;color:var(--mute);min-height:
 .stat{background:var(--panel);padding:12px 16px}
 .stat b{display:block;font-size:clamp(19px,2.2vw,26px);font-weight:600;white-space:nowrap;letter-spacing:-.01em}
 .stat span{font-size:13px;color:var(--mute)}
+.stat.good b{color:var(--good)}.stat small{display:block;font-size:12.5px;color:var(--mute)}
 .stat.wide{grid-column:1/-1}.stat.wide b{white-space:normal;font-size:clamp(17px,1.8vw,21px)}[hidden]{display:none!important}
 .main{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start}.chart{order:-1}
 aside,.chart{background:var(--panel);border-radius:14px}
@@ -232,6 +233,7 @@ html[data-device=phone] #payLock{max-width:calc(100% - 80px);overflow:hidden;tex
     <div class="stat"><span id="sIntL">Interest</span><b id="sInt">–</b></div>
     <div class="stat"><span id="sTotL">Total paid</span><b id="sTot">–</b><small id="sTotN"></small></div>
     <div class="stat"><span id="sStdL">vs standard loan</span><b id="sStd">–</b><small id="sStdN"></small></div>
+    <div class="stat wide good" id="sOffBox" hidden><span>Your offset saves</span><b id="sOffS">–</b><small id="sOffSN"></small></div>
     <div class="stat wide" id="sLumpBox" hidden><span>Your extras save</span><b id="sLump">–</b></div>
     <div class="stat wide" id="sRateBox" hidden><span>Rate changes</span><b id="sRate">–</b><small id="sRateN"></small></div>
   </div>
@@ -255,10 +257,6 @@ html[data-device=phone] #payLock{max-width:calc(100% - 80px);overflow:hidden;tex
       <div class="ctl">
         <label for="termN"><span>Loan term</span><span>sets the standard payment</span></label>
         <div class="row"><input type="range" id="termLR" min="1" max="40" step="1"><span class="unit post"><input type="number" id="termN" min="1" max="40" step="1" inputmode="numeric"><i>yrs</i></span></div>
-      </div>
-      <div class="ctl">
-        <label for="termR"><span>Chart length</span><span id="termO"></span></label>
-        <input type="range" id="termR" min="5" max="40" step="1" style="width:100%">
       </div>
       <div class="ctl"><div class="lab">Payment frequency</div>
         <div class="seg eight" data-k="freq"><button data-v="365">Daily</button><button data-v="52">Weekly</button><button data-v="26">Fortnightly</button><button data-v="12">Monthly</button><button data-v="4">Quarterly</button><button data-v="2">Half-yearly</button><button data-v="1">Yearly</button><button data-v="custom">Custom</button></div>
@@ -296,7 +294,7 @@ html[data-device=phone] #payLock{max-width:calc(100% - 80px);overflow:hidden;tex
           <label for="topN"><span>Added to offset each month</span></label>
           <div class="row"><input type="range" id="topR" min="0" max="5000" step="50"><span class="unit pre"><i>$</i><input type="text" id="topN" inputmode="numeric" autocomplete="off"></span></div>
         </div>
-        <p class="hint">The starting offset cuts the interest on every line. Monthly top-ups and extra repayments only change <em>your</em> line, and the dashed ghost shows your path without them. Already partway through a loan? Enter what you owe today and the years left.</p>
+        <p class="hint">The starting offset cuts the interest on every line. Monthly top-ups and extra repayments only change <em>your</em> line, and the faint ghost line shows your path without them, and the green area between is the money you save. Already partway through a loan? Enter what you owe today and the years left.</p>
       </div>
 
       <div class="grp">
@@ -317,6 +315,11 @@ html[data-device=phone] #payLock{max-width:calc(100% - 80px);overflow:hidden;tex
 
       <div class="grp">
         <h2>Display</h2>
+        <div class="ctl">
+          <label for="termR"><span>Chart length</span><span id="termO"></span></label>
+          <label class="chk"><input type="checkbox" id="autoT"> Fit to my loan automatically</label>
+          <input type="range" id="termR" min="5" max="40" step="1" style="width:100%">
+        </div>
         <div class="ctl"><div class="lab">Y-axis shows</div>
           <div class="seg" data-k="mode"><button data-v="change">Change</button><button data-v="balance">Balance</button><button data-v="percent">% of loan</button></div>
         </div>
@@ -347,7 +350,7 @@ html[data-device=phone] #payLock{max-width:calc(100% - 80px);overflow:hidden;tex
   <p class="note"><b>Educational tool, not financial advice.</b> Interest is charged once per payment period here, so quarterly, half-yearly and yearly figures are slightly lower than a real Australian bank would charge. Fixed rate. Interest is charged each payment period on the balance minus any offset; no fees. Every figure is checked against a payment-by-payment simulation before release. Curves above the spine step evenly from the equalised payment down to $0 (the reddest line); switch to <em>mirror payments</em> to pair each one with a payoff curve the same distance on the other side. Hover or drag across the chart to read any moment. Dashed lines are loans that take longer than the chart (from 35 up to 100 years, whichever are past its right edge): they leave the right edge still owing money, and they crowd closer to the spine the longer they take.</p>
   <p id="selftest"></p>
 </div>
-<i class="k" id="cMute" style="color:var(--mute)"></i><i class="k" id="cAcc" style="color:var(--acc)"></i><i class="k" id="cLine" style="color:var(--line)"></i><i class="k" id="cPanel" style="color:var(--panel)"></i>
+<i class="k" id="cMute" style="color:var(--mute)"></i><i class="k" id="cAcc" style="color:var(--acc)"></i><i class="k" id="cGood" style="color:var(--good)"></i><i class="k" id="cBad" style="color:var(--bad)"></i><i class="k" id="cLine" style="color:var(--line)"></i><i class="k" id="cPanel" style="color:var(--panel)"></i>
 
 <script>
 /* device choice: shared by both pages, remembered in this browser */
@@ -386,7 +389,7 @@ if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventLis
 <script>
 {
 const $=id=>document.getElementById(id);
-const DEF={P:300000,rate:6,T:40,freq:12,s:550,mode:'change',dens:'quarterly',cap:1,labels:true,fill:true,beyond:true,off:0,lump:0,lumpY:5,upper:'even',term:30,rec:0,recFrom:0,recTo:0,top:0,lumps:[],rates:[],rateMode:'payment',nodes:[]};
+const DEF={P:300000,rate:6,T:40,freq:12,s:550,mode:'change',dens:'quarterly',cap:1,labels:true,fill:true,beyond:true,off:0,lump:0,lumpY:5,upper:'even',term:30,rec:0,recFrom:0,recTo:0,top:0,lumps:[],rates:[],rateMode:'payment',nodes:[],autoT:true};
 let S={...DEF},saved=false,showC=false;
 try{const v=JSON.parse(localStorage.getItem('loanGraph.v2'));if(v){S={...DEF,...v};saved=true}}catch(e){}
 S.T=Math.min(40,S.T);
@@ -522,7 +525,18 @@ function draw(){
 
   /* your payment */
   const p=payFromS(S.s),me0=run(p,true);G.me=me0;const me={pts:me0.pts.map(([t,v])=>[t,cl(v)])};
-  if(hasEx()){const gh=run(p,false,true).pts.map(([t,v])=>[t,cl(v)]);x.setLineDash([6,5]);x.beginPath();path(gh,false,true);x.strokeStyle=ink;x.globalAlpha=.55;x.lineWidth=2;x.stroke();x.globalAlpha=1;x.setLineDash([])}
+  /* the ghost: your line before your change (without your extras and nodes, or without the node you're editing), with the money between them shaded */
+  G.ghost=null;
+  if(hasEx()||hasNodes()){const keep=S.nodes,sk=window.__ghostSkip;let g0;
+    if(sk){S.nodes=(keep||[]).filter(n=>n.id!==sk);g0=run(p,true)}else{S.nodes=[];g0=run(p,false,true)}S.nodes=keep;
+    const gh=g0.pts.map(([t,v])=>[t,cl(v)]),va=(a,t)=>{if(t>=a[a.length-1][0])return a[a.length-1][1]<=-S.P+1e-6?-S.P:null;for(let i=1;i<a.length;i++)if(a[i][0]>=t){const[t0,v0]=a[i-1],[t1,v1]=a[i];return t1>t0?v0+(v1-v0)*(t-t0)/(t1-t0):v1}return null};
+    const N=240,Sm=[];for(let i=0;i<=N;i++){const t=Tp*i/N,c=va(me.pts,t),g=va(gh,t);if(c==null||g==null)continue;Sm.push([t,c,g])}
+    const dI=g0.paid!==null&&me0.paid!==null?g0.int-me0.int:null,dK=g0.paid!==null&&me0.paid!==null?g0.paid-me0.paid:null;
+    const good=getComputedStyle($('cGood')).color,bad=getComputedStyle($('cBad')).color,better=dI!==null?dI>=0:me0.paid!==null||(me0.atT<=g0.atT);
+    if(Sm.length>1){x.beginPath();Sm.forEach(([t,c],i)=>i?x.lineTo(X(t),Y(c)):x.moveTo(X(t),Y(c)));for(let i=Sm.length-1;i>=0;i--)x.lineTo(X(Sm[i][0]),Y(Sm[i][2]));x.closePath();x.fillStyle=better?good:bad;x.globalAlpha=.22;x.fill();x.globalAlpha=1}
+    x.beginPath();path(gh,false,true);x.strokeStyle=ink;x.globalAlpha=.28;x.lineWidth=3;x.stroke();x.globalAlpha=1;
+    let bi=0;for(let i=0;i<Sm.length;i++)if(Math.abs(Sm[i][2]-Sm[i][1])>Math.abs(Sm[bi][2]-Sm[bi][1]))bi=i;
+    if(Sm.length&&(dI===null||Math.abs(dI)>=1))G.ghost={x:X(Sm[bi][0]),y:Y((Sm[bi][1]+Sm[bi][2])/2),t:dI!==null?(dI>=0?'You save '+money(dI):'Costs '+money(-dI)+' more')+(dK&&Math.abs(dK)>=1?' · '+ym(Math.abs(dK)/S.freq)+(dK>0?' sooner':' later'):''):me0.paid!==null?'Now paid off in '+ym(me0.paid/S.freq):'',good:better}}
   x.beginPath();path(me.pts,false,true);x.strokeStyle=panel;x.lineWidth=7;x.stroke();x.strokeStyle=ink;x.lineWidth=3;x.stroke();
   const[lt,lv]=me.pts[me.pts.length-1];x.beginPath();x.arc(X(lt),Y(lv),5.5,0,7);x.fillStyle=ink;x.fill();x.strokeStyle=panel;x.lineWidth=2;x.stroke();
   /* rate-change markers */
@@ -538,6 +552,8 @@ function draw(){
      const nx=X(Math.min(k,lt)),ny=Y(v);G.nodes.push({id:n.id,x:nx,y:ny});
      x.beginPath();x.arc(nx,ny,8,0,7);x.fillStyle=panel;x.fill();x.lineWidth=3;x.strokeStyle=acc;x.stroke();x.beginPath();x.arc(nx,ny,3.5,0,7);x.fillStyle=acc;x.fill()}}
   x.restore();
+  if(G.ghost&&G.ghost.t){const s_=G.ghost.t;x.font='600 '+font(13);const tw=x.measureText(s_).width+18,lx=Math.max(L+4,Math.min(L+pw-tw-4,G.ghost.x-tw/2)),ly=Math.max(Tm+48,Math.min(Tm+ph-30,G.ghost.y-13));
+    x.fillStyle=getComputedStyle($(G.ghost.good?'cGood':'cBad')).color;x.beginPath();x.roundRect?x.roundRect(lx,ly,tw,26,13):x.rect(lx,ly,tw,26);x.fill();x.fillStyle='#fff';x.textAlign='left';x.textBaseline='middle';x.fillText(s_,lx+9,ly+13)}
   x.beginPath();x.moveTo(X(0),Math.round(Y(-P))-.5);x.lineTo(X(Tp),Math.round(Y(-P))-.5);x.strokeStyle=ink;x.lineWidth=1.2;x.stroke();
 
   /* spine label */
@@ -568,7 +584,7 @@ function stats(){rateSplit();
   else if(R.paid!==null)put('Paid off in '+ym(R.paid/S.freq),'Total interest',money(R.int));
   else if(R.dbl!==null)put('Doubles in '+ym(R.dbl/S.freq),'Owed after '+S.T+' years',money(R.atT));
   else put('Not paid off in 100 yrs','Owed after '+S.T+' years',money(R.atT));
-  $('payHint').textContent=frozen?'equalised':p>I?'pays off':'debt grows';
+  $('payHint').textContent=frozen?'interest only: balance stays the same':R.paid!==null?'pays off in '+ym(R.paid/S.freq):p>I?'pays off in over 100 yrs':'debt grows';
   /* total paid and the comparison with the standard loan for the term */
   if(R.paid!==null){$('sTotL').textContent='Total paid';$('sTot').textContent=money(R.tot);$('sTotN').textContent=money(S.P)+' loan + '+money(R.int)+' interest'}
   else{$('sTotL').textContent='Paid in '+S.T+' years';$('sTot').textContent=money(R.totT);$('sTotN').textContent='and still '+money(R.atT)+' owing'}
@@ -583,6 +599,11 @@ function stats(){rateSplit();
     else if(R.paid!==null)t='Turns it into a payoff: '+ym(R.paid/S.freq);
     else t=money(R0.atT-R.atT)+' less owed at year '+S.T;
     $('sLump').textContent=t}
+  {const ob=$('sOffBox'),has=OFF()>0||S.top>0;ob.hidden=!has;
+   if(has){const k0=S.off,k1=S.top;S.off=0;S.top=0;const R0=run(p,true);S.off=k0;S.top=k1;
+     if(R.paid!==null&&R0.paid!==null){$('sOffS').textContent=money(R0.int-R.int);$('sOffSN').textContent='in interest by the time your loan is paid off'+(R0.paid>R.paid?', '+ym((R0.paid-R.paid)/S.freq)+' sooner':'')}
+     else if(R.paid!==null){$('sOffS').textContent='Pays it off';$('sOffSN').textContent='without it this payment never clears the loan'}
+     else{$('sOffS').textContent=money(R0.atT-R.atT);$('sOffSN').textContent='less owed after '+S.T+' years'}}}
   const RB=$('sRateBox'),HR=hasRates();RB.hidden=!HR;
   if(HR){const Rn=run(p,true,false),dI=R.int-Rn.int;let t='',n='';
     const when=R.paid!==null&&Rn.paid!==null?R.paid-Rn.paid:null;
@@ -598,7 +619,7 @@ function sync(){
   const set=(id,v)=>{if(act!==$(id))$(id).value=v};
   set('loanR',S.P);set('loanN',grp(S.P));set('rateR',S.rate);set('rateN',S.rate);set('termR',S.T);set('payR',S.s);set('payN',grp(payFromS(S.s)));
   $('offR').max=Math.round(S.P*.95);set('offR',OFF());set('offN',grp(OFF()));$('lumpR').max=S.P;set('lumpR',S.lump);set('lumpN',grp(S.lump));$('lumpYR').max=S.T;set('lumpYR',S.lumpY);$('lumpYO').textContent=S.lumpY===0?'at the start':'after '+ym(S.lumpY);
-  $('termO').textContent=S.T+' years';set('termLR',S.term);set('termN',S.term);
+  $('termO').textContent=S.T+' years'+(S.autoT!==false?' (auto)':'');$('autoT').checked=S.autoT!==false;$('termR').disabled=S.autoT!==false;set('termLR',S.term);set('termN',S.term);
   const pS=exitPay(S.term*S.freq);$('recR').max=Math.max(500,Math.round(pS/50)*50);set('recR',S.rec);set('recN',grp(S.rec));set('recFrom',S.recFrom);set('recTo',S.recTo);set('topR',S.top);set('topN',grp(S.top));
   ticks();lists();
   const isC=showC||!PRESET.includes(S.freq);$('freqCBox').hidden=!isC;$('freqCHint').hidden=!(isC&&S.freq===13);set('freqC',S.freq);
@@ -616,15 +637,21 @@ const REDO=[];
 function undo(){if(!HIST.length)return;REDO.push(cur);S={...DEF,...JSON.parse(HIST.pop())};restoring=true;burstT=0;update()}
 function redo(){if(!REDO.length)return;HIST.push(cur);S={...DEF,...JSON.parse(REDO.pop())};restoring=true;burstT=0;update()}
 const grp=v=>Math.round(v).toLocaleString(loanRegion.locale);
-function update(){remember();save();sync();stats();draw();if(typeof pin!=='undefined'&&pin)showAt(pin.px,pin.py);if(window.__nodeSync)window.__nodeSync()}
+function update(){if(typeof autoLen==='function')autoLen();remember();save();sync();stats();draw();if(typeof pin!=='undefined'&&pin)showAt(pin.px,pin.py);if(window.__nodeSync)window.__nodeSync()}
 
 const num=(v,lo,hi,dflt)=>{v=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isFinite(v)?Math.min(hi,Math.max(lo,v)):dflt};
 $('loanR').addEventListener('input',e=>{S.P=+e.target.value;update()});
 $('loanN').addEventListener('input',e=>{const v=num(e.target.value,1000,1e8,null);if(v){S.P=v;update()}});
 $('rateR').addEventListener('input',e=>{S.rate=+e.target.value;update()});
 $('rateN').addEventListener('input',e=>{const v=num(e.target.value,.25,25,null);if(v){S.rate=v;update()}});
-$('termR').addEventListener('input',e=>{const p=payFromS(S.s);S.T=+e.target.value;S.s=sFromPay(p);update()});
-$('payR').addEventListener('input',e=>{S.s=+e.target.value;update()});
+$('termR').addEventListener('input',e=>{const p=payFromS(S.s);S.T=+e.target.value;S.autoT=false;S.s=sFromPay(p);update()});
+$('autoT').addEventListener('change',e=>{S.autoT=e.target.checked;update()});
+/* chart length that fits your loan: the term, or longer if your line takes longer to pay off (5 to 40 years) */
+let sliding=false;
+function autoLen(){if(S.autoT===false||sliding)return;const p=payFromS(S.s),R=run(p,true);
+  const want=Math.max(5,Math.min(40,Math.max(S.term||30,R.paid!==null?Math.ceil(R.paid/S.freq-1e-9):30)));
+  if(want!==S.T){S.T=want;S.s=sFromPay(p)}}
+$('payR').addEventListener('input',e=>{sliding=true;S.s=+e.target.value;update()});$('payR').addEventListener('change',()=>{sliding=false;update()});
 $('payN').addEventListener('input',e=>{const v=num(e.target.value,0,1e8,null);if(v!==null){S.s=sFromPay(v);update()}});
 document.querySelectorAll('.seg').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=g.dataset.k,v=b.dataset.v;if(k==='freq'&&v==='custom'){S.freq=S.customF||13;S.customF=S.freq;showC=true}else{S[k]=(k==='freq'||k==='cap')?+v:v;if(k==='freq')showC=false}update()}));
 $('freqC').addEventListener('input',e=>{const v=Math.round(num(e.target.value,1,365,null));if(v){S.freq=v;S.customF=v;showC=true;update()}});
@@ -660,9 +687,9 @@ $('topN').addEventListener('input',e=>{const v=num(e.target.value,0,1e7,null);if
 $('payTicks').addEventListener('click',e=>{const b=e.target.closest('button');if(b){S.s=+b.dataset.s;burstT=0;update()}});
 $('toTracker').addEventListener('click',()=>{try{localStorage.setItem('loanTracker.handoff',JSON.stringify({P:S.P,rate:S.rate,freq:S.freq,term:S.term,pay:Math.round(payFromS(S.s)*100)/100}))}catch(e){}if(window.loanEmbed)parent.postMessage({loan:'toTracker'},'*');else location.href='tracker.html'});
 /* payment slider landmarks: $0, equalised, then exit years */
-function ticks(){const el=$('payTicks'),T=S.T,at=y=>550+450*(T-y)/(T-1),pts=[[0,'$0'],[500,'Equalised'],[550,T+'y']];
-  for(const y of[S.term,20,10,5,1])if(y<T&&y>=1)pts.push([at(y),y+'y'+(y===S.term?' (term)':'')]);
-  const w=el.clientWidth||600,gap=Math.max(70,1000*50/w),used=[];if(w<300)pts[1][1]='Equal.';el.innerHTML=pts.filter(([v])=>{if(used.some(u=>Math.abs(u-v)<gap))return false;used.push(v);return true}).map(([v,t])=>'<button data-s="'+v+'" style="left:'+(v/10)+'%">'+t+'</button>').join('')}
+function ticks(){const el=$('payTicks'),T=S.T,at=y=>550+450*(T-y)/(T-1),pts=[[0,'Pay nothing'],[500,'Interest only'],[550,T+' yrs']];
+  for(const y of[S.term,20,10,5,1])if(y<T&&y>=1)pts.push([at(y),y+' yr'+(y>1?'s':'')+(y===S.term?' (term)':'')]);
+  const w=el.clientWidth||600,gap=Math.max(70,1000*50/w),used=[];if(w<300){pts[0][1]='$0';pts[1][1]='Int. only'}el.innerHTML=pts.filter(([v])=>{if(used.some(u=>Math.abs(u-v)<gap))return false;used.push(v);return true}).map(([v,t])=>'<button data-s="'+v+'" style="left:'+(v/10)+'%">'+t+'</button>').join('')}
 $('labels').addEventListener('change',e=>{S.labels=e.target.checked;update()});
 $('fill').addEventListener('change',e=>{S.fill=e.target.checked;update()});
 $('beyond').addEventListener('change',e=>{S.beyond=e.target.checked;update()});
@@ -771,7 +798,7 @@ update();
   function delNode(id){burstT=0;S.nodes=(S.nodes||[]).filter(n=>n.id!==id);closeEd();update()}
   /* editor */
   const ed=document.createElement('div');ed.className='nodeEd';ed.hidden=true;ed.setAttribute('role','dialog');ed.setAttribute('aria-label','Edit node');document.querySelector('.chart').appendChild(ed);let edId=null;
-  function openEd(id){const n=nodeById(id);if(!n)return;edId=id;burstT=0;hide();menu.hidden=true;
+  function openEd(id){const n=nodeById(id);if(!n)return;edId=id;burstT=0;hide();menu.hidden=true;window.__ghostSkip=id;
     ed.innerHTML='<div class="neHead"><b>📍 Node, <span class="neWhen"></span> in</b><button type="button" class="neX" aria-label="Close">✕</button></div>'+
       '<label class="neLab">Your payment from here</label>'+
       '<div class="neRow"><button type="button" class="neStep" data-d="-1" aria-label="Pay less">−</button><span class="unit pre"><i>'+loanRegion.sym+'</i><input type="text" inputmode="decimal" class="nePay" aria-label="Payment from this node"></span><button type="button" class="neStep" data-d="1" aria-label="Pay more">+</button><span class="neFreq"></span></div>'+
@@ -797,7 +824,7 @@ update();
     const g=(G.nodes||[]).find(m=>m.id===edId),chEl=document.querySelector('.chart'),ch=chEl.getBoundingClientRect(),fr=fig.getBoundingClientRect();
     const gx=(g?g.x:G.L)+fr.left-ch.left,gy=(g?g.y:G.Tm)+fr.top-ch.top,w=ed.offsetWidth,h=ed.offsetHeight;
     ed.style.left=Math.max(8,Math.min(ch.width-w-8,gx+(gx>ch.width/2?-w-22:22)))+'px';ed.style.top=Math.max(8,Math.min(ch.height-h-8,gy-h/2))+'px'}
-  function closeEd(){ed.hidden=true;edId=null;burstT=0}
+  function closeEd(){ed.hidden=true;edId=null;burstT=0;if(window.__ghostSkip){window.__ghostSkip=null;update()}}
   window.__nodeSync=()=>{if(!ed.hidden){if(!nodeById(edId))closeEd();else edRefresh()}};
   ed.addEventListener('input',e=>{if(!nodeById(edId))return;
     if(e.target.matches('.nePay')){const v=num(e.target.value,0,1e8,null);if(v!==null)setNode(edId,{pay:v,f:S.freq})}
