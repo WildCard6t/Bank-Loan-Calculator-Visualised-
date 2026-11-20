@@ -4,7 +4,9 @@
    To add a setting: add a <section> in html() and handle it in wire(). */
 (function(){
   const KS='loanSettings.v1',root=document.documentElement;
-  const SCHEMES=[['indigo','Indigo','#4f46e5','#8f88ff'],['ocean','Ocean','#0e7490','#4fc3dc'],['forest','Forest','#2f7d4f','#5fcf8e']];
+  const SCHEMES=[['indigo','Indigo','#4f46e5','#8f88ff'],['ocean','Ocean','#0e7490','#4fc3dc'],['forest','Forest','#2f7d4f','#5fcf8e'],
+    ['crimson','Crimson','#b91c1c','#ff7a7a'],['sunset','Sunset','#c2410c','#ff9466'],['amber','Amber','#985a05','#f5b83d'],
+    ['rose','Rose','#be185d','#ff80b5'],['violet','Violet','#7e22ce','#c18cff'],['graphite','Graphite','#1a1c29','#eceef5']];
   const COUNTRIES=[['AU','🇦🇺 Australia','$ Australian dollar'],['NZ','🇳🇿 New Zealand','$ New Zealand dollar'],['US','🇺🇸 United States','$ US dollar'],['CA','🇨🇦 Canada','$ Canadian dollar'],['UK','🇬🇧 United Kingdom','£ Pound sterling']];
   const NOTES={
     AU:'Australian home loans are usually variable rate, paid monthly, fortnightly or weekly, and often come with an offset account. Banks work interest out daily and charge it monthly.',

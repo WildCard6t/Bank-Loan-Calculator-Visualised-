@@ -7,16 +7,28 @@
 :root[data-scheme=forest]{--acc:#2f7d4f;--acc-ink:#ffffff;--soft:#e5f2e9}
 :root[data-scheme=sunset]{--acc:#c2410c;--acc-ink:#ffffff;--soft:#fdeee6}
 :root[data-scheme=graphite]{--acc:#1a1c29;--acc-ink:#ffffff;--soft:#ecebe8}
+:root[data-scheme=crimson]{--acc:#b91c1c;--acc-ink:#ffffff;--soft:#fde8e8}
+:root[data-scheme=amber]{--acc:#985a05;--acc-ink:#ffffff;--soft:#fbf1dc}
+:root[data-scheme=rose]{--acc:#be185d;--acc-ink:#ffffff;--soft:#fce7f1}
+:root[data-scheme=violet]{--acc:#7e22ce;--acc-ink:#ffffff;--soft:#f1e7fd}
 @media (prefers-color-scheme:dark){
   :root[data-scheme=ocean]:not([data-theme=light]){--acc:#4fc3dc;--acc-ink:#0f111a;--soft:#12303a}
   :root[data-scheme=forest]:not([data-theme=light]){--acc:#5fcf8e;--acc-ink:#0f111a;--soft:#15301f}
   :root[data-scheme=sunset]:not([data-theme=light]){--acc:#ff9466;--acc-ink:#0f111a;--soft:#3a2016}
   :root[data-scheme=graphite]:not([data-theme=light]){--acc:#eceef5;--acc-ink:#0f111a;--soft:#262a3a}
+  :root[data-scheme=crimson]:not([data-theme=light]){--acc:#ff7a7a;--acc-ink:#0f111a;--soft:#3a1719}
+  :root[data-scheme=amber]:not([data-theme=light]){--acc:#f5b83d;--acc-ink:#0f111a;--soft:#33280f}
+  :root[data-scheme=rose]:not([data-theme=light]){--acc:#ff80b5;--acc-ink:#0f111a;--soft:#3a1628}
+  :root[data-scheme=violet]:not([data-theme=light]){--acc:#c18cff;--acc-ink:#0f111a;--soft:#2a1a40}
 }
 :root[data-scheme=ocean][data-theme=dark]{--acc:#4fc3dc;--acc-ink:#0f111a;--soft:#12303a}
 :root[data-scheme=forest][data-theme=dark]{--acc:#5fcf8e;--acc-ink:#0f111a;--soft:#15301f}
 :root[data-scheme=sunset][data-theme=dark]{--acc:#ff9466;--acc-ink:#0f111a;--soft:#3a2016}
 :root[data-scheme=graphite][data-theme=dark]{--acc:#eceef5;--acc-ink:#0f111a;--soft:#262a3a}
+:root[data-scheme=crimson][data-theme=dark]{--acc:#ff7a7a;--acc-ink:#0f111a;--soft:#3a1719}
+:root[data-scheme=amber][data-theme=dark]{--acc:#f5b83d;--acc-ink:#0f111a;--soft:#33280f}
+:root[data-scheme=rose][data-theme=dark]{--acc:#ff80b5;--acc-ink:#0f111a;--soft:#3a1628}
+:root[data-scheme=violet][data-theme=dark]{--acc:#c18cff;--acc-ink:#0f111a;--soft:#2a1a40}
 
 /* ---- the panel ---- */
 .set-ov{position:fixed;inset:0;z-index:100;background:rgba(10,12,20,.45);display:grid;place-items:center;padding:20px;animation:setFade .15s ease-out}
