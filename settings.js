@@ -4,7 +4,7 @@
    To add a setting: add a <section> in html() and handle it in wire(). */
 (function(){
   const KS='loanSettings.v1',root=document.documentElement;
-  const SCHEMES=[['indigo','Indigo','#4f46e5','#8f88ff'],['ocean','Ocean','#0e7490','#4fc3dc'],['forest','Forest','#2f7d4f','#5fcf8e'],['sunset','Sunset','#c2410c','#ff9466'],['graphite','Graphite','#1a1c29','#eceef5']];
+  const SCHEMES=[['indigo','Indigo','#4f46e5','#8f88ff'],['ocean','Ocean','#0e7490','#4fc3dc'],['forest','Forest','#2f7d4f','#5fcf8e']];
   const COUNTRIES=[['AU','🇦🇺 Australia','$ Australian dollar'],['NZ','🇳🇿 New Zealand','$ New Zealand dollar'],['US','🇺🇸 United States','$ US dollar'],['CA','🇨🇦 Canada','$ Canadian dollar'],['UK','🇬🇧 United Kingdom','£ Pound sterling']];
   const NOTES={
     AU:'Australian home loans are usually variable rate, paid monthly, fortnightly or weekly, and often come with an offset account. Banks work interest out daily and charge it monthly.',
@@ -218,7 +218,7 @@
       if(b.closest('.wl-mode'))loanTheme.set(b.dataset.v);else loanTheme.setScheme(b.dataset.v);paint()});
     window.addEventListener('themechange',paint);paint();
   }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(welcome,0));setTimeout(welcome,50);
+  /* the Welcome screen stays simple: the look is chosen in ⚙ Settings */
   function boot(){money();badge();window.addEventListener('pageshow',badge);try{if(sessionStorage.getItem('loanSettingsOpen')){sessionStorage.removeItem('loanSettingsOpen');open()}}catch(e){}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();

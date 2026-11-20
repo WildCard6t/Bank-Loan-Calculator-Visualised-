@@ -216,12 +216,16 @@ html[data-device=phone] .addRow{min-height:44px;width:100%}
 html[data-device=phone] .nodeEd{position:fixed;left:0!important;right:0;bottom:0;top:auto!important;width:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));z-index:60;max-height:75vh;overflow:auto}
 html[data-device=phone] .neStep{width:46px;height:46px}
 html[data-device=phone] #payLock{max-width:calc(100% - 80px);overflow:hidden;text-overflow:ellipsis}
+.homeL{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:2px 10px 2px 4px;margin:0 0 2px -4px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;cursor:pointer;transition:background .15s}
+.homeL img{width:26px;height:26px;border-radius:7px}.homeL:hover{background:var(--soft);color:var(--acc)}.homeL:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+html.embed .homeL{display:none}
 </style>
 <link rel="stylesheet" href="settings.css">
 <script src="settings.js" defer></script>
 </head>
 <body>
 <div class="wrap">
+  <a class="homeL" href="index.html?home=1" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Bank Loan Visualised</span></a>
   <h1>Every path out of a loan</h1>
   <p class="sub">Each line is one repayment amount. Above the yellow spine the debt grows. Below it the loan is paid off, and each line ends at its exit year. Turn the knobs and the whole picture redraws.</p>
   <div class="go"><span class="goTxt"><b>Track your real loan</b>Log your repayments and see where you are against every path.</span><a href="tracker.html">Go to the Loan Tracker →</a><button id="toTracker" title="Copies this loan into a new Tracker profile">Bring this loan with me</button></div>
@@ -364,7 +368,8 @@ html[data-device=phone] #payLock{max-width:calc(100% - 80px);overflow:hidden;tex
   window.addEventListener('DOMContentLoaded',()=>{
     const w=document.querySelector('.wrap'),b=document.createElement('button');b.id='devSw';b.title='Switch between phone and computer layout';b.textContent=label();
     b.onclick=()=>apply(root.dataset.device==='phone'?'desktop':'phone');w.prepend(b);
-    if(saved)return;
+    const home=/[?&]home=1/.test(location.search);if(home)try{history.replaceState(null,'',location.pathname)}catch(e){}
+    if(saved&&!home)return;
     const o=document.createElement('div');o.id='welcome';o.setAttribute('role','dialog');o.setAttribute('aria-label','Choose a layout');
     o.innerHTML='<div class="box"><h2>Welcome</h2><p>How are you viewing this? Pick the layout that suits your screen.</p><div class="opts">'+
       '<button data-v="phone"'+(guess==='phone'?' class="rec"':'')+'>'+(guess==='phone'?'<em>Suggested</em>':'')+'<b>📱 Phone</b><span>The chart stays pinned at the top while you scroll the controls, with big touch-friendly buttons.</span></button>'+

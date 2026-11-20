@@ -292,13 +292,45 @@ html[data-device=phone] #trLock{top:6px;left:60px;min-height:34px;font-size:12.5
 html[data-device=phone] .nodeEd{position:fixed;left:0!important;right:0;bottom:0;top:auto!important;width:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));z-index:60;max-height:80vh;overflow:auto}
 html[data-device=phone] .neStep{width:46px;height:46px}
 html[data-device=phone] .nodeMenu button{min-height:44px}
+.homeL{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:2px 10px 2px 4px;margin:0 0 2px -4px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;cursor:pointer;transition:background .15s}
+.homeL img{width:26px;height:26px;border-radius:7px}.homeL:hover{background:var(--soft);color:var(--acc)}.homeL:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+html.embed .homeL{display:none}
+
+.sGrid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))!important}
+.sSub{margin:4px 0 -4px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.split{display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--line);margin:4px 0 2px}
+.split i{display:block;height:100%}.split .sp{background:#1f9d55}.split .si{background:#f59e0b}.split .sl{background:var(--mute);opacity:.45}
+.kP{color:#1f9d55}.kI{color:#f59e0b}
+.refi{padding:18px;margin:0 0 18px;display:grid;gap:10px}
+.refiIn{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end}
+.refiOut{display:grid;gap:4px;padding:12px 14px;border-radius:12px;background:var(--bg);font-size:14px;color:var(--mute)}
+.refiOut .big{font-size:20px;font-weight:600;color:var(--ink)}.refiOut.yes{background:var(--good-bg)}.refiOut.yes .big{color:var(--good)}.refiOut.no{background:var(--bad-bg)}.refiOut.no .big{color:var(--bad)}
+.refiOut span b{color:var(--ink)}.refiOut small{font-size:12px}
+html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
+.printHead{display:none}
+@media print{
+  @page{margin:12mm}
+  html,body{background:#fff!important;color:#000}
+  #topSw,#devSw,nav,.bar,.saveCard,.cols aside,.logp .add,#eMsg,.note,#trLock,.nodeEd,.nodeMenu,.trToast,.refi,.homeL,.capTip,.tip,.x,.mini,#welcome,.set-ov{display:none!important}
+  .printHead{display:block;font-size:13px;margin:0 0 6px;color:#333}
+  .wrap{padding:0!important;max-width:none}
+  .score{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-shadow:none;break-inside:avoid}
+  .chart,.story,.stats,.panel{box-shadow:none!important;break-inside:avoid;border:1px solid #ddd}
+  .fig{height:360px!important;aspect-ratio:auto!important;min-height:0!important}
+  .cols{display:block}.logp{break-before:auto}
+  .monWrap{max-height:none!important;overflow:visible!important}
+  .split,.pb,.pd,.tag,.st{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  h1{font-size:26px}.sub{display:none}
+}
 </style>
 <link rel="stylesheet" href="settings.css">
 <script src="settings.js" defer></script>
 </head>
 <body>
 <div class="wrap">
+  <p class="printHead" id="printHead"></p>
   <nav><a href="index.html">← Every path out of a loan</a></nav>
+  <a class="homeL" href="index.html?home=1" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Bank Loan Visualised</span></a>
   <h1>Loan Tracker</h1>
   <p class="sub">Your real loan, from the day it started. Before Today the line is your history, coloured by how hard you were paying. From Today it becomes your plan, with a fan of better and worse paths. Add nodes on the line to record what happened or plan what’s next, and watch what it saves you.</p>
 
@@ -308,6 +340,7 @@ html[data-device=phone] .nodeMenu button{min-height:44px}
     <button class="btn" id="delP">Delete profile</button>
     <span class="sp"></span>
     <button class="btn" id="undo" disabled title="Undo last change (Ctrl+Z)">↶ Undo</button>
+    <button class="btn" id="prt" title="Print a summary or save it as a PDF">🖨 Summary</button>
     <button class="btn" id="exp" title="Save all profiles and logs to a file">Export</button>
     <button class="btn" id="imp" title="Load profiles from an exported file">Import</button>
     <input type="file" id="impF" accept=".json,application/json" hidden>
@@ -342,15 +375,28 @@ html[data-device=phone] .nodeMenu button{min-height:44px}
   <section class="panel story" id="story" aria-labelledby="storyH">
     <h2 id="storyH" class="storyH">Your loan story</h2>
     <div class="sGrid"><div class="sBox" id="hAge"></div><div class="sBox" id="hVs"></div><div class="sBox" id="hPlan"></div><div class="sBox" id="hMs"></div></div>
+    <h3 class="sSub">Where your money goes</h3>
+    <div class="sGrid three"><div class="sBox" id="hSplit"></div><div class="sBox" id="hNext"></div><div class="sBox" id="hEq"></div></div>
     <div class="sPace" id="hPace"></div>
     <details id="hMon" class="sMon"><summary>Month by month</summary>
       <div class="monWrap"><table class="mon"><thead><tr><th>Month</th><th style="text-align:right">Regular paid</th><th style="text-align:right">Extra / redraw</th><th style="text-align:right">Interest</th><th style="text-align:right">Owed at end</th><th>Pace</th></tr></thead><tbody id="monRows"></tbody></table></div>
     </details>
   </section>
 
-  <section class="saveCard" id="saveCard" aria-labelledby="saveH">
-    <div class="txt"><h2 id="saveH">How to save your progress</h2><p id="saveSub">Your loans save on this device automatically. A backup file keeps them safe for good.</p></div>
-    <div class="acts"><button type="button" class="b1" onclick="window.loanSettings&&loanSettings.howTo()">Show me how</button><button type="button" class="b2" onclick="window.loanSettings&&loanSettings.exportFile()">⬇ Save backup</button></div>
+  <section class="panel refi" id="refi" aria-labelledby="refiH">
+    <h2 id="refiH" class="storyH">Refinance check</h2>
+    <p class="hint">Found a lower rate? See if switching is worth it once the costs are counted. Everything is measured until your loan is paid off.</p>
+    <div class="refiIn">
+      <div class="ctl"><label for="rRate">New interest rate</label><span class="unit post"><input class="f" type="number" id="rRate" min="0" max="25" step="0.01" inputmode="decimal"><i>%</i></span></div>
+      <div class="ctl"><label for="rFee"><span>Switching costs</span><span>fees, valuation, etc.</span></label><span class="unit pre"><i>$</i><input class="f" id="rFee" inputmode="numeric" autocomplete="off" placeholder="0"></span></div>
+      <div><div class="lab">After switching</div><div class="seg" id="rMode"><button data-v="pay" class="on">Keep my payment</button><button data-v="date">Lower my payment</button></div></div>
+    </div>
+    <div class="refiOut" id="refiOut"></div>
+  </section>
+
+  <section class="saveCard slim" id="saveCard" aria-label="Save your progress">
+    <p>💾 Your loans save on this device. Keep a backup file so they’re safe for good.</p>
+    <div class="acts"><button type="button" class="b1" onclick="window.loanSettings&&loanSettings.exportFile()">Save backup</button><button type="button" class="b2" onclick="window.loanSettings&&loanSettings.howTo()">How saving works</button></div>
   </section>
   <div class="cols">
     <aside class="panel">
@@ -362,6 +408,7 @@ html[data-device=phone] .nodeMenu button{min-height:44px}
           <div class="ctl"><label for="pTerm">Term (years)</label><input class="f" type="number" id="pTerm" min="1" max="40" step="1"></div>
         </div>
         <div class="ctl"><label for="pP">Principal (loan amount)</label><span class="unit pre"><i>$</i><input class="f" id="pP" inputmode="numeric" autocomplete="off"></span></div>
+        <div class="ctl"><label for="pHome"><span>Home value</span><span>optional</span></label><span class="unit pre"><i>$</i><input class="f" id="pHome" inputmode="numeric" autocomplete="off" placeholder="for equity and LVR"></span></div>
         <div class="ctl"><label for="pRate">Interest rate (% a year)</label><span class="unit post"><input class="f" type="number" id="pRate" min="0.1" max="25" step="0.05"><i>%</i></span></div>
         <div><div class="lab">Payment frequency</div>
           <div class="seg eight" data-k="freq"><button data-v="365">Daily</button><button data-v="52">Weekly</button><button data-v="26">Fortnightly</button><button data-v="12">Monthly</button><button data-v="4">Quarterly</button><button data-v="2">Half-yearly</button><button data-v="1">Yearly</button><button data-v="custom">Custom</button></div>
@@ -424,7 +471,8 @@ html[data-device=phone] .nodeMenu button{min-height:44px}
   window.addEventListener('DOMContentLoaded',()=>{
     const w=document.querySelector('.wrap'),b=document.createElement('button');b.id='devSw';b.title='Switch between phone and computer layout';b.textContent=label();
     b.onclick=()=>apply(root.dataset.device==='phone'?'desktop':'phone');w.prepend(b);
-    if(saved)return;
+    const home=/[?&]home=1/.test(location.search);if(home)try{history.replaceState(null,'',location.pathname)}catch(e){}
+    if(saved&&!home)return;
     const o=document.createElement('div');o.id='welcome';o.setAttribute('role','dialog');o.setAttribute('aria-label','Choose a layout');
     o.innerHTML='<div class="box"><h2>Welcome</h2><p>How are you viewing this? Pick the layout that suits your screen.</p><div class="opts">'+
       '<button data-v="phone"'+(guess==='phone'?' class="rec"':'')+'>'+(guess==='phone'?'<em>Suggested</em>':'')+'<b>📱 Phone</b><span>The chart stays pinned at the top while you scroll the controls, with big touch-friendly buttons.</span></button>'+
@@ -527,11 +575,11 @@ const offOn=p=>!!(p.off&&(p.off.bal>0||p.off.top>0));
 function past(p,o={}){
   const ev=live(p,o).filter(e=>parse(e.date)<=TODAY),std=stdPay(p);
   const s={B:p.P,O:0,rate:p.rate,pay:regPay(p),goal:null};let k,ei=0,int=0,paidOff=null;
-  const pts=[[parse(p.start),p.P,0]],marks=[],checks={},steps=[],flows=[];
+  const pts=[[parse(p.start),p.P,0]],marks=[],checks={},steps=[],flows=[];let paidTot=0;
   const applyUntil=lim=>{while(ei<ev.length&&parse(ev[ei].date)<=lim){const e=ev[ei++],d=parse(e.date),b0=s.B;
       if(e.type==='balance')checks[e.id]={model:b0,diff:e.amt-b0};
       applyEv(s,e);if(s.B!==b0){pts.push([d,b0,steps.length]);pts.push([d,s.B,steps.length])}
-      if(e.type==='extra')flows.push([d.getTime(),Math.min(e.amt,b0)]);if(e.type==='redraw')flows.push([d.getTime(),-e.amt]);
+      if(e.type==='extra'){flows.push([d.getTime(),Math.min(e.amt,b0)]);paidTot+=Math.min(e.amt,b0)}if(e.type==='redraw')flows.push([d.getTime(),-e.amt]);
       marks.push({d,B:s.B,type:e.type,e})}};
   for(k=1;k<100000;k++){const d=payDate(p,k);if(d>TODAY)break;
     applyUntil(new Date(d.getTime()-1));
@@ -539,28 +587,29 @@ function past(p,o={}){
     if(s.B<=0){paidOff=paidOff||d;break}
     const r=s.rate/100/p.freq,i=r*s.B,due=payNow(s,d),pay=Math.min(due,s.B+i);int+=i;s.B=s.B+i-pay;
     if(s.B<=1e-6){s.B=0;paidOff=d}
-    steps.push({d,i,pay,reg:due,B:s.B});pts.push([d,s.B,steps.length-1]);if(paidOff)break}
+    steps.push({d,i,pay,reg:due,B:s.B});paidTot+=pay;pts.push([d,s.B,steps.length-1]);if(paidOff)break}
   applyUntil(TODAY);pts.push([TODAY,s.B,steps.length]);
   /* pace: what you paid around each payment (regular + net extras over the surrounding year), against the standard payment */
   const Hh=182.6*864e5;for(const st of steps){const t=st.d.getTime();let net=0;for(const[ft,a]of flows)if(ft>=t-Hh&&ft<t+Hh)net+=a;st.pace=(st.reg+net/p.freq)/std}
   /* your offset account counts from today: its balance today is what you entered */
   if(!o.noOff&&offOn(p))s.O=p.off.bal||0;
-  return{pts,marks,checks,B:s.B,int,paidOff,nextK:k,s,steps,std}}
+  const cs=steps.find(q=>q.i<q.pay/2);
+  return{pts,marks,checks,B:s.B,int,paidOff,nextK:k,s,steps,std,paidTot,cross:cs?cs.d:null}}
 
 /* the future: from today, your plan (with your planned nodes) plus a fan of better and worse paths */
 function future(p,ps,o={}){
   const half=(p.lines-1)/2,fe=live(p,o).filter(e=>parse(e.date)>TODAY),Y=365.25*864e5,lines=[],top=o.noOff||!offOn(p)?0:(p.off.top||0);
   const runLine=(j,limit)=>{const s={...ps.s,goal:ps.s.goal&&{...ps.s.goal}};if(o.noOff)s.O=0;
-    const pts=[[TODAY,s.B]];let off=ps.paidOff?TODAY:null,int=0,ei=0,cover=null;
+    const pts=[[TODAY,s.B]];let off=ps.paidOff?TODAY:null,int=0,ei=0,cover=null,cross=null,first=null;
     if(!off)for(let k=ps.nextK;k<ps.nextK+200*p.freq;k++){const d=payDate(p,k);if(limit&&d>limit){pts.push([d,s.B]);break}
       while(ei<fe.length&&parse(fe[ei].date)<d){const e=fe[ei++],ed=parse(e.date),b0=s.B;if(o.noOff&&e.type==='offset')continue;applyEv(s,e);if(s.B!==b0)pts.push([ed,b0],[ed,s.B])}
       if(s.goal&&d.getTime()>s.goal.until)s.goal=null;
       if(s.B<=0){off=d;pts.push([d,0]);break}
       s.O+=top;if(!cover&&s.O>0&&s.O>=s.B)cover=d;
-      const r=s.rate/100/p.freq,i=r*Math.max(0,s.B-s.O),amt=Math.max(0,payNow(s,d)-j*p.step);int+=i;
+      const r=s.rate/100/p.freq,i=r*Math.max(0,s.B-s.O),amt=Math.max(0,payNow(s,d)-j*p.step);int+=i;if(!first)first={d,i,amt:Math.min(amt,s.B+i)};if(!cross&&i<amt/2)cross=d;
       if(s.B+i-amt<=0){pts.push([d,0]);off=d;break}
       s.B=s.B+i-amt;pts.push([d,s.B]);if(s.B>p.P*4)break}
-    return{pts,off,int,cover,amt:Math.max(0,payNow(ps.s,TODAY)-j*p.step)}};
+    return{pts,off,int,cover,cross,first,amt:Math.max(0,payNow(ps.s,TODAY)-j*p.step)}};
   const mid=runLine(0);mid.j=0;
   const end=p.view?new Date(TODAY.getTime()+p.view*Y):new Date(Math.min(parse(p.start).getTime()+100*Y,
     (mid.off?Math.max(mid.off.getTime(),TODAY.getTime()+5*Y):TODAY.getTime()+30*Y)+2*Y));
@@ -753,6 +802,16 @@ function hist(ps,fu){const p=PR(),s0=parse(p.start),k=ps.steps.length,N=p.term*p
   /* pace by loan year */
   const Yr=365.25*864e5,yrs=[];for(const st of ps.steps){const i=Math.max(0,Math.floor((st.d-s0-1)/Yr));(yrs[i]=yrs[i]||{s:0,n:0,a:st.d,b:st.d});yrs[i].s+=st.pace;yrs[i].n++;yrs[i].b=st.d}
   $('hPace').innerHTML=yrs.length?'<h3>Your pace, year by year</h3>'+yrs.map((y,i)=>{if(!y)return'';const v=y.s/y.n;return'<div class="py"><span>Year '+(i+1)+' <small>'+my(y.a)+' – '+my(y.b)+'</small></span><span class="pb"><i style="width:'+Math.min(100,v/2*100)+'%;background:'+paceCol(v)+'"></i><u></u></span><b>'+Math.round(v*100)+'% · '+paceWord(v)+'</b></div>'}).join('')+'<p class="hint">100% is the bank’s standard payment. Extra repayments count across the year around them; redraws take away.</p>':'<h3>Your pace, year by year</h3><p class="hint">Shows up after your first payment.</p>';
+  /* principal vs interest */
+  {const prin=Math.max(0,ps.paidTot-ps.int),tot=ps.paidTot||1,pi=prin/tot*100;
+   $('hSplit').innerHTML='<h3>Paid so far</h3><b>'+money(ps.paidTot)+'</b><div class="split"><i class="sp" style="width:'+pi+'%"></i><i class="si" style="width:'+(100-pi)+'%"></i></div><p><span class="kP">■</span> '+money(prin)+' to the loan itself ('+Math.round(pi)+'%)<br><span class="kI">■</span> '+money(ps.int)+' to interest ('+Math.round(100-pi)+'%)</p>'}
+  {const f=fu.mid.first,cr=ps.cross||fu.mid.cross;
+   if(f&&!ps.paidOff){const pr=Math.max(0,f.amt-f.i),pp=pr/(f.amt||1)*100;
+     $('hNext').innerHTML='<h3>Your next payment</h3><b>'+money(f.amt)+'</b><div class="split"><i class="sp" style="width:'+pp+'%"></i><i class="si" style="width:'+(100-pp)+'%"></i></div><p><span class="kP">■</span> '+money(pr)+' off the loan · <span class="kI">■</span> '+money(f.i)+' interest</p><p>'+(cr?(+cr<=+TODAY?'Since <b>'+my(cr)+'</b> most of each payment goes to the loan itself.':'From <b>'+my(cr)+'</b> most of each payment will go to the loan itself, not interest.'):'At this payment, interest takes most of each payment for the whole loan.')+'</p>'}
+   else $('hNext').innerHTML='<h3>Your next payment</h3><b>Paid off</b><p>Nothing left to pay. 🎉</p>'}
+  {const h=p.home;if(h>0){const eq=h-ps.B,lvr=ps.B/h*100;
+     $('hEq').innerHTML='<h3>Your equity</h3><b class="g">'+money(eq)+'</b><div class="split"><i class="sp" style="width:'+Math.max(0,Math.min(100,100-lvr))+'%"></i><i class="sl" style="width:'+Math.min(100,lvr)+'%"></i></div><p>Home worth '+money(h)+'. You owe '+Math.round(lvr*10)/10+'% of it (your LVR).'+(lvr>80?' Many lenders look for 80% or less.':' That’s under the 80% many lenders look for.')+'</p>'}
+   else $('hEq').innerHTML='<h3>Your equity</h3><p>Add what your home is worth under Loan details (optional) to see how much of it you own.</p>'}
   if($('hMon').open)months(ps)}
 function months(ps){const p=PR(),M=new Map(),key=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),g=d=>{const kk=key(d);if(!M.has(kk))M.set(kk,{d,reg:0,ex:0,rd:0,off:0,int:0,end:null,ps:0,n:0});return M.get(kk)};
   for(const st of ps.steps){const r=g(st.d);r.reg+=st.pay;r.int+=st.i;r.ps+=st.pace;r.n++}
@@ -770,13 +829,29 @@ function ghost(){const p=PR();let ids;
   if(Math.abs(dInt)<1)return null;
   return{ps,mid:fu.mid,from,dInt,dMo:fu.mid.off&&FU.mid.off?moBetween(FU.mid.off,fu.mid.off):null}}
 let PS,FU;
-function render(){sync();const p=PR();PS=past(p);FU=future(p,PS);GH=ghost();MS=milestones(p,PS,FU);stats(PS,FU);score(PS,FU);rows(PS);hist(PS,FU);offUI();draw(PS,FU);if(window.__trNodeSync)window.__trNodeSync()}
+function render(){sync();const p=PR();PS=past(p);FU=future(p,PS);GH=ghost();MS=milestones(p,PS,FU);stats(PS,FU);score(PS,FU);rows(PS);hist(PS,FU);offUI();refi();draw(PS,FU);if(window.__trNodeSync)window.__trNodeSync()}
 function change(fn){fn(PR());commit();render()}
+/* refinance check: a rate change from tomorrow (and, if you choose, a lower payment that keeps your payoff date) */
+let rMode='pay';
+function refi(){const p=PR(),out=$('refiOut'),nr=num($('rRate').value),fee=num($('rFee').value)||0;
+  if(nr===null||nr<0||nr>25){out.className='refiOut';out.innerHTML='Enter the new rate you’ve been offered. Today’s rate is '+PS.s.rate+'%.';return}
+  if(PS.paidOff){out.innerHTML='This loan is already paid off.';return}
+  const nd=new Date(TODAY);nd.setDate(nd.getDate()+1);const add=[{id:'__rr',date:iso(nd),type:'rate',amt:nr,added:0}];
+  let newPay=null;if(rMode==='date'&&FU.mid.off){let n=0;for(let k=PS.nextK;payDate(p,k)<=FU.mid.off;k++)n++;const r=nr/100/p.freq,B=PS.B;newPay=r?B*r/(1-Math.pow(1+r,-n)):B/n;add.push({id:'__rp',date:iso(nd),type:'pay',amt:newPay,added:1})}
+  const q={...p,log:[...p.log,...add]},a=life(p),b=life(q),dI=a.int-b.int,net=dI-fee,mo=a.off&&b.off?moBetween(b.off,a.off):null;
+  const r0=PS.s.rate/100/12,r1=nr/100/12,mSave=Math.max(0,PS.B-PS.s.O)*(r0-r1),be=mSave>0?Math.ceil(fee/mSave):null;
+  out.className='refiOut '+(net>0?'yes':'no');
+  out.innerHTML='<b class="big">'+(net>0?'Worth it: you save '+money(net):net<0?'Not worth it: costs '+money(-net)+' more':'About even')+'</b>'+
+    '<span>'+money(dI)+' less interest'+(fee?' − '+money(fee)+' to switch':'')+(mo&&mo>0?' · debt-free '+ymo(mo)+' sooner':'')+'</span>'+
+    (newPay?'<span>Your payment would drop from '+money(regPay(p))+' to <b>'+money(newPay)+'</b>/'+FL[p.freq]+', same payoff date.</span>':'')+
+    (fee&&be?'<span>You get the switching costs back in about <b>'+ymo(be)+'</b>.</span>':'')+'<small>Rough guide only: real offers have conditions, and fees vary. Not financial advice.</small>'}
+$('rRate').addEventListener('input',refi);$('rFee').addEventListener('input',refi);
+$('rMode').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;rMode=b.dataset.v;$('rMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));refi()});
 
 function sync(){const p=PR(),act=document.activeElement,set=(id,v)=>{if(act!==$(id))$(id).value=v};
   $('prof').innerHTML=Object.entries(ST.profiles).map(([id,q])=>'<option value="'+id+'"'+(id===ST.cur?' selected':'')+'>'+q.name.replace(/[<>&]/g,'')+'</option>').join('');
   $('delP').disabled=Object.keys(ST.profiles).length<2;
-  set('pName',p.name);set('pStart',p.start);set('pTerm',p.term);set('pP',grp(p.P));set('pRate',p.rate);set('pPay',p.pay!=null?grp(p.pay):'');set('pStep',grp(p.step));
+  set('pName',p.name);set('pStart',p.start);set('pTerm',p.term);set('pP',grp(p.P));set('pRate',p.rate);set('pPay',p.pay!=null?grp(p.pay):'');set('pStep',grp(p.step));set('pHome',p.home?grp(p.home):'');
   $('pPay').placeholder=grp(stdPay(p))+' (worked out from the term)';
   $('payTag').textContent=p.pay!=null?'your own amount':'standard for the term';
   const io=p.P*rr(p);$('payHint').textContent='Standard payment for '+p.term+' years: '+money(stdPay(p))+'/'+FL[p.freq]+'. Interest alone is '+money(io)+'/'+FL[p.freq]+' at the start.';
@@ -794,6 +869,7 @@ $('pTerm').addEventListener('input',e=>{const v=num(e.target.value);if(v&&v>=1&&
 $('pP').addEventListener('input',e=>{const v=num(e.target.value);if(v&&v>=1000)change(p=>p.P=v)});
 $('pRate').addEventListener('input',e=>{const v=num(e.target.value);if(v&&v>0&&v<=25)change(p=>p.rate=v)});
 $('pPay').addEventListener('input',e=>{const v=num(e.target.value);change(p=>p.pay=v&&v>0?v:null)});
+$('pHome').addEventListener('input',e=>{const v=num(e.target.value);change(p=>p.home=v&&v>0?v:null)});
 $('pStep').addEventListener('input',e=>{const v=num(e.target.value);if(v&&v>0)change(p=>p.step=v)});
 document.querySelectorAll('.unit .f,#pName').forEach(el=>{el.addEventListener('keydown',e=>{if(e.key==='Enter')el.blur()});el.addEventListener('blur',sync)});
 document.querySelectorAll('.seg').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(g.dataset.k==='freq'&&b.dataset.v==='custom'){showC=true;change(p=>setF(p,p.customF||13))}else if(g.dataset.k==='freq'){showC=false;change(p=>setF(p,+b.dataset.v))}else change(p=>p[g.dataset.k]=+b.dataset.v)}));
@@ -818,6 +894,10 @@ $('prof').addEventListener('change',e=>{ST.cur=e.target.value;showC=false;burstT
 $('newP').addEventListener('click',()=>{const id=uid();ST.profiles[id]=blank('Loan '+(Object.keys(ST.profiles).length+1));ST.cur=id;burstT=0;commit();render();$('pName').focus();$('pName').select()});
 $('delP').addEventListener('click',()=>{if(Object.keys(ST.profiles).length<2)return;delete ST.profiles[ST.cur];ST.cur=Object.keys(ST.profiles)[0];burstT=0;commit();render();$('eMsg').textContent='Profile deleted. Undo brings it back.'});
 $('undo').addEventListener('click',undo);
+/* printable summary: the browser's print, laid out for paper (choose "Save as PDF" to keep a file) */
+$('prt').addEventListener('click',()=>{$('hMon').open=true;months(PS);$('printHead').innerHTML='<b>'+esc(PR().name)+'</b> · Loan summary · '+nice(TODAY);setTimeout(()=>window.print(),60)});
+window.addEventListener('beforeprint',()=>{if(PS){$('printHead').innerHTML='<b>'+esc(PR().name)+'</b> · Loan summary · '+nice(TODAY);draw(PS,FU)}});
+window.addEventListener('afterprint',()=>{if(PS)draw(PS,FU)});
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'&&!/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName)){e.preventDefault();undo()}});
 $('exp').addEventListener('click',()=>{try{const b=new Blob([JSON.stringify(ST,null,2)],{type:'application/json'}),a=document.createElement('a');
   a.href=URL.createObjectURL(b);a.download='loan-tracker_'+iso(TODAY)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);if(window.loanSettings)loanSettings.markBackup();
