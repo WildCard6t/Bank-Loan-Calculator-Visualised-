@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f3f0" id="themeColor">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Loan Paths">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>
+/* colour theme: Auto (follows the phone), Light or Dark. Shared by both pages, remembered in this browser. Runs before the page paints. */
+(function(){var K='loanTheme',r=document.documentElement,v='auto';try{v=localStorage.getItem(K)||'auto'}catch(e){}
+ if(v==='light'||v==='dark')r.dataset.theme=v;
+ function bar(){var m=document.getElementById('themeColor');if(m)m.content=getComputedStyle(r).getPropertyValue('--bg').trim()||'#f4f3f0'}
+ window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){if(t==='auto')delete r.dataset.theme;else r.dataset.theme=t;try{localStorage.setItem(K,t)}catch(e){};bar();window.dispatchEvent(new Event('themechange'))},bar:bar};
+ document.addEventListener('DOMContentLoaded',bar);
+ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){bar();window.dispatchEvent(new Event('themechange'))})}catch(e){}
+})();
+</script>
+<title>Loan Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Companion to "Every path out of a loan". Same instrument-panel look.
+   The past is one solid line built from the repayment log; the future fans out from today. */
+:root{color-scheme:light;--bg:#f4f3f0;--panel:#ffffff;--ink:#1a1c29;--mute:#5d6074;--line:#e3e1db;--acc:#4f46e5;--acc-ink:#ffffff;--soft:#efeefd;--good:#15803d;--bad:#d1342f;--good-bg:#e3f4e8;--bad-bg:#fde6e4;--info:#2563eb;--info-bg:#e3ebfd;--shadow:0 1px 2px rgba(26,28,41,.06),0 6px 20px rgba(26,28,41,.06)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--good:#4cc38a;--bad:#ff6b63;--good-bg:#12301f;--bad-bg:#3a1716;--info:#7aa5ff;--info-bg:#16233d;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--good:#4cc38a;--bad:#ff6b63;--good-bg:#12301f;--bad-bg:#3a1716;--info:#7aa5ff;--info-bg:#16233d;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Geist,system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:1920px;margin:0 auto;padding:clamp(20px,3vw,40px) max(4vw,14px)}
+nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border:2px solid var(--acc);border-radius:11px;color:var(--acc);font-size:16px;font-weight:600;text-decoration:none;background:var(--panel)}nav a:hover{background:var(--acc);color:#fff}nav a:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+h1{font-size:clamp(30px,4vw,46px);line-height:1.05;margin:6px 0 8px;font-weight:600;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:0 0 18px;max-width:80ch}
+button,select,input{font:inherit}
+.btn{min-height:40px;padding:0 14px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:9px;cursor:pointer;font-size:14px}
+.btn:disabled{opacity:.4;cursor:default}.btn:not(:disabled):hover{border-color:var(--acc)}
+.btn.pri{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.bar select{min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--ink);font-size:15px;font-weight:500;max-width:260px}
+.bar .sp{flex:1}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border-radius:12px;overflow:hidden;margin-bottom:18px}
+.stat{background:var(--panel);padding:12px 16px}
+.stat b{display:block;font-size:clamp(19px,2.2vw,26px);font-weight:600;white-space:nowrap;letter-spacing:-.01em}
+.stat span{font-size:13px;color:var(--mute)}.stat small{display:block;font-size:12px;color:var(--mute)}
+.panel{background:var(--panel);border-radius:14px}
+.chart{padding:12px 8px 8px;margin-bottom:18px}
+.axis{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);padding:0 10px 4px}
+.fig{position:relative;width:100%;aspect-ratio:21/8;min-height:360px;max-height:78vh}
+.fig canvas{position:absolute;inset:0;width:100%;height:100%}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--panel);font-size:13px;line-height:1.45;padding:8px 10px;border-radius:8px;white-space:nowrap;display:none;z-index:2}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--mute);padding:6px 10px 2px}
+.legend i{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.legend .dot{width:9px;height:9px;border-radius:50%}
+.cols{display:grid;grid-template-columns:minmax(280px,380px) minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:900px){.cols{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+aside{padding:18px;display:grid;gap:14px}
+h2{font-size:13px;margin:0;color:var(--mute);font-weight:500;text-transform:none}
+.grp{border-top:1px solid var(--line);padding-top:14px;display:grid;gap:12px}
+.ctl label,.lab{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--mute);margin-bottom:6px;font-weight:500}
+.f{width:100%;min-height:42px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:16px}
+.unit{position:relative;display:block}.unit i{position:absolute;top:50%;transform:translateY(-50%);font-style:normal;color:var(--mute);pointer-events:none}
+.unit.pre i{left:11px}.unit.pre .f{padding-left:24px}.unit.post i{right:11px}.unit.post .f{padding-right:28px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;flex-wrap:wrap;background:var(--bg);border-radius:9px;padding:3px;gap:3px}
+.seg button{flex:1 1 30%;}.seg.four button,.seg.eight button{flex:1 1 20%}.seg button{min-height:36px;border:0;border-radius:7px;background:none;color:var(--ink);font-size:14px;cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--panel);font-weight:500}
+.hint{font-size:13px;color:var(--mute);margin:0}
+.logp{padding:18px}
+.add{display:grid;grid-template-columns:150px 170px 150px minmax(120px,1fr) auto;gap:8px;align-items:end;margin:10px 0 16px}
+@media(max-width:1100px){.add{grid-template-columns:1fr 1fr}}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-weight:500;color:var(--mute);font-size:12px;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td small{color:var(--mute)}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;font-weight:500;white-space:nowrap}
+.tag.extra{background:var(--good-bg);color:var(--good)}.tag.redraw{background:var(--bad-bg);color:var(--bad)}.tag.balance{background:var(--info-bg);color:var(--info)}
+.x{border:0;background:none;color:var(--mute);cursor:pointer;font-size:18px;line-height:1;padding:2px 6px}.x:hover{color:var(--bad)}
+.empty{color:var(--mute);font-size:14px;padding:14px 8px}
+.note{font-size:13px;color:var(--mute);margin:14px 0 0;max-width:90ch}
+.k{display:none}
+
+/* ---- device choice: welcome screen + switch ---- */
+.wrap{position:relative}
+#devSw{position:absolute;top:clamp(14px,2.4vw,32px);right:max(4vw,14px);min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font:inherit;font-size:13px;cursor:pointer;z-index:6}
+#devSw:hover{color:var(--ink);border-color:var(--acc)}
+#welcome{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:20px;overflow:auto}
+#welcome .box{max-width:620px;width:100%;text-align:center}
+#welcome h2{font-size:clamp(26px,5vw,38px);margin:0 0 6px;font-weight:600;letter-spacing:-.02em;color:var(--ink)}
+#welcome p{color:var(--mute);margin:0 0 22px}
+#welcome .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){#welcome .opts{grid-template-columns:1fr}}
+#welcome button{position:relative;background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:22px 16px;cursor:pointer;color:var(--ink);font:inherit;text-align:left;display:grid;gap:6px}
+#welcome button:hover,#welcome button.rec{border-color:var(--acc)}
+#welcome button b{font-size:20px}#welcome button span{font-size:14px;color:var(--mute)}
+#welcome button em{position:absolute;top:10px;right:12px;font-style:normal;font-size:11px;font-weight:600;color:var(--acc);text-transform:uppercase;letter-spacing:.06em}
+#welcome small{display:block;margin-top:18px;color:var(--mute);font-size:13px}
+
+.plist{display:none}
+/* ---- phone layout ---- */
+html[data-device=phone] .wrap{padding:14px 10px 24px}
+html[data-device=phone] #devSw{top:12px;right:10px}
+html[data-device=phone] h1{font-size:28px}
+html[data-device=phone] .sub{font-size:14px;margin-bottom:12px}
+html[data-device=phone] .bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+html[data-device=phone] .bar select{grid-column:1/-1;max-width:none;min-height:46px}
+html[data-device=phone] .bar .sp{display:none}
+html[data-device=phone] .bar .btn{min-height:44px;padding:0 6px;font-size:13px}
+html[data-device=phone] .stats{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:12px}
+html[data-device=phone] .stat{padding:8px 12px}html[data-device=phone] .stat b{font-size:18px}html[data-device=phone] .stat span{font-size:12px}
+html[data-device=phone] .fig{aspect-ratio:auto;height:46vh;min-height:270px;max-height:none}
+html[data-device=phone] .legend{font-size:12px;gap:4px 12px}
+html[data-device=phone] .plist{display:grid;gap:4px;padding:8px 10px 4px;font-size:13px}
+html[data-device=phone] .plist div{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:4px}
+html[data-device=phone] .plist i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+html[data-device=phone] .cols{grid-template-columns:minmax(0,1fr);gap:12px}
+html[data-device=phone] .cols .logp{order:-1}
+html[data-device=phone] .add{grid-template-columns:1fr 1fr}
+html[data-device=phone] .add .ctl:nth-child(4),html[data-device=phone] .add .btn{grid-column:1/-1}
+html[data-device=phone] .add .btn{min-height:46px}
+html[data-device=phone] .seg button{min-height:44px}
+/* log table becomes a list of cards */
+html[data-device=phone] thead{display:none}
+html[data-device=phone] table,html[data-device=phone] tbody{display:block}
+html[data-device=phone] tbody tr{display:grid;grid-template-columns:1fr auto auto;gap:2px 10px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line)}
+html[data-device=phone] tbody td{border:0;padding:0}
+html[data-device=phone] tbody td:nth-child(1){grid-column:1;font-weight:500}
+html[data-device=phone] tbody td:nth-child(2){grid-column:2}
+html[data-device=phone] tbody td:nth-child(3){grid-column:3;grid-row:1}
+html[data-device=phone] tbody td:nth-child(7){grid-column:3;grid-row:2;text-align:right}
+html[data-device=phone] tbody td:nth-child(4),html[data-device=phone] tbody td:nth-child(5),html[data-device=phone] tbody td:nth-child(6){grid-column:1/3;font-size:13px}
+html[data-device=phone] tbody td:empty{display:none}
+html[data-device=phone] td.empty{grid-column:1/-1}
+html[data-device=phone] .x{font-size:22px;padding:6px 10px}
+
+/* ---- v0.14 / v0.5: colours, dark mode switch, iPhone polish ---- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:var(--bg)}
+body{-webkit-tap-highlight-color:transparent}
+button,a,input,select,summary{touch-action:manipulation}
+input[type=range]{accent-color:var(--acc)}
+.chk input{accent-color:var(--acc)}
+select{font-size:16px!important}
+.stats{background:var(--line);box-shadow:var(--shadow)}
+aside,.chart,.panel{box-shadow:var(--shadow)}
+.seg{background:var(--bg)}
+.seg button.on{background:var(--acc);color:var(--acc-ink);font-weight:600}
+#topSw{position:absolute;top:clamp(14px,2.4vw,32px);right:max(4vw,14px);display:flex;gap:6px;z-index:6}
+#topSw button{position:static;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+#topSw button:hover{color:var(--ink);border-color:var(--acc)}
+html[data-device=phone] .wrap{padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+html[data-device=phone] #topSw{position:static;justify-content:flex-end;margin:0 0 8px}
+html[data-device=phone] #topSw button{min-height:36px;font-size:13px}
+html[data-device=phone] h1{padding-right:0}
+html[data-device=phone] .stat b{font-variant-numeric:tabular-nums}
+html[data-device=phone] .note{font-size:12.5px;line-height:1.5}
+nav a:hover{background:var(--acc);color:var(--acc-ink)}
+.btn.pri{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+html[data-device=phone] nav{margin-bottom:4px}
+html[data-device=phone] nav a{min-height:44px;font-size:15px}
+html[data-device=phone] .f{min-height:46px}
+html[data-device=phone] input[type=date].f{-webkit-appearance:none;appearance:none;display:block;text-align:left}
+html[data-device=phone] .chart{margin-bottom:12px}
+html[data-device=phone] .logp,html[data-device=phone] aside{padding:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><a href="index.html">← Every path out of a loan</a></nav>
+  <h1>Loan Tracker</h1>
+  <p class="sub">Your real loan. The solid line is what has actually happened, built from your repayment log. It drops with extra repayments and jumps back up with redraws. From today onwards it fans out into projected trajectories, because only the future is still open.</p>
+
+  <div class="bar">
+    <select id="prof" aria-label="Profile"></select>
+    <button class="btn" id="newP">+ New profile</button>
+    <button class="btn" id="delP">Delete profile</button>
+    <span class="sp"></span>
+    <button class="btn" id="undo" disabled title="Undo last change (Ctrl+Z)">↶ Undo</button>
+    <button class="btn" id="exp" title="Save all profiles and logs to a file">Export</button>
+    <button class="btn" id="imp" title="Load profiles from an exported file">Import</button>
+    <input type="file" id="impF" accept=".json,application/json" hidden>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><span>Balance today</span><b id="sBal">–</b><small id="sBalN"></small></div>
+    <div class="stat"><span>Paid off (at regular payment)</span><b id="sOff">–</b><small id="sOffN"></small></div>
+    <div class="stat"><span>Interest paid so far</span><b id="sInt">–</b><small id="sIntN"></small></div>
+    <div class="stat"><span>Extra paid so far (net)</span><b id="sExt">–</b><small id="sExtN"></small></div>
+  </div>
+
+  <section class="panel chart">
+    <div class="axis"><span>Balance owing ($)</span><span>Date →</span></div>
+    <div class="fig" id="fig" style="touch-action:pan-y"><canvas id="cv"></canvas><canvas id="ov"></canvas><div class="tip" id="tip"></div></div>
+    <div class="legend" id="legend"></div>
+    <div class="plist" id="plist"></div>
+  </section>
+
+  <div class="cols">
+    <aside class="panel">
+      <div class="ctl"><label for="pName">Profile name</label><input class="f" id="pName" maxlength="40"></div>
+      <div class="grp">
+        <h2>Loan details</h2>
+        <div class="two">
+          <div class="ctl"><label for="pStart">Start date</label><input class="f" type="date" id="pStart"></div>
+          <div class="ctl"><label for="pTerm">Term (years)</label><input class="f" type="number" id="pTerm" min="1" max="40" step="1"></div>
+        </div>
+        <div class="ctl"><label for="pP">Principal (loan amount)</label><span class="unit pre"><i>$</i><input class="f" id="pP" inputmode="numeric" autocomplete="off"></span></div>
+        <div class="ctl"><label for="pRate">Interest rate (% a year)</label><span class="unit post"><input class="f" type="number" id="pRate" min="0.1" max="25" step="0.05"><i>%</i></span></div>
+        <div><div class="lab">Payment frequency</div>
+          <div class="seg eight" data-k="freq"><button data-v="365">Daily</button><button data-v="52">Weekly</button><button data-v="26">Fortnightly</button><button data-v="12">Monthly</button><button data-v="4">Quarterly</button><button data-v="2">Half-yearly</button><button data-v="1">Yearly</button><button data-v="custom">Custom</button></div>
+        </div>
+        <div class="ctl" id="freqCBox" hidden><label for="freqC"><span>Custom: payments per year</span><span>1–365</span></label><input class="f" type="number" id="freqC" min="1" max="365" step="1" inputmode="numeric"></div>
+          <p class="hint" id="freqCHint" hidden>13 a year is a payment about every 4 weeks. Tip: paying half your monthly amount every fortnight works out the same as 13 monthly payments a year. Choose Fortnightly for that.</p>
+        <div class="ctl"><label for="pPay"><span>Regular payment</span><span id="payTag"></span></label><span class="unit pre"><i>$</i><input class="f" id="pPay" inputmode="numeric" autocomplete="off" placeholder="worked out from the term"></span></div>
+        <p class="hint" id="payHint"></p>
+      </div>
+      <div class="grp">
+        <h2>Projected trajectory</h2>
+        <div><div class="lab">Projection lines</div>
+          <div class="seg four" data-k="lines"><button data-v="1">1</button><button data-v="3">3</button><button data-v="5">5</button><button data-v="7">7</button></div>
+        </div>
+        <div><div class="lab">Chart shows</div>
+          <div class="seg" data-k="view"><button data-v="10">Past + 10 years</button><button data-v="0">Whole loan</button></div>
+        </div>
+        <div class="ctl"><label for="pStep">Gap between lines (per payment)</label><span class="unit pre"><i>$</i><input class="f" id="pStep" inputmode="numeric" autocomplete="off"></span></div>
+        <p class="hint">The middle line keeps your regular payment. Lines below it pay more each time; lines above it pay less.</p>
+      </div>
+    </aside>
+
+    <section class="panel logp">
+      <h2>Repayment log</h2>
+      <div class="add">
+        <div class="ctl"><label for="eDate">Date</label><input class="f" type="date" id="eDate"></div>
+        <div class="ctl"><label for="eType">Type</label><select class="f" id="eType"><option value="extra">Extra repayment</option><option value="redraw">Redraw (added to loan)</option><option value="balance">Bank balance check</option></select></div>
+        <div class="ctl"><label for="eAmt" id="eAmtL">Amount</label><span class="unit pre"><i>$</i><input class="f" id="eAmt" inputmode="numeric" autocomplete="off"></span></div>
+        <div class="ctl"><label for="eNote">Note (optional)</label><input class="f" id="eNote" maxlength="80"></div>
+        <button class="btn pri" id="eAdd">Add</button>
+      </div>
+      <p class="hint" id="eMsg"></p>
+      <table><thead><tr><th>Date</th><th>Type</th><th style="text-align:right">Amount</th><th>Note</th><th>Check</th><th>Logged</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+    </section>
+  </div>
+
+  <p class="note">Saved in this browser only (no account yet), so use Export now and then as a backup. Interest is charged once per payment period on the balance at that time, and the rate is treated as fixed. Real banks work interest out daily, so the line will drift slightly from your bank's figure over time; a bank balance check snaps it back to the real number. Educational tool, not financial advice.</p>
+</div>
+<i class="k" id="cMute" style="color:var(--mute)"></i><i class="k" id="cLine" style="color:var(--line)"></i><i class="k" id="cPanel" style="color:var(--panel)"></i>
+
+<script>
+/* device choice: shared by both pages, remembered in this browser */
+(function(){
+  const K='loanDevice',root=document.documentElement;let saved=null;try{saved=localStorage.getItem(K)}catch(e){}
+  const guess=(matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<760)?'phone':'desktop';
+  root.dataset.device=saved||guess;
+  const label=()=>root.dataset.device==='phone'?'Phone view ⇄':'Computer view ⇄';
+  function apply(v){root.dataset.device=v;try{localStorage.setItem(K,v)}catch(e){};const b=document.getElementById('devSw');if(b)b.textContent=label();window.dispatchEvent(new Event('devicechange'))}
+  window.addEventListener('DOMContentLoaded',()=>{
+    const w=document.querySelector('.wrap'),b=document.createElement('button');b.id='devSw';b.title='Switch between phone and computer layout';b.textContent=label();
+    b.onclick=()=>apply(root.dataset.device==='phone'?'desktop':'phone');w.prepend(b);
+    if(saved)return;
+    const o=document.createElement('div');o.id='welcome';o.setAttribute('role','dialog');o.setAttribute('aria-label','Choose a layout');
+    o.innerHTML='<div class="box"><h2>Welcome</h2><p>How are you viewing this? Pick the layout that suits your screen.</p><div class="opts">'+
+      '<button data-v="phone"'+(guess==='phone'?' class="rec"':'')+'>'+(guess==='phone'?'<em>Suggested</em>':'')+'<b>📱 Phone</b><span>The chart stays pinned at the top while you scroll the controls, with big touch-friendly buttons.</span></button>'+
+      '<button data-v="desktop"'+(guess==='desktop'?' class="rec"':'')+'>'+(guess==='desktop'?'<em>Suggested</em>':'')+'<b>🖥️ Computer</b><span>A wide chart with every label, and the controls laid out underneath.</span></button>'+
+      '</div><small>You can switch any time with the button in the top corner.</small></div>';
+    o.addEventListener('click',e=>{const t=e.target.closest('button[data-v]');if(t){apply(t.dataset.v);o.remove()}});
+    document.body.appendChild(o);o.querySelector('.rec').focus();
+  });
+})();
+</script>
+<script>
+/* top-corner switches: colour theme beside the phone/computer switch */
+window.addEventListener('DOMContentLoaded',()=>{
+  const dev=document.getElementById('devSw');if(!dev)return;
+  const box=document.createElement('div');box.id='topSw';dev.replaceWith(box);
+  const t=document.createElement('button');t.id='themeSw';t.type='button';
+  const L={auto:'◐ Auto',light:'☀ Light',dark:'☾ Dark'},N={auto:'light',light:'dark',dark:'auto'};
+  const show=()=>{const v=loanTheme.get();t.textContent=L[v];t.title='Colours: '+v+(v==='auto'?' (follows your phone or computer)':'')+'. Tap to change.'};
+  t.onclick=()=>{loanTheme.set(N[loanTheme.get()]);show()};show();
+  box.append(t,dev);
+});
+if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+<script>
+{
+const $=id=>document.getElementById(id);
+const KEY='loanTracker.v1',FL=new Proxy({52:'wk',26:'fn',12:'mo',4:'qtr',2:'half-yr',1:'yr',365:'day'},{get:(o,k)=>o[k]||'pmt'}),PRESET=[1,2,4,12,26,52,365];let showC=false;
+const money=v=>(v<0?'−':'')+'$'+Math.round(Math.abs(v)).toLocaleString('en-AU');
+const grp=v=>Math.round(v).toLocaleString('en-AU');
+const kfmt=a=>'$'+(a>=1e6?parseFloat((a/1e6).toFixed(2))+'M':a>=1e3?Math.round(a/1e3)+'k':Math.round(a));
+const num=v=>{v=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isFinite(v)?v:null};
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const parse=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const nice=d=>d.getDate()+' '+MON[d.getMonth()]+' '+d.getFullYear();
+const my=d=>MON[d.getMonth()]+' '+d.getFullYear();
+const TODAY=(()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate())})();
+const uid=()=>Math.random().toString(36).slice(2,10);
+
+/* ---------- storage ---------- */
+function blank(name){const s=new Date(TODAY);s.setFullYear(s.getFullYear()-2);
+  return{name,start:iso(s),P:300000,rate:6,freq:12,term:30,pay:null,lines:5,step:250,view:10,log:[]}}
+function example(){const p=blank('Example loan'),s=parse(p.start),at=m=>{const d=new Date(s);d.setMonth(d.getMonth()+m);return iso(d)};
+  p.log=[{id:uid(),date:at(7),type:'extra',amt:10000,note:'Example: tax refund',added:Date.now()},
+         {id:uid(),date:at(15),type:'redraw',amt:6000,note:'Example: car repairs',added:Date.now()},
+         {id:uid(),date:at(20),type:'extra',amt:4000,note:'Example: bonus',added:Date.now()}];return p}
+let ST;
+try{ST=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!ST||!ST.profiles||!Object.keys(ST.profiles).length){const id=uid();ST={v:1,cur:id,profiles:{[id]:example()}}}
+if(!ST.profiles[ST.cur])ST.cur=Object.keys(ST.profiles)[0];
+for(const q of Object.values(ST.profiles))if(q.view==null)q.view=10;
+
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){}};
+const PR=()=>ST.profiles[ST.cur];
+
+/* undo: one step per burst of changes */
+const HIST=[];let cur=JSON.stringify(ST),burstT=0;
+function commit(){const j=JSON.stringify(ST),now=Date.now();
+  if(j!==cur){if(now-burstT>600){HIST.push(cur);if(HIST.length>100)HIST.shift()}cur=j;burstT=now}
+  $('undo').disabled=!HIST.length;save()}
+function undo(){if(!HIST.length)return;ST=JSON.parse(HIST.pop());cur=JSON.stringify(ST);burstT=0;$('undo').disabled=!HIST.length;save();render()}
+
+/* ---------- maths ---------- */
+/* payment k (k=1,2,…) falls k periods after the start date */
+function payDate(p,k){const s=parse(p.start);
+  if(![12,4,2,1].includes(p.freq)){const d=new Date(s);d.setDate(d.getDate()+Math.round(k*({52:7,26:14,365:1}[p.freq]||365.25/p.freq)));return d}
+  const m=s.getMonth()+k*12/p.freq,y=s.getFullYear()+Math.floor(m/12),mm=((m%12)+12)%12,last=new Date(y,mm+1,0).getDate();
+  return new Date(y,mm,Math.min(s.getDate(),last))}
+const rr=p=>p.rate/100/p.freq;
+const stdPay=p=>{const r=rr(p),n=p.term*p.freq;return r?p.P*r/(1-Math.pow(1+r,-n)):p.P/n};
+const regPay=p=>p.pay!=null&&p.pay>0?p.pay:stdPay(p);
+/* a loan sent from "Every path out of a loan" becomes a new profile starting today */
+try{const h=JSON.parse(localStorage.getItem('loanTracker.handoff'));if(h&&h.P){localStorage.removeItem('loanTracker.handoff');
+  const id=uid(),q=blank('From the graph ('+nice(TODAY)+')');q.start=iso(TODAY);q.P=h.P;q.rate=h.rate;q.freq=h.freq;q.term=h.term||30;
+  const sp=stdPay(q);q.pay=Math.abs(h.pay-sp)<0.01?null:h.pay;ST.profiles[id]=q;ST.cur=id}}catch(e){}
+save();
+
+/* the past: start → today, one payment at a time, with log entries applied on their dates */
+function past(p){
+  const r=rr(p),pay=regPay(p),ev=p.log.filter(e=>parse(e.date)<=TODAY&&parse(e.date)>=parse(p.start)).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.added-b.added);
+  let B=p.P,k=0,ei=0,int=0,paidOff=null;const pts=[[parse(p.start),B]],marks=[],checks={};
+  const applyUntil=lim=>{while(ei<ev.length&&parse(ev[ei].date)<=lim){const e=ev[ei++],d=parse(e.date);
+      pts.push([d,B]);
+      if(e.type==='extra')B=Math.max(0,B-e.amt);else if(e.type==='redraw')B+=e.amt;else{checks[e.id]={model:B,diff:e.amt-B};B=e.amt}
+      pts.push([d,B]);marks.push({d,B,type:e.type,e});}};
+  for(k=1;k<100000;k++){const d=payDate(p,k);if(d>TODAY)break;
+    applyUntil(new Date(d.getTime()-1));
+    if(B<=0){paidOff=paidOff||d;break}
+    const i=r*B;int+=i;B=B+i-pay;
+    if(B<=0){B=0;paidOff=d}
+    pts.push([d,B]);if(paidOff)break}
+  applyUntil(TODAY);pts.push([TODAY,B]);
+  return{pts,marks,checks,B,int,paidOff,nextK:k}}
+
+/* the future: from today, one line per projection offset */
+function future(p,ps){
+  const r=rr(p),pay=regPay(p),n=p.lines,half=(n-1)/2,lines=[];
+  const runLine=(amt,limit)=>{let B=ps.B;const pts=[[TODAY,B]];let off=null;
+    for(let k=ps.nextK;k<ps.nextK+200*p.freq;k++){const d=payDate(p,k);if(limit&&d>limit)break;
+      const nb=B+r*B-amt;if(nb<=0){pts.push([d,0]);off=d;break}B=nb;pts.push([d,B]);if(B>p.P*4)break}
+    return{pts,off}};
+  const Y=365.25*864e5,mid=runLine(pay,null);
+  const end=p.view?new Date(TODAY.getTime()+p.view*Y):new Date(Math.min(parse(p.start).getTime()+100*Y,
+    (mid.off?Math.max(mid.off.getTime(),TODAY.getTime()+5*Y):TODAY.getTime()+30*Y)+2*Y));
+  for(let j=-half;j<=half;j++){const amt=Math.max(0,pay-j*p.step);const L=runLine(amt,null);L.amt=amt;L.j=j;lines.push(L)}
+  return{lines,end,mid}}
+
+/* ---------- drawing ---------- */
+const at=(pts,t)=>{let v=null;for(let i=0;i<pts.length-1;i++){const a=pts[i][0].getTime(),b=pts[i+1][0].getTime();if(t>=a&&t<=b){v=b>a?pts[i][1]+(pts[i+1][1]-pts[i][1])*(t-a)/(b-a):pts[i+1][1]}}return v};
+
+const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const MORE=['#ffd000','#b5d22c','#3db54a','#0e9488','#1d5bd8'].map(hex),LESS=['#ffd000','#ffa400','#ff6a00','#c4122f'].map(hex);
+const mix=(st,f)=>{f=Math.min(1,Math.max(0,f))*(st.length-1);const i=Math.min(st.length-2,Math.floor(f)),u=f-i;return 'rgb('+st[i].map((v,k)=>Math.round(v+(st[i+1][k]-v)*u))+')'};
+const lineCol=(j,half)=>j===0?null:j<0?mix(MORE,-j/half):mix(LESS,j/half);
+const MK={extra:'#18794e',redraw:'#d61f1f',balance:'#1d5bd8'};
+let G=null;
+function draw(ps,fu){
+  const fig=$('fig'),cv=$('cv'),ov=$('ov'),W=fig.clientWidth,H=fig.clientHeight,dp=window.devicePixelRatio||1;if(!W||!H)return;
+  for(const c of[cv,ov]){c.width=Math.round(W*dp);c.height=Math.round(H*dp)}
+  const x=cv.getContext('2d');x.setTransform(dp,0,0,dp,0,0);x.clearRect(0,0,W,H);
+  const ink=getComputedStyle(document.body).color,mute=getComputedStyle($('cMute')).color,line=getComputedStyle($('cLine')).color,panel=getComputedStyle($('cPanel')).color;
+  const p=PR(),narrow=W<560,L=narrow?58:70,R=narrow?20:200,Tm=14,B=34,pw=W-L-R,ph=H-Tm-B;
+  const t0=parse(p.start).getTime(),t1=fu.end.getTime();
+  let ymax=0;for(const[,v]of ps.pts)ymax=Math.max(ymax,v);for(const l of fu.lines)for(const[d,v]of l.pts)if(d.getTime()<=t1)ymax=Math.max(ymax,v);
+  ymax=Math.min(ymax,p.P*2.5)*1.06||1;
+  const X=d=>L+(d.getTime()-t0)/(t1-t0)*pw,Y=v=>Tm+(1-Math.min(v,ymax*1.02)/ymax)*ph;
+  G={L,Tm,pw,ph,t0,t1,X,Y,W,H,ink,ps,fu};
+  const font=s=>s+'px Geist,system-ui,sans-serif';x.font=font(12);x.lineWidth=1;
+  /* y grid */
+  const raw=ymax/Math.max(3,ph/50),m=Math.pow(10,Math.floor(Math.log10(raw))),yt=[1,2,2.5,5,10].map(k=>k*m).find(k=>k>=raw);
+  x.textAlign='right';x.textBaseline='middle';
+  for(let v=0;v<=ymax;v+=yt){const yy=Math.round(Y(v))+.5;x.strokeStyle=line;x.beginPath();x.moveTo(L,yy);x.lineTo(L+pw,yy);x.stroke();x.fillStyle=mute;x.fillText(kfmt(v),L-8,yy)}
+  /* x grid: years */
+  const y0=new Date(t0).getFullYear(),y1=new Date(t1).getFullYear(),span=y1-y0,ys=[1,2,5,10].find(s=>pw/(span/s)>=(narrow?44:52))||10;
+  x.textAlign='center';x.textBaseline='top';
+  for(let y=y0+1;y<=y1;y++){const xx=Math.round(X(new Date(y,0,1)))+.5;if(xx<L||xx>L+pw)continue;x.strokeStyle=line;x.globalAlpha=(y%ys)?.35:1;x.beginPath();x.moveTo(xx,Tm);x.lineTo(xx,Tm+ph);x.stroke();x.globalAlpha=1;if(y%ys===0){x.fillStyle=mute;x.fillText(y,xx,Tm+ph+6)}}
+  x.save();x.beginPath();x.rect(L,Tm,pw,ph+2);x.clip();
+  /* future fan */
+  const half=(p.lines-1)/2;x.lineJoin='round';
+  for(const l of fu.lines){if(l.j===0)continue;x.beginPath();l.pts.forEach(([d,v],i)=>i?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v)));x.strokeStyle=lineCol(l.j,half);x.lineWidth=2;x.stroke()}
+  const mid=fu.lines.find(l=>l.j===0);x.setLineDash([7,5]);x.beginPath();mid.pts.forEach(([d,v],i)=>i?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v)));x.strokeStyle=ink;x.lineWidth=2.2;x.stroke();x.setLineDash([]);
+  /* past */
+  x.beginPath();ps.pts.forEach(([d,v],i)=>i?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v)));x.strokeStyle=panel;x.lineWidth=7;x.stroke();x.strokeStyle=ink;x.lineWidth=3.2;x.stroke();
+  for(const mk of ps.marks){x.beginPath();x.arc(X(mk.d),Y(mk.B),5.5,0,7);x.fillStyle=MK[mk.type];x.fill();x.strokeStyle=panel;x.lineWidth=2;x.stroke()}
+  x.restore();
+  /* today */
+  const tx=Math.round(X(TODAY))+.5;x.strokeStyle=ink;x.globalAlpha=.55;x.setLineDash([3,4]);x.beginPath();x.moveTo(tx,Tm);x.lineTo(tx,Tm+ph);x.stroke();x.setLineDash([]);x.globalAlpha=1;
+  x.fillStyle=ink;x.font=font(12);x.textAlign='center';x.textBaseline='top';x.fillText('Today',tx,Tm+ph+20);
+  /* line-end labels */
+  /* payoff dots on the $0 line, labels stacked in the right-hand gutter */
+  for(const l of fu.lines)if(l.off&&l.off.getTime()<=t1){x.beginPath();x.arc(X(l.off),Y(0),4,0,7);x.fillStyle=l.j===0?ink:lineCol(l.j,half);x.fill()}
+  if(!narrow){x.textAlign='left';x.textBaseline='middle';x.font=font(12);
+    const lab=[...fu.lines].map(l=>{const inView=!(l.off&&l.off.getTime()<=t1);const v=inView?(at(l.pts,t1)??0):0;
+      return{l,y:inView?Y(v):Tm+ph,t:money(l.amt)+'/'+FL[p.freq]+' · '+(l.off?'paid off '+my(l.off):kfmt(v)+' left')}}).sort((a,b)=>a.y-b.y);
+    for(let i=1;i<lab.length;i++)lab[i].y=Math.max(lab[i].y,lab[i-1].y+16);
+    const over=lab.length?lab[lab.length-1].y-(Tm+ph):0;if(over>0)for(const a of lab)a.y-=over;
+    for(let i=lab.length-2;i>=0;i--)lab[i].y=Math.min(lab[i].y,lab[i+1].y-16);
+    for(const a of lab){x.fillStyle=a.l.j===0?ink:lineCol(a.l.j,half);x.fillText(a.t,L+pw+8,a.y)}}
+}
+
+/* ---------- UI ---------- */
+function stats(ps,fu){const p=PR(),pay=regPay(p);
+  $('sBal').textContent=money(ps.B);
+  const lastChk=p.log.filter(e=>e.type==='balance'&&parse(e.date)<=TODAY).sort((a,b)=>a.date<b.date?1:-1)[0];
+  $('sBalN').textContent=ps.paidOff?'Paid off '+nice(ps.paidOff):lastChk?'From bank check of '+nice(parse(lastChk.date))+' onwards':'Estimate: no bank check logged yet';
+  const m=fu.lines.find(l=>l.j===0);
+  if(ps.paidOff){$('sOff').textContent='Done';$('sOffN').textContent=nice(ps.paidOff)}
+  else if(m.off){$('sOff').textContent=my(m.off);const mo=Math.round((m.off-TODAY)/(864e5*30.4375));$('sOffN').textContent=Math.floor(mo/12)+' yrs '+(mo%12)+' mo from today'}
+  else{$('sOff').textContent='Not on track';$('sOffN').textContent='Regular payment doesn\'t cover the interest'}
+  $('sInt').textContent=money(ps.int);$('sIntN').textContent='Since '+nice(parse(p.start));
+  let ex=0,rd=0;for(const e of p.log)if(parse(e.date)<=TODAY){if(e.type==='extra')ex+=e.amt;if(e.type==='redraw')rd+=e.amt}
+  $('sExt').textContent=money(ex-rd);$('sExtN').textContent=money(ex)+' extra · '+money(rd)+' redrawn';
+  const half=(p.lines-1)/2,lg=$('legend');
+  $('plist').innerHTML=[...fu.lines].sort((a,b)=>b.j-a.j).map(l=>'<div><span><i style="background:'+(l.j===0?'var(--ink)':lineCol(l.j,half))+'"></i>'+money(l.amt)+'/'+FL[p.freq]+(l.j===0?' (regular)':'')+'</span><span>'+(l.off?'paid off '+my(l.off):'never paid off')+'</span></div>').join('');
+  lg.innerHTML='<span><i style="background:var(--ink);height:4px"></i>What has happened</span><span><i style="background:repeating-linear-gradient(90deg,var(--ink) 0 6px,transparent 6px 10px)"></i>Keep paying '+money(pay)+'/'+FL[p.freq]+'</span>'+
+    (half?'<span><i style="background:'+mix(MORE,1)+'"></i>Pay more</span><span><i style="background:'+mix(LESS,1)+'"></i>Pay less</span>':'')+
+    '<span><i class="dot" style="background:'+MK.extra+'"></i>Extra repayment</span><span><i class="dot" style="background:'+MK.redraw+'"></i>Redraw</span><span><i class="dot" style="background:'+MK.balance+'"></i>Bank check</span>';
+}
+function rows(ps){const p=PR(),tb=$('rows');
+  const ev=[...p.log].sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.added-a.added);
+  if(!ev.length){tb.innerHTML='<tr><td colspan="7" class="empty">Nothing logged yet. Add your first extra repayment, redraw or bank balance above.</td></tr>';return}
+  const name={extra:'Extra repayment',redraw:'Redraw',balance:'Bank check'};
+  tb.innerHTML=ev.map(e=>{const c=ps.checks[e.id],bad=parse(e.date)<parse(p.start);
+    const chk=e.type==='balance'&&c?'Model said '+money(c.model)+'<br><small>off by '+money(c.diff)+'</small>':bad?'<small>Before the start date: ignored</small>':'';
+    const sign=e.type==='extra'?'−':e.type==='redraw'?'+':'=';
+    return '<tr><td>'+nice(parse(e.date))+'</td><td><span class="tag '+e.type+'">'+name[e.type]+'</span></td><td class="n">'+sign+' '+money(e.amt)+'</td><td>'+(e.note?e.note.replace(/[<>&]/g,''):'')+'</td><td>'+chk+'</td><td><small>'+new Date(e.added).toLocaleString('en-AU',{dateStyle:'short',timeStyle:'short'})+'</small></td><td><button class="x" data-del="'+e.id+'" title="Delete (you can undo)">×</button></td></tr>'}).join('')}
+function sync(){const p=PR(),act=document.activeElement,set=(id,v)=>{if(act!==$(id))$(id).value=v};
+  $('prof').innerHTML=Object.entries(ST.profiles).map(([id,q])=>'<option value="'+id+'"'+(id===ST.cur?' selected':'')+'>'+q.name.replace(/[<>&]/g,'')+'</option>').join('');
+  $('delP').disabled=Object.keys(ST.profiles).length<2;
+  set('pName',p.name);set('pStart',p.start);set('pTerm',p.term);set('pP',grp(p.P));set('pRate',p.rate);set('pPay',p.pay!=null?grp(p.pay):'');set('pStep',grp(p.step));
+  $('pPay').placeholder=grp(stdPay(p))+' (worked out from the term)';
+  $('payTag').textContent=p.pay!=null?'your own amount':'standard for the term';
+  const io=p.P*rr(p);$('payHint').textContent='Standard payment for '+p.term+' years: '+money(stdPay(p))+'/'+FL[p.freq]+'. Interest alone is '+money(io)+'/'+FL[p.freq]+' at the start.';
+  const isC=showC||!PRESET.includes(p.freq);$('freqCBox').hidden=!isC;$('freqCHint').hidden=!(isC&&p.freq===13);set('freqC',p.freq);
+  document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.classList.toggle('on',g.dataset.k==='freq'?(isC?b.dataset.v==='custom':String(p.freq)===b.dataset.v):String(p[g.dataset.k])===b.dataset.v)));
+  $('eDate').max=iso(TODAY);if(!$('eDate').value)$('eDate').value=iso(TODAY);$('eDate').min=p.start;
+  $('eAmtL').textContent=$('eType').value==='balance'?'Balance on statement':'Amount';
+}
+let PS,FU;
+function render(){sync();PS=past(PR());FU=future(PR(),PS);stats(PS,FU);rows(PS);draw(PS,FU)}
+function change(fn){fn(PR());commit();render()}
+
+/* inputs */
+$('pName').addEventListener('input',e=>change(p=>p.name=e.target.value.trim()||'Untitled loan'));
+$('pStart').addEventListener('change',e=>{if(e.target.value&&parse(e.target.value)<=TODAY)change(p=>p.start=e.target.value)});
+$('pTerm').addEventListener('input',e=>{const v=num(e.target.value);if(v&&v>=1&&v<=40)change(p=>p.term=Math.round(v))});
+$('pP').addEventListener('input',e=>{const v=num(e.target.value);if(v&&v>=1000)change(p=>p.P=v)});
+$('pRate').addEventListener('input',e=>{const v=num(e.target.value);if(v&&v>0&&v<=25)change(p=>p.rate=v)});
+$('pPay').addEventListener('input',e=>{const v=num(e.target.value);change(p=>p.pay=v&&v>0?v:null)});
+$('pStep').addEventListener('input',e=>{const v=num(e.target.value);if(v&&v>0)change(p=>p.step=v)});
+document.querySelectorAll('.unit .f,#pName').forEach(el=>{el.addEventListener('keydown',e=>{if(e.key==='Enter')el.blur()});el.addEventListener('blur',sync)});
+document.querySelectorAll('.seg').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(g.dataset.k==='freq'&&b.dataset.v==='custom'){showC=true;change(p=>setF(p,p.customF||13))}else if(g.dataset.k==='freq'){showC=false;change(p=>setF(p,+b.dataset.v))}else change(p=>p[g.dataset.k]=+b.dataset.v)}));
+/* a payment you set yourself keeps the same yearly total when the frequency changes */
+function setF(p,f){if(p.pay!=null&&p.freq!==f)p.pay=Math.round(p.pay*p.freq/f*100)/100;p.freq=f}
+$('freqC').addEventListener('input',e=>{const v=Math.round(num(e.target.value));if(v>=1&&v<=365){showC=true;change(p=>{setF(p,v);p.customF=v})}});
+$('freqC').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur()});
+$('eType').addEventListener('change',sync);
+$('eAdd').addEventListener('click',()=>{const p=PR(),d=$('eDate').value,a=num($('eAmt').value),msg=$('eMsg');
+  if(!d){msg.textContent='Pick a date.';return}
+  if(parse(d)>TODAY){msg.textContent='The log is for things that have already happened. Future plans show up in the projected trajectory.';return}
+  if(parse(d)<parse(p.start)){msg.textContent='That date is before the loan started ('+nice(parse(p.start))+').';return}
+  if(a===null||a<0||(a===0&&$('eType').value!=='balance')){msg.textContent='Enter an amount.';return}
+  change(q=>q.log.push({id:uid(),date:d,type:$('eType').value,amt:a,note:$('eNote').value.trim(),added:Date.now()}));
+  burstT=0;$('eAmt').value='';$('eNote').value='';msg.textContent='Logged.'});
+$('rows').addEventListener('click',e=>{const id=e.target.dataset?.del;if(id){burstT=0;change(p=>p.log=p.log.filter(x=>x.id!==id));$('eMsg').textContent='Deleted. Undo brings it back.'}});
+$('prof').addEventListener('change',e=>{ST.cur=e.target.value;showC=false;burstT=0;commit();render()});
+$('newP').addEventListener('click',()=>{const id=uid();ST.profiles[id]=blank('Loan '+(Object.keys(ST.profiles).length+1));ST.cur=id;burstT=0;commit();render();$('pName').focus();$('pName').select()});
+$('delP').addEventListener('click',()=>{if(Object.keys(ST.profiles).length<2)return;delete ST.profiles[ST.cur];ST.cur=Object.keys(ST.profiles)[0];burstT=0;commit();render();$('eMsg').textContent='Profile deleted. Undo brings it back.'});
+$('undo').addEventListener('click',undo);
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'&&!/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName)){e.preventDefault();undo()}});
+$('exp').addEventListener('click',()=>{try{const b=new Blob([JSON.stringify(ST,null,2)],{type:'application/json'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download='loan-tracker_'+iso(TODAY)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  $('eMsg').textContent='Exported. Keep the file in Bank Loan VIsualised\\05 History.'}catch(e){$('eMsg').textContent='Export is blocked here. Open the page directly in your browser to export.'}});
+$('imp').addEventListener('click',()=>$('impF').click());
+$('impF').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;
+  try{const d=JSON.parse(await f.text());if(!d.profiles)throw 0;burstT=0;ST={v:1,cur:d.cur in d.profiles?d.cur:Object.keys(d.profiles)[0],profiles:d.profiles};commit();render();$('eMsg').textContent='Imported '+Object.keys(d.profiles).length+' profile(s). Undo puts back what you had.'}
+  catch(err){$('eMsg').textContent='That file isn\'t a Loan Tracker export.'}e.target.value=''});
+
+/* hover readout */
+const fig=$('fig'),tip=$('tip');
+const hide=()=>{tip.style.display='none';const o=$('ov').getContext('2d');o.setTransform(1,0,0,1,0,0);o.clearRect(0,0,$('ov').width,$('ov').height)};
+fig.addEventListener('pointermove',e=>{if(!G)return;const r=fig.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
+  if(px<G.L||px>G.L+G.pw||py<G.Tm||py>G.Tm+G.ph){hide();return}
+  const t=G.t0+(px-G.L)/G.pw*(G.t1-G.t0),d=new Date(t),dp=window.devicePixelRatio||1,o=$('ov').getContext('2d'),p=PR();
+  o.setTransform(dp,0,0,dp,0,0);o.clearRect(0,0,G.W,G.H);o.strokeStyle=G.ink;o.globalAlpha=.4;o.beginPath();o.moveTo(px+.5,G.Tm);o.lineTo(px+.5,G.Tm+G.ph);o.stroke();o.globalAlpha=1;
+  let h='<b>'+nice(d)+'</b>';
+  if(t<=TODAY.getTime()){const v=at(G.ps.pts,t);if(v!=null)h+='<br>Balance: '+money(v)}
+  else{const half=(p.lines-1)/2;for(const l of[...G.fu.lines].sort((a,b)=>a.j-b.j)){const v=at(l.pts,t);h+='<br>'+money(l.amt)+'/'+FL[p.freq]+': '+(v==null?(l.off&&t>l.off.getTime()?'paid off':'–'):money(v))}}
+  tip.innerHTML=h;tip.style.display='block';const tw=tip.offsetWidth;tip.style.left=Math.min(G.W-tw-4,Math.max(4,px+(px>G.W/2?-tw-14:14)))+'px';tip.style.top=Math.max(4,py-40)+'px'});
+fig.addEventListener('pointerleave',hide);
+new ResizeObserver(()=>{if(PS)draw(PS,FU)}).observe(fig);
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>draw(PS,FU))}catch(e){}
+window.addEventListener('devicechange',()=>requestAnimationFrame(()=>draw(PS,FU)));
+window.Tracker={past,future,payDate,stdPay,regPay,state:()=>ST,PR};
+render();save();
+}
+</script>
+<script>window.addEventListener('themechange',()=>{if(PS)draw(PS,FU)});</script>
+</body>
+</html>

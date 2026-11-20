@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f3f0" id="themeColor">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Loan Paths">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>
+/* colour theme: Auto (follows the phone), Light or Dark. Shared by both pages, remembered in this browser. Runs before the page paints. */
+(function(){var K='loanTheme',r=document.documentElement,v='auto';try{v=localStorage.getItem(K)||'auto'}catch(e){}
+ if(v==='light'||v==='dark')r.dataset.theme=v;
+ function bar(){var m=document.getElementById('themeColor');if(m)m.content=getComputedStyle(r).getPropertyValue('--bg').trim()||'#f4f3f0'}
+ window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){if(t==='auto')delete r.dataset.theme;else r.dataset.theme=t;try{localStorage.setItem(K,t)}catch(e){};bar();window.dispatchEvent(new Event('themechange'))},bar:bar};
+ document.addEventListener('DOMContentLoaded',bar);
+ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){bar();window.dispatchEvent(new Event('themechange'))})}catch(e){}
+})();
+</script>
+<title>Live Loan Graph</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: precise, calm instrument — the maths is the hero
+   IDEA: a laboratory instrument panel: knobs on the left, a live trace on the right
+   PICTURE: the full family of loan curves, redrawn as you turn each knob
+   COLOUR and TYPE: aluminium ground, black ink, the user's yellow-red / yellow-blue curve scheme; Geist
+   LAYOUT: title + live readouts, then controls beside a large chart; stacks to chart-then-controls on phones */
+:root{color-scheme:light;--bg:#f4f3f0;--panel:#ffffff;--ink:#1a1c29;--mute:#5d6074;--line:#e3e1db;--acc:#4f46e5;--acc-ink:#ffffff;--soft:#efeefd;--good:#15803d;--bad:#d1342f;--good-bg:#e3f4e8;--bad-bg:#fde6e4;--info:#2563eb;--info-bg:#e3ebfd;--shadow:0 1px 2px rgba(26,28,41,.06),0 6px 20px rgba(26,28,41,.06)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--good:#4cc38a;--bad:#ff6b63;--good-bg:#12301f;--bad-bg:#3a1716;--info:#7aa5ff;--info-bg:#16233d;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0f111a;--panel:#181b27;--ink:#eceef5;--mute:#9ba0b6;--line:#2a2e3f;--acc:#8f88ff;--acc-ink:#0f111a;--soft:#22224a;--good:#4cc38a;--bad:#ff6b63;--good-bg:#12301f;--bad-bg:#3a1716;--info:#7aa5ff;--info-bg:#16233d;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Geist,system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:1920px;margin:0 auto;padding:clamp(20px,3vw,40px) max(4vw,14px)}
+h1{font-size:clamp(30px,4vw,46px);line-height:1.05;margin:0 0 8px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.sub{color:var(--mute);margin:0 0 20px;max-width:68ch}
+.stat small{display:block;font-size:12px;color:var(--mute)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.two input{width:100%!important}
+.ticks{position:relative;height:24px;margin:0 126px 0 0}.ticks button{position:absolute;top:0;transform:translateX(-50%);border:0;background:none;color:var(--mute);font:inherit;font-size:11px;padding:2px 2px;cursor:pointer;white-space:nowrap}.ticks button:first-child{transform:none}.ticks button:hover{color:var(--acc)}.ticks button::before{content:"";position:absolute;left:50%;top:-3px;width:1px;height:5px;background:currentColor}.ticks button:first-child::before{left:0}
+details.more summary{cursor:pointer;font-size:14px;color:var(--mute);min-height:40px;display:flex;align-items:center;list-style-position:inside}details.more summary:hover{color:var(--ink)}.moreIn{display:grid;gap:14px;padding-top:8px}
+.go{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin:-4px 0 22px;padding:16px 18px;border:2px solid var(--acc);border-radius:14px;background:var(--soft)}.go .goTxt{flex:1 1 260px;font-size:15px;color:var(--mute)}.go .goTxt b{display:block;color:var(--ink);font-size:17px;font-weight:600}.go a,.go button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 22px;border-radius:11px;font:inherit;font-size:17px;font-weight:600;text-decoration:none;cursor:pointer;transition:transform .12s,box-shadow .12s}.go a{background:var(--acc);color:#fff;border:2px solid var(--acc);box-shadow:0 4px 14px color-mix(in srgb,var(--acc) 35%,transparent)}.go button{background:var(--panel);color:var(--acc);border:2px solid var(--acc)}.go a:hover,.go button:hover{transform:translateY(-1px);box-shadow:0 6px 18px color-mix(in srgb,var(--acc) 40%,transparent)}.go a:focus-visible,.go button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}html[data-device=phone] .go a,html[data-device=phone] .go button{flex:1 1 100%}
+.stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:var(--line);border-radius:12px;overflow:hidden;margin-bottom:18px}
+.stat{background:var(--panel);padding:12px 16px}
+.stat b{display:block;font-size:clamp(19px,2.2vw,26px);font-weight:600;white-space:nowrap;letter-spacing:-.01em}
+.stat span{font-size:13px;color:var(--mute)}
+.stat.wide{grid-column:1/-1}.stat.wide b{white-space:normal;font-size:clamp(17px,1.8vw,21px)}[hidden]{display:none!important}
+.main{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start}.chart{order:-1}
+aside,.chart{background:var(--panel);border-radius:14px}
+aside{padding:18px;display:grid;gap:18px 28px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start}
+.chart{padding:12px 8px 8px}
+.fig{position:relative;width:100%;aspect-ratio:21/8;min-height:380px;max-height:82vh;touch-action:pan-y}
+.fig canvas{position:absolute;inset:0;width:100%;height:100%}
+.axis{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);padding:0 10px 4px}
+.ctl label,.ctl .lab{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--mute);margin-bottom:6px;font-weight:500}
+.row{display:flex;gap:8px;align-items:center}
+.unit{position:relative;display:inline-flex;flex:none}.unit i{position:absolute;top:50%;transform:translateY(-50%);font-style:normal;color:var(--mute);pointer-events:none;font-size:16px}.unit.pre i{left:11px}.unit.pre input{padding-left:24px}.unit.post i{right:11px}.unit.post input{padding-right:28px}
+input[type=range]{flex:1;accent-color:var(--acc);height:44px;margin:0}
+input[type=number],.unit input{width:118px;font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);text-align:right}
+input:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg{display:flex;background:var(--bg);border-radius:9px;padding:3px;gap:3px}
+.seg button{flex:1;min-height:38px;border:0;border-radius:7px;background:none;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.seg.six,.seg.eight{flex-wrap:wrap}.seg.six button{flex:1 1 30%}.seg.eight button{flex:1 1 22%}
+.hint{font-size:13px;color:var(--mute);margin:0}
+.seg button.on{background:var(--ink);color:var(--panel);font-weight:500}
+.chk{display:flex;align-items:center;gap:10px;min-height:36px;font-size:15px;cursor:pointer}
+.chk input{width:20px;height:20px;accent-color:var(--acc)}
+.grp{border-top:1px solid var(--line);padding-top:14px;display:grid;gap:14px}
+.grp h2{font-size:13px;margin:0;color:var(--mute);font-weight:500}
+.tools{display:flex;justify-content:flex-end;gap:8px;padding:0 6px 8px}.tools button{min-height:40px;padding:0 16px;border:1px solid var(--line);background:none;color:var(--ink);border-radius:9px;font:inherit;font-size:14px;cursor:pointer}.tools button:disabled{opacity:.4;cursor:default}.tools button:not(:disabled):hover{border-color:var(--acc)}
+.reset{min-height:44px;border:1px solid var(--line);background:none;color:var(--ink);border-radius:9px;font:inherit;cursor:pointer}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--panel);font-size:13px;line-height:1.45;padding:8px 10px;border-radius:8px;white-space:nowrap;display:none;z-index:2}
+.hint{font-size:13px;color:var(--mute);margin:0}
+#selftest{font-size:13px;margin:8px 0 0;font-weight:500}#selftest.good{color:var(--good)}#selftest.bad{color:var(--bad)}
+.note{font-size:13px;color:var(--mute);margin:14px 0 0;max-width:90ch}
+.k{display:none}
+@media(max-width:1300px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.main{grid-template-columns:minmax(0,1fr)}.chart{order:-1}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.fig{aspect-ratio:auto;height:440px}.axis span+span{display:none}}
+
+/* ---- device choice: welcome screen + switch ---- */
+.wrap{position:relative}
+#devSw{position:absolute;top:clamp(14px,2.4vw,32px);right:max(4vw,14px);min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font:inherit;font-size:13px;cursor:pointer;z-index:6}
+#devSw:hover{color:var(--ink);border-color:var(--acc)}
+#welcome{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:20px;overflow:auto}
+#welcome .box{max-width:620px;width:100%;text-align:center}
+#welcome h2{font-size:clamp(26px,5vw,38px);margin:0 0 6px;font-weight:600;letter-spacing:-.02em;color:var(--ink)}
+#welcome p{color:var(--mute);margin:0 0 22px}
+#welcome .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){#welcome .opts{grid-template-columns:1fr}}
+#welcome button{position:relative;background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:22px 16px;cursor:pointer;color:var(--ink);font:inherit;text-align:left;display:grid;gap:6px}
+#welcome button:hover,#welcome button.rec{border-color:var(--acc)}
+#welcome button b{font-size:20px}#welcome button span{font-size:14px;color:var(--mute)}
+#welcome button em{position:absolute;top:10px;right:12px;font-style:normal;font-size:11px;font-weight:600;color:var(--acc);text-transform:uppercase;letter-spacing:.06em}
+#welcome small{display:block;margin-top:18px;color:var(--mute);font-size:13px}
+
+/* ---- phone layout ---- */
+html[data-device=phone] .wrap{padding:14px 10px 24px}
+html[data-device=phone] #devSw{top:12px;right:10px}
+html[data-device=phone] h1{font-size:25px;padding-right:130px}
+html[data-device=phone] .sub{font-size:14px;margin-bottom:10px}
+html[data-device=phone] .stats{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:10px}
+html[data-device=phone] .stat{padding:8px 12px}html[data-device=phone] .stat b{font-size:18px}html[data-device=phone] .stat span{font-size:12px}
+html[data-device=phone] .main{gap:12px}
+html[data-device=phone] .chart{position:sticky;top:0;z-index:5;padding:6px 4px 4px;border-radius:0 0 14px 14px;box-shadow:0 8px 18px rgba(0,0,0,.18)}
+html[data-device=phone] .tools{padding:0 4px 2px;position:absolute;right:6px;top:4px;z-index:3}
+html[data-device=phone] .tools button{min-height:32px;padding:0 10px;font-size:13px}
+html[data-device=phone] .axis{font-size:11px;padding:4px 6px 2px;min-height:34px;align-items:center}
+html[data-device=phone] .axis span+span{display:none}
+html[data-device=phone] .fig{aspect-ratio:auto;height:40vh;min-height:250px;max-height:none}
+html[data-device=phone] aside{grid-template-columns:minmax(0,1fr);padding:14px;gap:16px}
+html[data-device=phone] input[type=range]{height:48px}
+html[data-device=phone] .seg button{min-height:44px}
+html[data-device=phone] .chk{min-height:44px}
+html[data-device=phone] .chk:has(#labels){display:none}
+
+/* ---- v0.14 / v0.5: colours, dark mode switch, iPhone polish ---- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:var(--bg)}
+body{-webkit-tap-highlight-color:transparent}
+button,a,input,select,summary{touch-action:manipulation}
+input[type=range]{accent-color:var(--acc)}
+.chk input{accent-color:var(--acc)}
+select{font-size:16px!important}
+.stats{background:var(--line);box-shadow:var(--shadow)}
+aside,.chart,.panel{box-shadow:var(--shadow)}
+.seg{background:var(--bg)}
+.seg button.on{background:var(--acc);color:var(--acc-ink);font-weight:600}
+#topSw{position:absolute;top:clamp(14px,2.4vw,32px);right:max(4vw,14px);display:flex;gap:6px;z-index:6}
+#topSw button{position:static;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+#topSw button:hover{color:var(--ink);border-color:var(--acc)}
+html[data-device=phone] .wrap{padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+html[data-device=phone] #topSw{position:static;justify-content:flex-end;margin:0 0 8px}
+html[data-device=phone] #topSw button{min-height:36px;font-size:13px}
+html[data-device=phone] h1{padding-right:0}
+html[data-device=phone] .stat b{font-variant-numeric:tabular-nums}
+html[data-device=phone] .note{font-size:12.5px;line-height:1.5}
+.go{border:1.5px solid color-mix(in srgb,var(--acc) 45%,var(--line));background:var(--soft);box-shadow:var(--shadow)}
+.go a{box-shadow:none}.go a:hover,.go button:hover{box-shadow:0 4px 14px rgba(79,70,229,.25)}
+.go a{color:var(--acc-ink)}
+html[data-device=phone] .go{padding:12px;gap:10px;margin:0 0 12px;border-radius:14px}
+html[data-device=phone] .go .goTxt{flex:1 1 100%;font-size:13px;line-height:1.4}
+html[data-device=phone] .go .goTxt b{font-size:16px}
+html[data-device=phone] .go a,html[data-device=phone] .go button{flex:1 1 0;min-height:48px;padding:0 10px;font-size:14px;text-align:center;line-height:1.2}
+html[data-device=phone] .chart{top:0;border-radius:0 0 16px 16px;margin:0 -12px;padding:6px 6px 4px;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+html[data-device=phone] .unit input,html[data-device=phone] input[type=number]{width:112px}
+html[data-device=phone] .ticks{margin-right:120px;height:28px}
+html[data-device=phone] .ticks button{font-size:11.5px;padding:4px 2px}
+html[data-device=phone] details.more summary{min-height:46px}
+html[data-device=phone] .tools{top:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Every path out of a loan</h1>
+  <p class="sub">Each line is one repayment amount. Above the yellow spine the debt grows. Below it the loan is paid off, and each line ends at its exit year. Turn the knobs and the whole picture redraws.</p>
+  <div class="go"><span class="goTxt"><b>Track your real loan</b>Log your repayments and see where you are against every path.</span><a href="tracker.html">Go to the Loan Tracker →</a><button id="toTracker" title="Copies this loan into a new Tracker profile">Bring this loan with me</button></div>
+
+  <div class="stats">
+    <div class="stat"><span>Equalised payment</span><b id="sEq">–</b></div>
+    <div class="stat"><span>Your payment</span><b id="sPay">–</b></div>
+    <div class="stat"><span>Outcome</span><b id="sOut">–</b></div>
+    <div class="stat"><span id="sIntL">Interest</span><b id="sInt">–</b></div>
+    <div class="stat"><span id="sTotL">Total paid</span><b id="sTot">–</b><small id="sTotN"></small></div>
+    <div class="stat"><span id="sStdL">vs standard loan</span><b id="sStd">–</b><small id="sStdN"></small></div>
+    <div class="stat wide" id="sLumpBox" hidden><span>Your extras save</span><b id="sLump">–</b></div>
+  </div>
+
+  <div class="main">
+    <aside>
+      <div class="ctl">
+        <label for="loanN">Principal (loan amount)</label>
+        <div class="row"><input type="range" id="loanR" min="10000" max="2000000" step="5000"><span class="unit pre"><i>$</i><input type="text" id="loanN" inputmode="numeric" autocomplete="off"></span></div>
+      </div>
+      <div class="ctl">
+        <label for="rateN">Interest rate (% a year)</label>
+        <div class="row"><input type="range" id="rateR" min="0.25" max="15" step="0.05"><span class="unit post"><input type="number" id="rateN" min="0.25" max="25" step="0.05" inputmode="decimal"><i>%</i></span></div>
+        <p class="hint" id="rateSplit"></p>
+      </div>
+      <div class="ctl">
+        <label for="payN"><span>Your payment</span><span id="payHint"></span></label>
+        <div class="row"><input type="range" id="payR" min="0" max="1000" step="0.1"><span class="unit pre"><i>$</i><input type="text" id="payN" inputmode="numeric" autocomplete="off"></span></div>
+        <div class="ticks" id="payTicks"></div>
+      </div>
+      <div class="ctl">
+        <label for="termN"><span>Loan term</span><span>sets the standard payment</span></label>
+        <div class="row"><input type="range" id="termLR" min="1" max="40" step="1"><span class="unit post"><input type="number" id="termN" min="1" max="40" step="1" inputmode="numeric"><i>yrs</i></span></div>
+      </div>
+      <div class="ctl">
+        <label for="termR"><span>Chart length</span><span id="termO"></span></label>
+        <input type="range" id="termR" min="5" max="40" step="1" style="width:100%">
+      </div>
+      <div class="ctl"><div class="lab">Payment frequency</div>
+        <div class="seg eight" data-k="freq"><button data-v="365">Daily</button><button data-v="52">Weekly</button><button data-v="26">Fortnightly</button><button data-v="12">Monthly</button><button data-v="4">Quarterly</button><button data-v="2">Half-yearly</button><button data-v="1">Yearly</button><button data-v="custom">Custom</button></div>
+          <div class="ctl" id="freqCBox" hidden><label for="freqC"><span>Custom: payments per year</span><span>1–365</span></label><input type="number" id="freqC" style="width:100%" min="1" max="365" step="1" inputmode="numeric"></div>
+          <p class="hint" id="freqCHint" hidden>13 a year is a payment about every 4 weeks. Tip: paying half your monthly amount every fortnight works out the same as 13 monthly payments a year. Choose Fortnightly for that.</p>
+      </div>
+
+      <div class="grp">
+        <h2>Real world</h2>
+        <div class="ctl">
+          <label for="offN">Offset or savings balance</label>
+          <div class="row"><input type="range" id="offR" min="0" step="1000"><span class="unit pre"><i>$</i><input type="text" id="offN" inputmode="numeric" autocomplete="off"></span></div>
+        </div>
+        <div class="ctl">
+          <label for="lumpN">One-off extra repayment</label>
+          <div class="row"><input type="range" id="lumpR" min="0" step="1000"><span class="unit pre"><i>$</i><input type="text" id="lumpN" inputmode="numeric" autocomplete="off"></span></div>
+        </div>
+        <div class="ctl">
+          <label for="lumpYR"><span>Paid</span><span id="lumpYO"></span></label>
+          <input type="range" id="lumpYR" min="0" step="0.25" style="width:100%">
+        </div>
+        <div class="ctl">
+          <label for="recN"><span>Regular extra repayment</span><span>added to every payment</span></label>
+          <div class="row"><input type="range" id="recR" min="0" step="10"><span class="unit pre"><i>$</i><input type="text" id="recN" inputmode="numeric" autocomplete="off"></span></div>
+        </div>
+        <div class="two">
+          <div class="ctl"><label for="recFrom">From year</label><input type="number" id="recFrom" min="0" max="40" step="0.25" inputmode="decimal"></div>
+          <div class="ctl"><label for="recTo">Until year (0 = to the end)</label><input type="number" id="recTo" min="0" max="100" step="0.25" inputmode="decimal"></div>
+        </div>
+        <div class="ctl">
+          <label for="topN"><span>Added to offset each month</span></label>
+          <div class="row"><input type="range" id="topR" min="0" max="5000" step="50"><span class="unit pre"><i>$</i><input type="text" id="topN" inputmode="numeric" autocomplete="off"></span></div>
+        </div>
+        <p class="hint">The starting offset cuts the interest on every line. Monthly top-ups and extra repayments only change <em>your</em> line, and the dashed ghost shows your path without them. Already partway through a loan? Enter what you owe today and the years left.</p>
+      </div>
+
+      <div class="grp">
+        <h2>Display</h2>
+        <div class="ctl"><div class="lab">Y-axis shows</div>
+          <div class="seg" data-k="mode"><button data-v="change">Change</button><button data-v="balance">Balance</button><button data-v="percent">% of loan</button></div>
+        </div>
+        <div class="ctl"><div class="lab">Thin curves between years</div>
+          <div class="seg" data-k="dens"><button data-v="yearly">None</button><button data-v="quarterly">Quarterly</button><button data-v="monthly">Monthly</button></div>
+        </div>
+        <details class="more"><summary>More display options</summary><div class="moreIn">
+        <div class="ctl"><div class="lab">Curves above the spine</div>
+          <div class="seg" data-k="upper"><button data-v="even">Even steps</button><button data-v="mirror">Mirror payments</button></div>
+        </div>
+        <div class="ctl"><div class="lab">Growth zone (above spine)</div>
+          <div class="seg" data-k="cap"><button data-v="1">Up to 1×</button><button data-v="2">Up to 2×</button><button data-v="0">Hide</button></div>
+        </div>
+        <label class="chk"><input type="checkbox" id="labels"> Payment labels under the axis</label>
+        <label class="chk"><input type="checkbox" id="beyond"> Dashed exits beyond the chart (up to 100 yrs)</label>
+        <label class="chk"><input type="checkbox" id="fill"> Gradient fill between curves</label>
+        </div></details>
+      </div>
+    </aside>
+
+    <section class="chart">
+      <div class="tools"><button id="undo" title="Undo last change (Ctrl+Z)" disabled>↶ Undo</button><button id="redo" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><button id="reset" title="Back to $300k at 6% over 30 years. Your display settings stay as they are.">Reset loan</button></div>
+      <div class="axis"><span id="yTitle">Change in Principal ($)</span><span>Time to Exit (years) →</span></div>
+      <div class="fig" id="fig"><canvas id="cv"></canvas><canvas id="ov"></canvas><div class="tip" id="tip"></div></div>
+    </section>
+  </div>
+
+  <p class="note"><b>Educational tool, not financial advice.</b> Interest is charged once per payment period here, so quarterly, half-yearly and yearly figures are slightly lower than a real Australian bank would charge. Fixed rate. Interest is charged each payment period on the balance minus any offset; no fees. Every figure is checked against a payment-by-payment simulation before release. Curves above the spine step evenly from the equalised payment down to $0 (the reddest line); switch to <em>mirror payments</em> to pair each one with a payoff curve the same distance on the other side. Hover or drag across the chart to read any moment. Dashed lines are loans that take longer than the chart (from 35 up to 100 years, whichever are past its right edge): they leave the right edge still owing money, and they crowd closer to the spine the longer they take.</p>
+  <p id="selftest"></p>
+</div>
+<i class="k" id="cMute" style="color:var(--mute)"></i><i class="k" id="cLine" style="color:var(--line)"></i><i class="k" id="cPanel" style="color:var(--panel)"></i>
+
+<script>
+/* device choice: shared by both pages, remembered in this browser */
+(function(){
+  const K='loanDevice',root=document.documentElement;let saved=null;try{saved=localStorage.getItem(K)}catch(e){}
+  const guess=(matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<760)?'phone':'desktop';
+  root.dataset.device=saved||guess;
+  const label=()=>root.dataset.device==='phone'?'Phone view ⇄':'Computer view ⇄';
+  function apply(v){root.dataset.device=v;try{localStorage.setItem(K,v)}catch(e){};const b=document.getElementById('devSw');if(b)b.textContent=label();window.dispatchEvent(new Event('devicechange'))}
+  window.addEventListener('DOMContentLoaded',()=>{
+    const w=document.querySelector('.wrap'),b=document.createElement('button');b.id='devSw';b.title='Switch between phone and computer layout';b.textContent=label();
+    b.onclick=()=>apply(root.dataset.device==='phone'?'desktop':'phone');w.prepend(b);
+    if(saved)return;
+    const o=document.createElement('div');o.id='welcome';o.setAttribute('role','dialog');o.setAttribute('aria-label','Choose a layout');
+    o.innerHTML='<div class="box"><h2>Welcome</h2><p>How are you viewing this? Pick the layout that suits your screen.</p><div class="opts">'+
+      '<button data-v="phone"'+(guess==='phone'?' class="rec"':'')+'>'+(guess==='phone'?'<em>Suggested</em>':'')+'<b>📱 Phone</b><span>The chart stays pinned at the top while you scroll the controls, with big touch-friendly buttons.</span></button>'+
+      '<button data-v="desktop"'+(guess==='desktop'?' class="rec"':'')+'>'+(guess==='desktop'?'<em>Suggested</em>':'')+'<b>🖥️ Computer</b><span>A wide chart with every label, and the controls laid out underneath.</span></button>'+
+      '</div><small>You can switch any time with the button in the top corner.</small></div>';
+    o.addEventListener('click',e=>{const t=e.target.closest('button[data-v]');if(t){apply(t.dataset.v);o.remove()}});
+    document.body.appendChild(o);o.querySelector('.rec').focus();
+  });
+})();
+</script>
+<script>
+/* top-corner switches: colour theme beside the phone/computer switch */
+window.addEventListener('DOMContentLoaded',()=>{
+  const dev=document.getElementById('devSw');if(!dev)return;
+  const box=document.createElement('div');box.id='topSw';dev.replaceWith(box);
+  const t=document.createElement('button');t.id='themeSw';t.type='button';
+  const L={auto:'◐ Auto',light:'☀ Light',dark:'☾ Dark'},N={auto:'light',light:'dark',dark:'auto'};
+  const show=()=>{const v=loanTheme.get();t.textContent=L[v];t.title='Colours: '+v+(v==='auto'?' (follows your phone or computer)':'')+'. Tap to change.'};
+  t.onclick=()=>{loanTheme.set(N[loanTheme.get()]);show()};show();
+  box.append(t,dev);
+});
+if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+<script>
+{
+const $=id=>document.getElementById(id);
+const DEF={P:300000,rate:6,T:40,freq:12,s:550,mode:'change',dens:'quarterly',cap:1,labels:true,fill:true,beyond:true,off:0,lump:0,lumpY:5,upper:'even',term:30,rec:0,recFrom:0,recTo:0,top:0};
+let S={...DEF},saved=false,showC=false;
+try{const v=JSON.parse(localStorage.getItem('loanGraph.v2'));if(v){S={...DEF,...v};saved=true}}catch(e){}
+S.T=Math.min(40,S.T);
+const save=()=>{try{localStorage.setItem('loanGraph.v2',JSON.stringify(S))}catch(e){}};
+const FL=new Proxy({12:'mo',26:'fn',52:'wk',4:'qtr',2:'half-yr',1:'yr',365:'day'},{get:(o,k)=>o[k]||'pmt'});
+const PRESET=[1,2,4,12,26,52,365];
+/* THE MODEL — one period = one payment:
+   interest = period rate × max(0, balance − offset); balance += interest − payment;
+   the extra repayment comes off at the end of its period (year 0 = before the first period).
+   With no offset the closed-form formulas are used (identical results, faster). */
+const rr=()=>S.rate/100/S.freq, TP=()=>S.T*S.freq, OFF=()=>Math.min(Math.max(0,S.off||0),S.P*.95), IO=()=>(S.P-OFF())*rr();
+const step=(B,p)=>B+rr()*Math.max(0,B-OFF())-p;
+const delta=(p,t)=>(S.P-p/rr())*(Math.pow(1+rr(),t)-1);
+function balAt(p,n){if(!OFF())return S.P+delta(p,n);let B=S.P;for(let k=0;k<n;k++)B=step(B,p);return B}
+const exitCache=new Map();
+function exitPay(n){
+  if(!OFF()){const r=rr();return S.P*r/(1-Math.pow(1+r,-n))}
+  n=Math.max(1,Math.round(n));const key=[S.P,S.rate,S.freq,OFF(),n].join();if(exitCache.has(key))return exitCache.get(key);
+  let lo=0,hi=S.P/n+S.P*rr()+1;for(let i=0;i<60;i++){const m=(lo+hi)/2;if(balAt(m,n)>0)lo=m;else hi=m}
+  if(exitCache.size>20000)exitCache.clear();const v=(lo+hi)/2;exitCache.set(key,v);return v}
+function exitN(p){
+  if(p<=IO()*(1+1e-9))return Infinity;
+  if(!OFF()){const r=rr();return -Math.log(1-S.P*r/p)/Math.log(1+r)}
+  let B=S.P;for(let k=1;k<=200*S.freq;k++){const nb=step(B,p);if(nb<=0)return k-1+B/(B-nb);B=nb}return Infinity}
+/* follow YOUR loan exactly, period by period, for up to 100 years */
+function run(p,withExtra){
+  const Tp=TP(),tol=S.P*1e-7,xk=withExtra&&S.lump>0?Math.round(S.lumpY*S.freq):-1;
+  const rec=withExtra?(S.rec||0):0,rf=(S.recFrom||0)*S.freq,rt=S.recTo>0?S.recTo*S.freq:Infinity,top=withExtra?(S.top||0)*12/S.freq:0;
+  let B=S.P,int=0,paid=null,dbl=null,atT=null,tot=0,totT=null;const pts=[[0,0]];
+  if(xk===0){const x=Math.min(B,S.lump);B-=x;tot+=x;pts.push([0,B-S.P])}
+  if(B<=tol)paid=0;
+  for(let k=1;k<=100*S.freq&&paid===null;k++){
+    const off=OFF()+top*(k-1),i=rr()*Math.max(0,B-off);int+=i;
+    const pay=p+(k-1>=rf&&k-1<rt?rec:0)+(k===xk?S.lump:0);let nb=B+i-pay;tot+=Math.min(pay,B+i);
+    if(nb<=tol){paid=k;if(k-1<Tp)pts.push([k-1+B/(B-nb),-S.P]);nb=0}
+    else if(k<=Tp)pts.push([k,nb-S.P]);
+    if(dbl===null&&nb>=2*S.P)dbl=k;
+    if(k===Tp){atT=nb;totT=tot}B=nb}
+  return{paid,int,dbl,atT:atT===null?0:atT,pts,tot,totT:totT===null?tot:totT}}
+const money=v=>(v<0?'−':'')+'$'+Math.round(Math.abs(v)).toLocaleString('en-AU');
+const kfmt=a=>{a=Math.abs(a);return '$'+(a>=1e6?parseFloat((a/1e6).toFixed(2))+'M':a>=1e4?Math.round(a/1e3)+'k':a>=1e3?parseFloat((a/1e3).toFixed(1))+'k':Math.round(a))};
+const ym=y=>{const m=Math.round(y*12),a=Math.floor(m/12),b=m%12;return (a?a+' yr'+(a>1?'s':''):'')+(b?(a?' ':'')+b+' mo':'')||'0 mo'};
+
+/* payment slider: 0–500 grows (0 → equalised), 500–550 equalised → longest exit, 550–1000 longest exit → 1 year */
+const payFromS=s=>{const I=IO(),pT=exitPay(TP());if(s<=500)return I*s/500;if(s<=550)return I+(pT-I)*(s-500)/50;const y=S.T-(S.T-1)*(s-550)/450;return exitPay(y*S.freq)};
+const sFromPay=p=>{const I=IO(),pT=exitPay(TP());if(p<=I)return Math.max(0,500*p/I);if(p<=pT)return 500+50*(p-I)/(pT-I);const y=exitN(p)/S.freq;return Math.min(1000,550+450*(S.T-y)/(S.T-1))};
+
+const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const LOW=[[0,'#1d5bd8'],[.3,'#0e9488'],[.6,'#3db54a'],[.82,'#b5d22c'],[1,'#ffd000']].map(([f,h])=>[f,hex(h)]);
+const UP=[[0,'#ffd000'],[.4,'#ffa400'],[.7,'#ff6a00'],[1,'#c4122f']].map(([f,h])=>[f,hex(h)]);
+const col=(st,f,a)=>{f=Math.min(1,Math.max(0,f));let i=1;while(i<st.length-1&&f>st[i][0])i++;const[f0,c0]=st[i-1],[f1,c1]=st[i],u=(f-f0)/(f1-f0||1);return 'rgba('+c0.map((v,j)=>Math.round(v+(c1[j]-v)*u))+','+a+')'};
+const niceStep=raw=>{const m=Math.pow(10,Math.floor(Math.log10(raw)));for(const k of[1,2,2.5,5,10])if(k*m>=raw)return k*m};
+
+function build(){
+  const Tp=TP(),I=IO(),step=Math.max(1,{yearly:S.freq,quarterly:S.freq/4,monthly:S.freq/12}[S.dens]);
+  const low=[],up=[],cnt=Math.round(Tp/step);
+  for(let k=1;k<=cnt;k++){
+    const n=OFF()?Math.max(1,Math.round(k*step)):k*step,yr=k*step/S.freq,bold=Math.abs(yr-Math.round(yr))<1e-6,p=exitPay(n);
+    low.push({p,end:n,frac:n/Tp,bold});
+    const pu=2*I-p; if(S.upper==='mirror'&&pu>0)up.push({p:pu,end:Tp,frac:(I-pu)/I,bold});
+  }
+  if(S.beyond){const ys=[35,40,45,50,60,80,100].filter(y=>y>S.T);if(S.T<30)ys.unshift(30);
+    for(const y of ys){const p=exitPay(y*S.freq),pu=2*I-p;low.push({p,end:Tp,frac:1,bold:false,bey:true});if(S.upper==='mirror')up.push({p:pu,end:Tp,frac:(I-pu)/I,bold:false,bey:true})}}
+  if(S.upper!=='mirror'){const sub={yearly:1,quarterly:4,monthly:12}[S.dens],J=S.T*sub;for(let j=1;j<J;j++)up.push({p:I*(1-j/J),end:Tp,frac:j/J,bold:j%sub===0})}
+  up.push({p:0,end:Tp,frac:1,bold:true});
+  up.sort((a,b)=>a.frac-b.frac);
+  return{low,up};
+}
+
+const fig=$('fig'),cv=$('cv'),ov=$('ov'),tip=$('tip');let G=null;
+function ylab(v){
+  const P=S.P;if(Math.abs(v)<P*1e-9)v=0;
+  if(S.mode==='balance')return kfmt(P+v);
+  if(S.mode==='percent')return (v>0?'+':v<0?'−':'')+Math.round(Math.abs(v)/P*100)+'%';
+  return v===0?'$0':(v>0?'+':'−')+kfmt(v);
+}
+function draw(){
+  const W=fig.clientWidth,H=fig.clientHeight,d=window.devicePixelRatio||1;
+  if(!W||!H)return;
+  for(const c of[cv,ov]){c.width=Math.round(W*d);c.height=Math.round(H*d)}
+  const x=cv.getContext('2d');x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,W,H);
+  const ink=getComputedStyle(document.body).color,mute=getComputedStyle($('cMute')).color,line=getComputedStyle($('cLine')).color,panel=getComputedStyle($('cPanel')).color;
+  const phone=document.documentElement.dataset.device==='phone',LAB=S.labels&&!phone,narrow=W<560,L=narrow?60:66,R=narrow?78:100,Tm=12,B=LAB?(narrow?84:100):34;
+  const pw=W-L-R,ph=H-Tm-B,P=S.P,yMin=-P,yMax=S.cap?S.cap*P:P*0.06,Tp=TP(),I=IO();
+  const X=t=>L+t/Tp*pw,Y=v=>Tm+(yMax-v)/(yMax-yMin)*ph;
+  G={L,Tm,pw,ph,Tp,W,H,X,Y,ink,panel};
+  const font=s=>s+'px Geist,system-ui,sans-serif';
+
+  /* grid */
+  x.font=font(12);x.lineWidth=1;
+  const yt=niceStep((yMax-yMin)/Math.max(3,ph/46));
+  x.textAlign='right';x.textBaseline='middle';
+  for(let v=Math.ceil(yMin/yt)*yt;v<=yMax+1e-6;v+=yt){const yy=Math.round(Y(v))+.5;x.strokeStyle=line;x.beginPath();x.moveTo(L,yy);x.lineTo(L+pw,yy);x.stroke();x.fillStyle=mute;x.fillText(ylab(v),L-8,yy)}
+  const xs=[1,2,5,10].find(s=>pw/(S.T/s)>=(narrow?30:28))||10;
+  x.textAlign='center';x.textBaseline='top';
+  for(let yr=0;yr<=S.T;yr++){const xx=Math.round(X(yr*S.freq))+.5;x.strokeStyle=line;x.globalAlpha=yr%xs?.4:1;x.beginPath();x.moveTo(xx,Tm);x.lineTo(xx,Tm+ph);x.stroke();x.globalAlpha=1;if(yr%xs===0){x.fillStyle=mute;x.fillText(yr,xx,Tm+ph+6)}}
+  x.textAlign='left';x.fillText('years',L+pw+16,Tm+ph+6);
+
+  /* curves */
+  const{low,up}=S.cap?build():{...build(),up:[]};
+  const st=Tp/Math.min(360,Math.max(120,pw/2)),cl=v=>Math.max(yMin,Math.min(yMax*1.03+1,v));
+  const pts=c=>{const a=[];
+    if(!OFF()){for(let t=0;t<c.end;t+=st)a.push([t,cl(delta(c.p,t))]);a.push([c.end,cl(delta(c.p,c.end))]);return a}
+    const N=Math.ceil(c.end),ev=Math.max(1,Math.round(st));let B=S.P;a.push([0,0]);
+    for(let k=1;k<=N;k++){B=step(B,c.p);if(k%ev===0||k===N)a.push([k,cl(B-S.P)])}return a};
+  for(const c of low)c.pts=pts(c);for(const c of up)c.pts=pts(c);
+  const path=(a,rev,move)=>{const s=rev?a.slice().reverse():a;s.forEach(([t,v],i)=>i||!move?x.lineTo(X(t),Y(v)):x.moveTo(X(t),Y(v)))};
+  x.save();x.beginPath();x.rect(L,Tm,pw,ph);x.clip();
+  if(S.fill){
+    const fb=(a,b,c)=>{x.beginPath();path(a.pts,false,true);path(b.pts,true,false);x.closePath();x.fillStyle=c;x.fill()};
+    for(let i=0;i<low.length-1;i++)fb(low[i],low[i+1],col(LOW,low[i+1].frac,.16));
+    for(let i=0;i<up.length-1;i++)fb(up[i],up[i+1],col(UP,up[i+1].frac,.14));
+    const spine={pts:[[0,0],[Tp,0]]};if(up.length)fb(spine,up[0],col(UP,up[0].frac,.14));if(low.length)fb(low[low.length-1],spine,col(LOW,1,.16));
+  }
+  x.lineJoin='round';
+  for(const pass of[false,true]){
+    for(const[arr,stops]of[[low,LOW],[up,UP]])for(const c of arr){if(c.bold!==pass)continue;x.setLineDash(c.bey?[4,4]:[]);x.beginPath();path(c.pts,false,true);x.strokeStyle=c.bey?'rgba(212,163,0,.75)':col(stops,c.frac,pass?.95:.38);x.lineWidth=pass?2.2:c.bey?1.2:1;x.stroke()}
+    x.setLineDash([]);
+  }
+  x.beginPath();x.moveTo(X(0),Y(0));x.lineTo(X(Tp),Y(0));x.strokeStyle='#ffd000';x.lineWidth=4.5;x.stroke();
+
+  /* your payment */
+  const p=payFromS(S.s),me0=run(p,true);G.me=me0;const me={pts:me0.pts.map(([t,v])=>[t,cl(v)])};
+  if(S.lump>0||S.rec>0||S.top>0){const gh=run(p,false).pts.map(([t,v])=>[t,cl(v)]);x.setLineDash([6,5]);x.beginPath();path(gh,false,true);x.strokeStyle=ink;x.globalAlpha=.55;x.lineWidth=2;x.stroke();x.globalAlpha=1;x.setLineDash([])}
+  x.beginPath();path(me.pts,false,true);x.strokeStyle=panel;x.lineWidth=7;x.stroke();x.strokeStyle=ink;x.lineWidth=3;x.stroke();
+  const[lt,lv]=me.pts[me.pts.length-1];x.beginPath();x.arc(X(lt),Y(lv),5.5,0,7);x.fillStyle=ink;x.fill();x.strokeStyle=panel;x.lineWidth=2;x.stroke();
+  x.restore();
+  x.beginPath();x.moveTo(X(0),Math.round(Y(-P))-.5);x.lineTo(X(Tp),Math.round(Y(-P))-.5);x.strokeStyle=ink;x.lineWidth=1.2;x.stroke();
+
+  /* spine label */
+  x.textAlign='left';x.textBaseline='middle';x.fillStyle='#d4a300';x.font=font(narrow?11:13);
+  x.fillText('Equalised',L+pw+8,Y(0)-9);x.fillText(kfmt(I).replace('$','$')+'/'+FL[S.freq],L+pw+8,Y(0)+8);
+  if(I<1e4){x.clearRect(L+pw+6,Y(0)+1,R-6,16);x.fillText(money(I)+'/'+FL[S.freq],L+pw+8,Y(0)+8)}
+
+  /* exit payment labels */
+  if(LAB){
+    const fs=narrow?10:11;x.font=font(fs);
+    const ls=[1,2,5,10].find(s=>pw/(S.T/s)>=fs+9)||10;
+    for(let yr=ls;yr<=S.T;yr+=ls){
+      const xx=Math.round(X(yr*S.freq))+.5,t=money(exitPay(yr*S.freq))+'/'+FL[S.freq],tw=x.measureText(t).width;
+      x.strokeStyle=col(LOW,yr/S.T,.9);x.setLineDash([2,3]);x.lineWidth=1;x.beginPath();x.moveTo(xx,Tm+ph+22);x.lineTo(xx,H-tw-8);x.stroke();x.setLineDash([]);
+      x.save();x.translate(xx,H-3);x.rotate(-Math.PI/2);x.textAlign='left';x.textBaseline='middle';x.fillStyle=mute;x.fillText(t,0,0);x.restore();
+    }
+  }
+}
+
+const PER=new Proxy({52:'week',26:'fortnight',12:'month',4:'quarter',2:'half-year',1:'year',365:'day'},{get:(o,k)=>o[k]||'payment period'});
+const pct=v=>parseFloat(v.toFixed(v<0.1?4:3))+'%';
+function rateSplit(){$('rateSplit').innerHTML='Periodic rate: <b>'+pct(S.rate/S.freq)+' a '+PER[S.freq]+'</b> (yearly rate ÷ '+S.freq+' payment'+(S.freq>1?'s':'')+' a year)<br>Daily rate: '+pct(S.rate/365)+' a day (yearly rate ÷ 365)'}
+function stats(){rateSplit();
+  const I=IO(),p=payFromS(S.s),f=FL[S.freq],R=run(p,true),EX=S.lump>0||S.rec>0||S.top>0,frozen=Math.abs(p-I)<=I*5e-4&&!EX;
+  const put=(o,l,v)=>{$('sOut').textContent=o;$('sIntL').textContent=l;$('sInt').textContent=v};
+  $('sEq').textContent=money(I)+'/'+f;$('sPay').textContent=money(p)+'/'+f;
+  if(frozen)put('Balance frozen','Interest each year, forever',money(I*S.freq));
+  else if(R.paid!==null)put('Paid off in '+ym(R.paid/S.freq),'Total interest',money(R.int));
+  else if(R.dbl!==null)put('Doubles in '+ym(R.dbl/S.freq),'Owed after '+S.T+' years',money(R.atT));
+  else put('Not paid off in 100 yrs','Owed after '+S.T+' years',money(R.atT));
+  $('payHint').textContent=frozen?'equalised':p>I?'pays off':'debt grows';
+  /* total paid and the comparison with the standard loan for the term */
+  if(R.paid!==null){$('sTotL').textContent='Total paid';$('sTot').textContent=money(R.tot);$('sTotN').textContent=money(S.P)+' loan + '+money(R.int)+' interest'}
+  else{$('sTotL').textContent='Paid in '+S.T+' years';$('sTot').textContent=money(R.totT);$('sTotN').textContent='and still '+money(R.atT)+' owing'}
+  const pStd=exitPay(S.term*S.freq),RS=run(pStd,false);$('sStdL').textContent='vs standard '+S.term+'-yr loan';
+  if(R.paid===null){$('sStd').textContent='Never pays off';$('sStdN').textContent='standard is '+money(pStd)+'/'+f}
+  else{const dI=RS.int-R.int,dT=(RS.paid-R.paid)/S.freq;
+    if(Math.abs(dI)<1&&Math.abs(dT)<1/24){$('sStd').textContent='Same';$('sStdN').textContent='this is the standard payment'}
+    else{$('sStd').textContent=(dI>=0?'Saves ':'Costs ')+money(Math.abs(dI));$('sStdN').textContent=(dT>=0?ym(dT)+' sooner':ym(-dT)+' longer')+' · standard '+money(pStd)+'/'+f}}
+  const box=$('sLumpBox');box.hidden=!EX;
+  if(EX){const R0=run(p,false);let t;
+    if(R.paid!==null&&R0.paid!==null)t=money(R0.int-R.int)+' less interest, '+ym((R0.paid-R.paid)/S.freq)+' sooner';
+    else if(R.paid!==null)t='Turns it into a payoff: '+ym(R.paid/S.freq);
+    else t=money(R0.atT-R.atT)+' less owed at year '+S.T;
+    $('sLump').textContent=t}
+}
+
+function sync(){
+  const act=document.activeElement;
+  const set=(id,v)=>{if(act!==$(id))$(id).value=v};
+  set('loanR',S.P);set('loanN',grp(S.P));set('rateR',S.rate);set('rateN',S.rate);set('termR',S.T);set('payR',S.s);set('payN',grp(payFromS(S.s)));
+  $('offR').max=Math.round(S.P*.95);set('offR',OFF());set('offN',grp(OFF()));$('lumpR').max=S.P;set('lumpR',S.lump);set('lumpN',grp(S.lump));$('lumpYR').max=S.T;set('lumpYR',S.lumpY);$('lumpYO').textContent=S.lumpY===0?'at the start':'after '+ym(S.lumpY);
+  $('termO').textContent=S.T+' years';set('termLR',S.term);set('termN',S.term);
+  const pS=exitPay(S.term*S.freq);$('recR').max=Math.max(500,Math.round(pS/50)*50);set('recR',S.rec);set('recN',grp(S.rec));set('recFrom',S.recFrom);set('recTo',S.recTo);set('topR',S.top);set('topN',grp(S.top));
+  ticks();
+  const isC=showC||!PRESET.includes(S.freq);$('freqCBox').hidden=!isC;$('freqCHint').hidden=!(isC&&S.freq===13);set('freqC',S.freq);
+  document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>{const on=g.dataset.k==='freq'?(isC?b.dataset.v==='custom':String(S.freq)===b.dataset.v):String(S[g.dataset.k])===b.dataset.v;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)}));
+  $('labels').checked=S.labels;$('fill').checked=S.fill;$('beyond').checked=S.beyond;
+  $('yTitle').textContent={change:'Change in Principal ($)',balance:'Balance Owing ($)',percent:'Change in Principal (% of loan)'}[S.mode];
+}
+/* undo history: one step per burst of changes, so a whole slider drag undoes in one go */
+const HIST=[];let cur=null,burstT=0,restoring=false;
+function remember(){const j=JSON.stringify(S),now=Date.now();
+  if(cur===null||restoring){cur=j;restoring=false}
+  else if(j!==cur){if(now-burstT>600){HIST.push(cur);if(HIST.length>100)HIST.shift();REDO.length=0}cur=j;burstT=now}
+  $('undo').disabled=!HIST.length;$('redo').disabled=!REDO.length}
+const REDO=[];
+function undo(){if(!HIST.length)return;REDO.push(cur);S={...DEF,...JSON.parse(HIST.pop())};restoring=true;burstT=0;update()}
+function redo(){if(!REDO.length)return;HIST.push(cur);S={...DEF,...JSON.parse(REDO.pop())};restoring=true;burstT=0;update()}
+const grp=v=>Math.round(v).toLocaleString('en-AU');
+function update(){remember();save();sync();stats();draw();if(typeof pin!=='undefined'&&pin)showAt(pin.px,pin.py)}
+
+const num=(v,lo,hi,dflt)=>{v=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isFinite(v)?Math.min(hi,Math.max(lo,v)):dflt};
+$('loanR').addEventListener('input',e=>{S.P=+e.target.value;update()});
+$('loanN').addEventListener('input',e=>{const v=num(e.target.value,1000,1e8,null);if(v){S.P=v;update()}});
+$('rateR').addEventListener('input',e=>{S.rate=+e.target.value;update()});
+$('rateN').addEventListener('input',e=>{const v=num(e.target.value,.25,25,null);if(v){S.rate=v;update()}});
+$('termR').addEventListener('input',e=>{const p=payFromS(S.s);S.T=+e.target.value;S.s=sFromPay(p);update()});
+$('payR').addEventListener('input',e=>{S.s=+e.target.value;update()});
+$('payN').addEventListener('input',e=>{const v=num(e.target.value,0,1e8,null);if(v!==null){S.s=sFromPay(v);update()}});
+document.querySelectorAll('.seg').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=g.dataset.k,v=b.dataset.v;if(k==='freq'&&v==='custom'){S.freq=S.customF||13;S.customF=S.freq;showC=true}else{S[k]=(k==='freq'||k==='cap')?+v:v;if(k==='freq')showC=false}update()}));
+$('freqC').addEventListener('input',e=>{const v=Math.round(num(e.target.value,1,365,null));if(v){S.freq=v;S.customF=v;showC=true;update()}});
+$('freqC').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur()});
+$('offR').addEventListener('input',e=>{S.off=+e.target.value;update()});
+$('offN').addEventListener('input',e=>{const v=num(e.target.value,0,1e9,null);if(v!==null){S.off=v;update()}});
+$('lumpR').addEventListener('input',e=>{S.lump=+e.target.value;update()});
+$('lumpN').addEventListener('input',e=>{const v=num(e.target.value,0,1e9,null);if(v!==null){S.lump=v;update()}});
+$('lumpYR').addEventListener('input',e=>{S.lumpY=+e.target.value;update()});
+$('termLR').addEventListener('input',e=>{S.term=+e.target.value;update()});
+$('termN').addEventListener('input',e=>{const v=num(e.target.value,1,40,null);if(v){S.term=Math.round(v);update()}});
+$('recR').addEventListener('input',e=>{S.rec=+e.target.value;update()});
+$('recN').addEventListener('input',e=>{const v=num(e.target.value,0,1e7,null);if(v!==null){S.rec=v;update()}});
+$('recFrom').addEventListener('input',e=>{const v=num(e.target.value,0,100,null);if(v!==null){S.recFrom=v;update()}});
+$('recTo').addEventListener('input',e=>{const v=num(e.target.value,0,100,null);if(v!==null){S.recTo=v;update()}});
+$('topR').addEventListener('input',e=>{S.top=+e.target.value;update()});
+$('topN').addEventListener('input',e=>{const v=num(e.target.value,0,1e7,null);if(v!==null){S.top=v;update()}});
+$('payTicks').addEventListener('click',e=>{const b=e.target.closest('button');if(b){S.s=+b.dataset.s;burstT=0;update()}});
+$('toTracker').addEventListener('click',()=>{try{localStorage.setItem('loanTracker.handoff',JSON.stringify({P:S.P,rate:S.rate,freq:S.freq,term:S.term,pay:Math.round(payFromS(S.s)*100)/100}))}catch(e){}location.href='tracker.html'});
+/* payment slider landmarks: $0, equalised, then exit years */
+function ticks(){const el=$('payTicks'),T=S.T,at=y=>550+450*(T-y)/(T-1),pts=[[0,'$0'],[500,'Equalised'],[550,T+'y']];
+  for(const y of[S.term,20,10,5,1])if(y<T&&y>=1)pts.push([at(y),y+'y'+(y===S.term?' (term)':'')]);
+  const w=el.clientWidth||600,gap=Math.max(70,1000*50/w),used=[];if(w<300)pts[1][1]='Equal.';el.innerHTML=pts.filter(([v])=>{if(used.some(u=>Math.abs(u-v)<gap))return false;used.push(v);return true}).map(([v,t])=>'<button data-s="'+v+'" style="left:'+(v/10)+'%">'+t+'</button>').join('')}
+$('labels').addEventListener('change',e=>{S.labels=e.target.checked;update()});
+$('fill').addEventListener('change',e=>{S.fill=e.target.checked;update()});
+$('beyond').addEventListener('change',e=>{S.beyond=e.target.checked;update()});
+$('reset').addEventListener('click',()=>{const keep={};for(const k of['mode','dens','cap','labels','fill','beyond','upper','customF'])keep[k]=S[k];S={...DEF,...keep};std30();burstT=0;update()});
+$('redo').addEventListener('click',redo);
+$('undo').addEventListener('click',undo);
+document.querySelectorAll('.unit input').forEach(el=>{el.addEventListener('keydown',e=>{if(e.key==='Enter')el.blur()});el.addEventListener('blur',sync)});
+document.addEventListener('keydown',e=>{if(!(e.ctrlKey||e.metaKey)||document.activeElement?.type==='number')return;const k=e.key.toLowerCase();if(k==='z'&&!e.shiftKey){e.preventDefault();undo()}else if((k==='z'&&e.shiftKey)||k==='y'){e.preventDefault();redo()}});
+
+/* hover readout */
+const hide=()=>{tip.style.display='none';const o=ov.getContext('2d');o.setTransform(1,0,0,1,0,0);o.clearRect(0,0,ov.width,ov.height)};
+let pin=null,downAt=null;
+function showAt(px,py){
+  if(!G||px<G.L||px>G.L+G.pw||py<G.Tm||py>G.Tm+G.ph){hide();return false}
+  const t=(px-G.L)/G.pw*G.Tp,d=window.devicePixelRatio||1,o=ov.getContext('2d');
+  o.setTransform(d,0,0,d,0,0);o.clearRect(0,0,G.W,G.H);o.strokeStyle=G.ink;o.globalAlpha=.5;o.lineWidth=1;o.beginPath();o.moveTo(px+.5,G.Tm);o.lineTo(px+.5,G.Tm+G.ph);o.stroke();o.globalAlpha=1;
+  const p=payFromS(S.s),f=FL[S.freq],me=G.me,last=me.pts[me.pts.length-1],done=me.paid!==null&&t>=last[0];
+  let v=-S.P;if(!done){let i=Math.min(me.pts.length-2,Math.max(0,Math.floor(t)));while(i>0&&me.pts[i][0]>t)i--;while(i<me.pts.length-2&&me.pts[i+1][0]<t)i++;const[a0,b0]=me.pts[i],[a1,b1]=me.pts[i+1]||me.pts[i];v=a1>a0?b0+(b1-b0)*(t-a0)/(a1-a0):b1}
+  if(!done){o.beginPath();o.arc(px,Math.max(G.Tm,Math.min(G.Tm+G.ph,G.Y(v))),5,0,7);o.fillStyle=G.ink;o.fill()}
+  tip.innerHTML=(pin?'<small style="opacity:.7">Pinned · tap again to clear</small><br>':'')+'<b>'+ym(t/S.freq)+' in</b><br>Your path: '+(done?'paid off':ylab(v))+'<br>To exit right here: '+(t>.5?money(exitPay(Math.max(1,Math.round(t))))+'/'+f:'—');
+  tip.style.display='block';const tw=tip.offsetWidth;tip.style.left=Math.min(G.W-tw-4,Math.max(4,px+(px>G.W/2?-tw-14:14)))+'px';tip.style.top=Math.max(4,py-70)+'px';
+  return true}
+const pos=e=>{const r=fig.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+fig.addEventListener('pointermove',e=>{const[px,py]=pos(e);if(pin){if(e.buttons){pin={px,py};showAt(px,py)}return}showAt(px,py)});
+fig.addEventListener('pointerdown',e=>{downAt=pos(e)});
+fig.addEventListener('pointerup',e=>{const[px,py]=pos(e);const tap=downAt&&Math.hypot(px-downAt[0],py-downAt[1])<8;downAt=null;
+  if(pin&&tap){pin=null;hide();return}pin={px,py};if(!showAt(px,py))pin=null});
+fig.addEventListener('pointerleave',()=>{if(pin)showAt(pin.px,pin.py);else hide()});
+
+function selfTest(){
+  const keep=S;S={...DEF};const r=S.rate/1200,P=S.P,c=[],near=(a,b,t)=>Math.abs(a-b)<=t;
+  const top=p=>Math.log((2*P-p/r)/(P-p/r))/Math.log(1+r);
+  c.push(['Equalised $1,500.00',near(IO(),1500,.005)]);
+  [[30,1798.65],[10,3330.62],[5,5799.84],[1,25819.93]].forEach(([y,v])=>c.push([y+'-yr exit $'+v,near(exitPay(y*12),v,.005)]));
+  c.push(['$3,600 exits in about 108.1 mo',near(exitN(3600),108.1,.05)]);
+  c.push(['$0 reaches +$300k in about 139.0 mo',near(top(0),139.0,.05)]);
+  c.push(['$750 reaches +$300k in about 220.3 mo',near(top(750),220.3,.05)]);
+  c.push(['$1,650 after 5 yrs about −$10,466',near(delta(1650,60),-10466,.6)]);
+  c.push(['$1,500 stays at $0',Math.abs(delta(1500,360))<1e-6]);
+  S.P=360000;const sc=exitN(3600*1.2);S.P=300000;c.push(['Scale ×1.2 gives same exit',near(sc,exitN(3600),1e-9)]);
+  let B=P;const p30=exitPay(360);for(let k=0;k<360;k++)B=B*(1+r)-p30;c.push(['Month-by-month loop agrees',Math.abs(B)<1e-6]);
+  S=keep;const bad=c.filter(x=>!x[1]),el=$('selftest');
+  el.textContent=bad.length?'Self-test: '+bad.length+' of '+c.length+' failed: '+bad.map(x=>x[0]).join('; '):'✓ Self-test on load: all '+c.length+' checks from the build spec passed.';
+  el.className=bad.length?'bad':'good';return c.map(([n,ok])=>({n,ok}))}
+const SELF=selfTest();
+window.LoanMath={selfTest:()=>SELF,exitPay,delta,exitN,run,balAt,OFF,payFromS,sFromPay,IO,state:()=>({...S}),set:o=>{Object.assign(S,o);update()},readout:()=>({lump:$('sLumpBox').hidden?null:$('sLump').textContent,eq:$('sEq').textContent,pay:$('sPay').textContent,out:$('sOut').textContent,intL:$('sIntL').textContent,int:$('sInt').textContent})};
+const std30=()=>{S.s=sFromPay(exitPay(Math.min(S.term||30,S.T)*S.freq))};
+if(!saved)std30();
+const ro=new ResizeObserver(()=>{draw();if(pin)showAt(pin.px,pin.py)});ro.observe(fig);
+const mo=new MutationObserver(draw);mo.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw)}catch(e){}
+window.addEventListener('devicechange',()=>requestAnimationFrame(draw));
+update();
+}
+</script>
+<script>window.addEventListener('themechange',()=>{draw()});addEventListener('resize',()=>ticks());addEventListener('devicechange',()=>requestAnimationFrame(ticks));</script>
+</body>
+</html>
