@@ -15,7 +15,7 @@
 <script>
 /* colour theme: Auto (follows the phone), Light or Dark. Shared by both pages, remembered in this browser. Runs before the page paints. */
 (function(){var K='loanTheme',r=document.documentElement,v='auto';
- if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loanSettings)window.loanTheme.refresh();if(d.loan==='reloadAll')location.reload();if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})}
+ if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){if(e.source!==window.parent||e.origin!==location.origin)return;var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loanSettings)window.loanTheme.refresh();if(d.loan==='reloadAll')location.reload();if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})}
  var KS='loanSettings.v1',sc='indigo';
  function cfg(){try{return JSON.parse(localStorage.getItem(KS))||{}}catch(e){return {}}}
  var REG={AU:['en-AU','$'],NZ:['en-NZ','$'],UK:['en-GB','£'],US:['en-US','$'],CA:['en-CA','$']},c0=cfg(),cc=REG[c0.country]?c0.country:'AU';
@@ -220,7 +220,7 @@ tr.fut td:first-child{color:var(--acc);font-weight:500}
 .scSide span{font-size:12px;text-transform:uppercase;letter-spacing:.06em;opacity:.8;font-weight:600}.scSide b{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}.scSide small{font-size:12.5px;opacity:.85}
 .scParts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
 .scParts span{display:inline-flex;align-items:baseline;gap:8px;padding:6px 12px;border-radius:99px;background:rgba(255,255,255,.12);font-size:13.5px}
-.scParts i{font-style:normal;opacity:.85}.scParts b{font-weight:600}.scParts b.m{color:#ffd0c2}
+.scParts i{font-style:normal;opacity:.85}.scParts b{font-weight:600}.scParts b.m{color:#ffd0c2}.scParts .rfx{background:rgba(0,0,0,.18);border:1px dashed rgba(255,255,255,.35)}
 .scFoot{grid-column:1/-1;margin:0;font-size:12.5px;opacity:.75}
 @media(max-width:900px){.score{grid-template-columns:minmax(0,1fr)}}
 html[data-device=phone] .score{margin:0 0 12px;padding:16px 14px;grid-template-columns:minmax(0,1fr)}
@@ -295,6 +295,11 @@ html[data-device=phone] .nodeMenu button{min-height:44px}
 .homeL{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:2px 10px 2px 4px;margin:0 0 2px -4px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;cursor:pointer;transition:background .15s}
 .homeL img{width:26px;height:26px;border-radius:7px}.homeL:hover{background:var(--soft);color:var(--acc)}.homeL:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 html.embed .homeL{display:none}
+.assume{background:var(--bg);border-radius:12px;padding:12px 14px}.assume h3{margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.assume ul{margin:0;padding-left:18px;font-size:13px;color:var(--mute);display:grid;gap:3px}
+.stress{margin-top:4px!important;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,#f59e0b 12%,var(--panel))}
+.broken{margin:0 0 12px;padding:12px 14px;border-radius:12px;background:var(--bad-bg);color:var(--ink);font-size:14px}.broken[hidden]{display:none}
+.neKeep button{flex:1 1 45%;font-size:13px}
 
 /* node editor: docked beside the chart on a computer (the chart shrinks, nothing is covered); minimise to a small pill */
 html:not([data-device=phone]) .chart.editing{padding-right:356px}
@@ -335,7 +340,8 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
 @media print{
   @page{margin:12mm}
   html,body{background:#fff!important;color:#000}
-  #topSw,#devSw,nav,.bar,.saveCard,.cols aside,.logp .add,#eMsg,.note,#trLock,.nodeEd,.nodeMenu,.trToast,.refi,.homeL,.capTip,.tip,.x,.mini,#welcome,.set-ov{display:none!important}
+  #topSw,#devSw,nav,.bar,.saveCard,.cols aside,.logp .add,#eMsg,#preImp,.broken,.dispPop,#trLock,.nodeEd,.nodeMenu,.trToast,.refi,.homeL,.capTip,.tip,.x,.mini,#welcome,.set-ov{display:none!important}
+  .note,.assume{break-inside:avoid}
   .printHead{display:block;font-size:13px;margin:0 0 6px;color:#333}
   .wrap{padding:0!important;max-width:none}
   .score{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-shadow:none;break-inside:avoid}
@@ -353,6 +359,7 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
 <body>
 <div class="wrap">
   <p class="printHead" id="printHead"></p>
+  <div class="broken" id="broken" hidden role="alert"><b>Something in this loan’s data couldn’t be shown.</b> Your other loans are safe. <button type="button" class="mini" onclick="document.getElementById('undo').click()">Undo last change</button> <button type="button" class="mini" onclick="document.getElementById('preImp').click()">Restore before import</button></div>
   <nav><a href="index.html">← Every path out of a loan</a></nav>
   <a class="homeL" href="index.html?home=1" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Bank Loan Visualised</span></a>
   <h1>Loan Tracker</h1>
@@ -384,7 +391,7 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
       <div><span>Streak</span><b id="scStreak">0 mo</b><small id="scStreakN"></small></div>
     </div>
     <div class="scParts" id="scParts"></div>
-    <p class="scFoot">Measured against the bank’s standard schedule for your loan, and always until your loan is paid off, so every saving on this page adds up the same way.</p>
+    <p class="scFoot">Counts only what you did: compared with the same loan paid at the standard repayment, with the same rate changes (a bank recalculates your repayment when rates move). Always measured until your loan is paid off.</p>
   </section>
 
   <section class="panel chart">
@@ -402,6 +409,12 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
     <h3 class="sSub">Where your money goes</h3>
     <div class="sGrid three"><div class="sBox" id="hSplit"></div><div class="sBox" id="hNext"></div><div class="sBox" id="hEq"></div></div>
     <div class="sPace" id="hPace"></div>
+    <div class="assume" id="assume"><h3>What these numbers assume</h3><ul>
+      <li>Interest is worked out once per repayment on the balance at that time. Banks work it out daily, so your bank’s figures will differ a little: usually slightly higher for monthly repayments and lower for weekly or fortnightly ones.</li>
+      <li>Rates change only where you add a rate change. When they do, the bank recalculates your repayment to keep the same end date, unless you choose “I keep paying the same”.</li>
+      <li>Savings are always measured until the loan is paid off, against the same loan paid at the standard repayment with the same rate changes.</li>
+      <li>Offset money counts from today. No fees, lenders mortgage insurance or tax are included.</li>
+      <li>Everything comes from what you entered. Educational tool, not financial advice.</li></ul></div>
     <details id="hMon" class="sMon"><summary>Month by month</summary>
       <div class="monWrap"><table class="mon"><thead><tr><th>Month</th><th style="text-align:right">Regular paid</th><th style="text-align:right">Extra / redraw</th><th style="text-align:right">Interest</th><th style="text-align:right">Owed at end</th><th>Pace</th></tr></thead><tbody id="monRows"></tbody></table></div>
     </details>
@@ -474,12 +487,12 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
         <div class="ctl"><label for="eNote">Note (optional)</label><input class="f" id="eNote" maxlength="80"></div>
         <button class="btn pri" id="eAdd">Add</button>
       </div>
-      <p class="hint" id="eMsg"></p>
+      <p class="hint" id="eMsg"></p><button type="button" class="mini" id="preImp" hidden>Restore what I had before importing</button>
       <table><thead><tr><th>Date</th><th>Type</th><th style="text-align:right">Amount</th><th>Note</th><th>Check</th><th>Logged</th><th></th></tr></thead><tbody id="rows"></tbody></table>
     </section>
   </div>
 
-  <p class="note">Saved in this browser only (no account yet), so use Export now and then as a backup. Interest is charged once per payment period on the balance at that time, and the rate is treated as fixed. Real banks work interest out daily, so the line will drift slightly from your bank's figure over time; a bank balance check snaps it back to the real number. Educational tool, not financial advice.</p>
+  <p class="note">Saved in this browser only (no account), so save a backup file now and then. On iPhone, Safari can clear a website’s data after about 7 days without a visit unless you add it to your Home Screen. The numbers follow the assumptions listed under “Your loan story”. Educational tool, not financial advice.</p>
 </div>
 <i class="k" id="cMute" style="color:var(--mute)"></i><i class="k" id="cAcc" style="color:var(--acc)"></i><i class="k" id="cLine" style="color:var(--line)"></i><i class="k" id="cPanel" style="color:var(--panel)"></i><i class="k" id="cGood" style="color:var(--good)"></i><i class="k" id="cBad" style="color:var(--bad)"></i>
 
@@ -552,8 +565,28 @@ function example(){const p=blank('Example loan'),s=parse(p.start),at=m=>{const d
          {id:uid(),date:at(15),type:'redraw',amt:6000,note:'Example: car repairs',added:Date.now()},
          {id:uid(),date:at(20),type:'extra',amt:4000,note:'Example: bonus',added:Date.now()}];return p}
 let ST;
-try{ST=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-if(!ST||!ST.profiles||!Object.keys(ST.profiles).length){const id=uid();ST={v:1,cur:id,profiles:{[id]:example()}}}
+/* every profile is rebuilt from known fields, so a damaged or booby-trapped file can't break the page or run code */
+const okId=v=>typeof v==='string'&&/^[a-z0-9_-]{1,40}$/i.test(v),okDate=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&!isNaN(parse(v)),fin=(v,d,lo,hi)=>{v=typeof v==='string'?parseFloat(v.replace(/[^0-9.\-]/g,'')):v;return typeof v==='number'&&isFinite(v)&&v>=lo&&v<=hi?v:d};
+const LOGT=['extra','pay','goal','offset','rate','redraw','balance','note'];
+function cleanP(q){if(!q||typeof q!=='object')return null;const b=blank('Loan');
+  const p={name:String(q.name||'Untitled loan').replace(/[<>&"]/g,'').slice(0,40)||'Untitled loan',start:okDate(q.start)&&parse(q.start)<=TODAY?q.start:b.start,
+    P:fin(q.P,b.P,1000,1e9),rate:fin(q.rate,b.rate,0,25),freq:Math.round(fin(q.freq,12,1,365)),term:Math.round(fin(q.term,30,1,40)),pay:q.pay==null?null:fin(q.pay,null,0.01,1e8),
+    lines:[1,3,5,7].includes(+q.lines)?+q.lines:5,step:fin(q.step,250,1,1e7),view:+q.view===0?0:10,home:q.home==null?null:fin(q.home,null,1,1e10),log:[]};
+  if(q.customF)p.customF=Math.round(fin(q.customF,13,1,365));
+  if(q.off&&typeof q.off==='object')p.off={bal:fin(q.off.bal,0,0,1e9),top:fin(q.off.top,0,0,1e8)};
+  const seen=new Set();for(const e of Array.isArray(q.log)?q.log:[]){if(!e||!LOGT.includes(e.type)||!okDate(e.date))continue;
+    let id=okId(e.id)&&!seen.has(e.id)?e.id:uid();seen.add(id);
+    const n={id,date:e.date,type:e.type,amt:fin(e.amt,0,-1e9,1e9),note:String(e.note||'').slice(0,80),added:fin(e.added,Date.now(),0,1e14)};
+    if(n.type!=='offset'&&n.type!=='rate')n.amt=Math.abs(n.amt);if(n.type==='rate')n.amt=Math.min(25,n.amt);
+    if(n.type==='goal'){if(!okDate(e.until))continue;n.until=e.until}
+    if(n.type==='rate'&&e.keep==='pay')n.keep='pay';
+    for(const f of['plan','done','skip','drag'])if(e[f]===true)n[f]=true;p.log.push(n)}
+  return p}
+function cleanST(d){const out={v:1,cur:null,profiles:{}};if(!d||typeof d!=='object'||!d.profiles||typeof d.profiles!=='object')return null;
+  for(const[k,q]of Object.entries(d.profiles)){const p=cleanP(q);if(!p)continue;out.profiles[okId(k)&&!out.profiles[k]?k:uid()]=p}
+  const ids=Object.keys(out.profiles);if(!ids.length)return null;out.cur=ids.includes(d.cur)?d.cur:ids[0];return out}
+try{ST=cleanST(JSON.parse(localStorage.getItem(KEY)))}catch(e){ST=null}
+if(!ST){const id=uid();ST={v:1,cur:id,profiles:{[id]:example()}}}
 if(!ST.profiles[ST.cur])ST.cur=Object.keys(ST.profiles)[0];
 for(const q of Object.values(ST.profiles))if(q.view==null)q.view=10;
 
@@ -596,7 +629,9 @@ const MK=Object.fromEntries(Object.entries(TY).map(([k,v])=>[k,v.c]));
 const evSort=(a,b)=>a.date<b.date?-1:a.date>b.date?1:(a.added||0)-(b.added||0);
 const live=(p,o={})=>p.log.filter(e=>TY[e.type]&&!e.skip&&!(o.skip&&o.skip.has(e.id))&&parse(e.date)>=parse(p.start)).sort(evSort);
 /* s = {B balance, O offset, rate, pay regular payment, goal {amt,until}} */
-function applyEv(s,e){const t=e.type;
+const annF=(x,n)=>x>0?x/(1-Math.pow(1+x,-n)):1/n;
+function applyEv(s,e,p,k){const t=e.type;
+  if(t==='rate'&&p&&k&&e.keep!=='pay'){const n=Math.max(1,p.term*p.freq-(k-1)),f=annF(e.amt/100/p.freq,n)/annF(s.rate/100/p.freq,n);s.pay*=f;s.min*=f;if(s.goal)s.goal.amt*=f}
   if(t==='extra')s.B=Math.max(0,s.B-e.amt);else if(t==='redraw')s.B+=e.amt;else if(t==='balance')s.B=e.amt;
   else if(t==='pay'){s.pay=e.amt;s.goal=null}else if(t==='rate')s.rate=e.amt;
   else if(t==='goal')s.goal={amt:e.amt,until:parse(e.until||e.date).getTime()};
@@ -607,25 +642,25 @@ const offOn=p=>!!(p.off&&(p.off.bal>0||p.off.top>0));
 /* the past: start → today, one payment at a time, with your nodes applied on their dates */
 function past(p,o={}){
   const ev=live(p,o).filter(e=>parse(e.date)<=TODAY),std=stdPay(p);
-  const s={B:p.P,O:0,rate:p.rate,pay:regPay(p),goal:null};let k,ei=0,int=0,paidOff=null;
+  const s={B:p.P,O:0,rate:p.rate,pay:regPay(p),min:stdPay(p),goal:null};let k=1,ei=0,int=0,paidOff=null;
   const pts=[[parse(p.start),p.P,0]],marks=[],checks={},steps=[],flows=[];let paidTot=0;
   const applyUntil=lim=>{while(ei<ev.length&&parse(ev[ei].date)<=lim){const e=ev[ei++],d=parse(e.date),b0=s.B;
       if(e.type==='balance')checks[e.id]={model:b0,diff:e.amt-b0};
-      applyEv(s,e);if(s.B!==b0){pts.push([d,b0,steps.length]);pts.push([d,s.B,steps.length])}
+      if(o.noOff&&e.type==='offset')continue;applyEv(s,e,p,k);if(s.B!==b0){pts.push([d,b0,steps.length]);pts.push([d,s.B,steps.length])}
       if(e.type==='extra'){flows.push([d.getTime(),Math.min(e.amt,b0)]);paidTot+=Math.min(e.amt,b0)}if(e.type==='redraw')flows.push([d.getTime(),-e.amt]);
       marks.push({d,B:s.B,type:e.type,e})}};
   for(k=1;k<100000;k++){const d=payDate(p,k);if(d>TODAY)break;
     applyUntil(new Date(d.getTime()-1));
     if(s.goal&&d.getTime()>s.goal.until)s.goal=null;
     if(s.B<=0){paidOff=paidOff||d;break}
-    const r=s.rate/100/p.freq,i=r*s.B,due=payNow(s,d),pay=Math.min(due,s.B+i);int+=i;s.B=s.B+i-pay;
+    const r=s.rate/100/p.freq,i=r*Math.max(0,s.B-s.O),due=payNow(s,d),pay=Math.min(due,s.B+i);int+=i;s.B=s.B+i-pay;
     if(s.B<=1e-6){s.B=0;paidOff=d}
-    steps.push({d,i,pay,reg:due,B:s.B});paidTot+=pay;pts.push([d,s.B,steps.length-1]);if(paidOff)break}
+    steps.push({d,i,pay,reg:due,min:s.min,B:s.B});paidTot+=pay;pts.push([d,s.B,steps.length-1]);if(paidOff)break}
   applyUntil(TODAY);pts.push([TODAY,s.B,steps.length]);
   /* pace: what you paid around each payment (regular + net extras over the surrounding year), against the standard payment */
-  const Hh=182.6*864e5;for(const st of steps){const t=st.d.getTime();let net=0;for(const[ft,a]of flows)if(ft>=t-Hh&&ft<t+Hh)net+=a;st.pace=(st.reg+net/p.freq)/std}
+  const Hh=182.6*864e5;for(const st of steps){const t=st.d.getTime();let net=0;for(const[ft,a]of flows)if(ft>=t-Hh&&ft<t+Hh)net+=a;st.pace=(st.reg+net/p.freq)/(st.min||std)}
   /* your offset account counts from today: its balance today is what you entered */
-  if(!o.noOff&&offOn(p))s.O=p.off.bal||0;
+  if(o.noOff)s.O=0;else if(p.off&&p.off.bal>0)s.O=p.off.bal;
   const cs=steps.find(q=>q.i<q.pay/2);
   return{pts,marks,checks,B:s.B,int,paidOff,nextK:k,s,steps,std,paidTot,cross:cs?cs.d:null}}
 
@@ -635,7 +670,7 @@ function future(p,ps,o={}){
   const runLine=(j,limit)=>{const s={...ps.s,goal:ps.s.goal&&{...ps.s.goal}};if(o.noOff)s.O=0;
     const pts=[[TODAY,s.B]];let off=ps.paidOff?TODAY:null,int=0,ei=0,cover=null,cross=null,first=null;
     if(!off)for(let k=ps.nextK;k<ps.nextK+200*p.freq;k++){const d=payDate(p,k);if(limit&&d>limit){pts.push([d,s.B]);break}
-      while(ei<fe.length&&parse(fe[ei].date)<d){const e=fe[ei++],ed=parse(e.date),b0=s.B;if(o.noOff&&e.type==='offset')continue;applyEv(s,e);if(s.B!==b0)pts.push([ed,b0],[ed,s.B])}
+      while(ei<fe.length&&parse(fe[ei].date)<d){const e=fe[ei++],ed=parse(e.date),b0=s.B;if(o.noOff&&e.type==='offset')continue;applyEv(s,e,p,k);if(s.B!==b0)pts.push([ed,b0],[ed,s.B])}
       if(s.goal&&d.getTime()>s.goal.until)s.goal=null;
       if(s.B<=0){off=d;pts.push([d,0]);break}
       s.O+=top;if(!cover&&s.O>0&&s.O>=s.B)cover=d;
@@ -785,7 +820,9 @@ function stats(ps,fu){const p=PR(),pay=regPay(p);
 }
 /* the score: money saved against the bank's standard schedule, always measured until the loan is paid off */
 let SC=null;
-function score(ps,fu){const p=PR(),base=schedInt(p),bEnd=schedEnd(p),cur=ps.int+fu.mid.int,saved=base-cur,mo=fu.mid.off?moBetween(fu.mid.off,bEnd):null;
+/* the baseline: your loan with the same rate changes (the bank recalculating your repayment), standard repayments, and nothing extra */
+function baseProfile(p){return{...p,pay:null,off:null,log:p.log.filter(e=>e.type==='rate'&&!e.skip).map(e=>({...e,keep:undefined}))}}
+function score(ps,fu){const p=PR(),BL=life(baseProfile(p)),base=BL.int,bEnd=BL.off||schedEnd(p),cur=ps.int+fu.mid.int,saved=base-cur,mo=fu.mid.off?moBetween(fu.mid.off,bEnd):null,rateFx=schedInt(p)-base;
   /* split the saving, in order: your history, then your offset, then your plans ahead (the three always add up) */
   const planIds=p.log.filter(e=>!e.skip&&parse(e.date)>TODAY&&e.type!=='note'&&e.type!=='offset').map(e=>e.id),sk=planIds.length?{skip:new Set(planIds)}:{};
   const iHist=life(p,{...sk,noOff:true}).int,iOff=offOn(p)?life(p,sk).int:iHist,fromOff=iHist-iOff,fromPlans=iOff-cur;
@@ -793,16 +830,17 @@ function score(ps,fu){const p=PR(),base=schedInt(p),bEnd=schedEnd(p),cur=ps.int+
   const mons=[];for(const st of ps.steps){const k=st.d.getFullYear()*12+st.d.getMonth(),l=mons[mons.length-1];if(l&&l.k===k){l.s+=st.pace;l.n++}else mons.push({k,s:st.pace,n:1})}
   let streak=0;for(let i=mons.length-1;i>=0;i--){if(mons[i].s/mons[i].n>=.995)streak++;else break}
   let best=0,run=0;for(const mm of mons){if(mm.s/mm.n>=.995){run++;best=Math.max(best,run)}else run=0}
-  SC={saved,pct:base>0?saved/base:0,mo,fromOff,fromPlans,fromHist:base-iHist,streak,best,base,cur,never:!fu.mid.off};
+  SC={saved,pct:base>0?saved/base:0,mo,fromOff,fromPlans,fromHist:base-iHist,streak,best,base,cur,never:!fu.mid.off,rateFx};
   const el=$('score');el.classList.toggle('neg',saved<-.5);
-  countTo($('scSaved'),Math.abs(saved),v=>money(v));
+  if(SC.never){cancelAnimationFrame($('scSaved')._r);$('scSaved').textContent='—';$('scSaved').dataset.v=0}else countTo($('scSaved'),Math.abs(saved),v=>money(v));
   $('scLead').textContent=saved>=-.5?'You’re on track to save':'You’re on track to pay';
-  $('scSub').innerHTML=SC.never?'Your plan never pays the loan off, so this keeps growing. Add a node to pay more.':
-    (saved>=-.5?'in interest by the time your loan is paid off':'more interest than the bank’s schedule by the time it’s paid off')+' · <b>'+Math.round(Math.abs(SC.pct)*100)+'%</b> '+(saved>=-.5?'less':'more')+' than the '+money(base)+' the standard '+p.term+'-year schedule would cost';
+  $('scSub').innerHTML=SC.never?'Your plan never pays the loan off: the payment doesn\u2019t cover the interest. A bank wouldn\u2019t allow this; add a node to pay more.':
+    (saved>=-.5?'in interest by the time your loan is paid off':'more interest than the bank’s schedule by the time it’s paid off')+' · <b>'+Math.round(Math.abs(SC.pct)*100)+'%</b> '+(saved>=-.5?'less':'more')+' than the '+money(base)+' the same loan would cost with standard repayments'+(p.log.some(e=>e.type==='rate'&&!e.skip)?' (and the same rate changes)':'');
   $('scMo').textContent=mo==null?'–':ymo(mo);$('scMoN').textContent=mo==null?'not paid off':mo>=0?'sooner than '+my(bEnd):'later than '+my(bEnd);
   $('scStreak').textContent=streak+' mo';$('scStreakN').textContent=streak?'in a row at or above schedule'+(best>streak?' · best '+best:''):best?'best run: '+best+' mo. Pay a little extra to restart it':'pay at or above schedule to start one';
   const parts=[['History so far',SC.fromHist],['Your offset',SC.fromOff],['Plans ahead',SC.fromPlans]].filter(([,v])=>Math.abs(v)>=1);
-  $('scParts').innerHTML=parts.length?parts.map(([n,v])=>'<span><i>'+n+'</i><b'+(v<0?' class="m"':'')+'>'+(v<0?'−':'+')+money(Math.abs(v)).replace('−','')+'</b></span>').join(''):'<span><i>Add an extra repayment, an offset balance or a higher payment and your savings show up here.</i></span>'}
+  $('scParts').innerHTML=(parts.length?parts.map(([n,v])=>'<span><i>'+n+'</i><b'+(v<0?' class="m"':'')+'>'+(v<0?'−':'+')+money(Math.abs(v)).replace('−','')+'</b></span>').join(''):'<span><i>Add an extra repayment, an offset balance or a higher payment and your savings show up here.</i></span>')+
+    (Math.abs(rateFx)>=1?'<span class="rfx" title="Not counted in your score: you didn\u2019t choose it"><i>Rate changes (not counted)</i><b>'+(rateFx>0?'the market saved you ':'cost you ')+money(Math.abs(rateFx))+'</b></span>':'')}
 /* numbers count up to their new value */
 function countTo(el,v,f){const from=+el.dataset.v||0;el.dataset.v=v;if(matchMedia('(prefers-reduced-motion: reduce)').matches||Math.abs(v-from)<1||document.hidden){el.textContent=f(v);return}
   const t0=performance.now(),D=700;cancelAnimationFrame(el._r);const tick=n=>{const u=Math.min(1,(n-t0)/D),e=1-Math.pow(1-u,3);el.textContent=f(from+(v-from)*e);if(u<1)el._r=requestAnimationFrame(tick)};el._r=requestAnimationFrame(tick)}
@@ -818,19 +856,23 @@ function rows(ps){const p=PR(),tb=$('rows');
   tb.innerHTML=ev.map(e=>{const c=ps.checks[e.id],bad=parse(e.date)<parse(p.start),fut=parse(e.date)>TODAY;
     let chk=e.type==='balance'&&c?'Model said '+money(c.model)+'<br><small>off by '+money(c.diff)+'</small>':bad?'<small>Before the start date: ignored</small>':'';
     if(fut)chk+='<span class="st plan">Plan</span>';
-    else if(e.skip)chk+='<span class="st miss">Didn’t happen</span> <button class="mini" data-conf="'+e.id+'">It did</button>';
-    else if(e.plan&&!e.done)chk+='<span class="st ask">Planned: did it happen?</span> <button class="mini" data-conf="'+e.id+'">Yes</button> <button class="mini" data-skip="'+e.id+'">No</button>';
+    else if(e.skip)chk+='<span class="st miss">Didn’t happen</span> <button class="mini" data-conf="'+esc(e.id)+'">It did</button>';
+    else if(e.plan&&!e.done)chk+='<span class="st ask">Planned: did it happen?</span> <button class="mini" data-conf="'+esc(e.id)+'">Yes</button> <button class="mini" data-skip="'+esc(e.id)+'">No</button>';
     else if(e.plan)chk+='<span class="st kept">Plan kept ✓</span>';
-    return '<tr class="'+(e.skip?'skipped':'')+(fut?' fut':'')+'"><td>'+nice(parse(e.date))+'</td><td><span class="tag" style="--t:'+MK[e.type]+'">'+TY[e.type].i+' '+TY[e.type].n+'</span></td><td class="n">'+amtTxt(e,p)+'</td><td>'+esc(e.note)+'</td><td>'+chk+'</td><td><small>'+new Date(e.added).toLocaleString(loanRegion.locale,{dateStyle:'short',timeStyle:'short'})+'</small></td><td><button class="x" data-ed="'+e.id+'" title="Edit">✎</button><button class="x" data-del="'+e.id+'" title="Delete (you can undo)">×</button></td></tr>'}).join('')}
+    return '<tr class="'+(e.skip?'skipped':'')+(fut?' fut':'')+'"><td>'+nice(parse(e.date))+'</td><td><span class="tag" style="--t:'+MK[e.type]+'">'+TY[e.type].i+' '+TY[e.type].n+'</span></td><td class="n">'+amtTxt(e,p)+'</td><td>'+esc(e.note)+'</td><td>'+chk+'</td><td><small>'+new Date(e.added).toLocaleString(loanRegion.locale,{dateStyle:'short',timeStyle:'short'})+'</small></td><td><button class="x" data-ed="'+esc(e.id)+'" title="Edit">✎</button><button class="x" data-del="'+esc(e.id)+'" title="Delete (you can undo)">×</button></td></tr>'}).join('')}
 
+/* stress test: what your repayment would be if rates rose 3% (the buffer lenders test you at) */
+function stress(p,ps){const n=Math.max(1,p.term*p.freq-(ps.nextK-1)),B=Math.max(0,ps.B-(ps.s.O||0));if(!B)return'';const now=B*annF(ps.s.rate/100/p.freq,n),up=B*annF((ps.s.rate+3)/100/p.freq,n);
+  return'<p class="stress">📈 <b>If rates rose 3%</b> (to '+(ps.s.rate+3).toFixed(2).replace(/\.?0+$/,'')+'%), the minimum repayment would be about <b>'+money(up)+'/'+FL[p.freq]+'</b>, '+money(up-now)+' more than now. Lenders check you could manage this.</p>'}
 /* your loan story: age, actual vs schedule, plans kept, milestones, pace by year, month by month */
 function hist(ps,fu){const p=PR(),s0=parse(p.start),k=ps.steps.length,N=p.term*p.freq,age=moBetween(s0,TODAY);
   $('hAge').innerHTML='<h3>Loan age</h3><b>'+ymo(age)+'</b><p>Started '+nice(s0)+'. '+k+' of '+N+' scheduled payments made ('+Math.round(k/N*100)+'% of the '+p.term+'-year term).</p>';
-  const sb=sched(p,Math.min(k,N)),diff=sb-ps.B,kk=schedK(p,Math.max(0,ps.B)),aMo=Math.round((kk-k)*12/p.freq),sInt=stdPay(p)*Math.min(k,N)-(p.P-sb);
-  $('hVs').innerHTML='<h3>Actual vs the bank’s schedule</h3><b class="'+(diff>=-.5?'g':'r')+'">'+(diff>=-.5?money(diff)+' ahead':money(-diff)+' behind')+'</b><p>The standard schedule ('+money(stdPay(p))+'/'+FL[p.freq]+', no extras) has you owing '+money(sb)+' today. You owe '+money(ps.B)+(Math.abs(aMo)>=1?', about <b>'+ymo(aMo)+(aMo>0?' ahead':' behind')+'</b>':'')+'. Interest so far: '+money(ps.int)+' (schedule: '+money(sInt)+').</p>';
+  const bpP=baseProfile(p),bp=past(bpP),bf=future(bpP,bp,{noFan:true}),sb=bp.B,diff=sb-ps.B,sInt=bp.int,bAll=[...bp.pts,...bf.mid.pts];
+  let aMo=0;if(Math.abs(diff)>=1){const hit=bAll.find(q=>q[1]<=ps.B+.005);aMo=hit?moBetween(TODAY,hit[0]):0}
+  $('hVs').innerHTML='<h3>Actual vs the bank\u2019s schedule</h3><b class="'+(diff>=-.5?'g':'r')+'">'+(diff>=-.5?money(diff)+' ahead':money(-diff)+' behind')+'</b><p>At the standard repayment (now '+money(bp.s.pay)+'/'+FL[p.freq]+', no extras) you\u2019d owe '+money(sb)+' today. You owe '+money(ps.B)+(Math.abs(aMo)>=1?', about <b>'+ymo(aMo)+(aMo>0?' ahead':' behind')+'</b>':'')+'. Interest so far: '+money(ps.int)+' (schedule: '+money(sInt)+').</p>';
   const L=p.log.filter(e=>e.plan&&TY[e.type]),fut=L.filter(e=>parse(e.date)>TODAY),pastP=L.filter(e=>parse(e.date)<=TODAY),kept=pastP.filter(e=>e.done&&!e.skip),miss=pastP.filter(e=>e.skip),ask=pastP.filter(e=>!e.done&&!e.skip);
   $('hPlan').innerHTML='<h3>Your plans</h3><b>'+(pastP.length?kept.length+' kept'+(miss.length?' · '+miss.length+' missed':''):fut.length?fut.length+' planned':'None yet')+'</b><p>'+(pastP.length?fut.length+' still ahead'+(ask.length?'. '+ask.length+' date'+(ask.length>1?'s have':' has')+' passed. Did it happen?':'.'):fut.length?'When each date passes you can tick it off here.':'Add a node after Today to plan a lump sum, a pay rise or an offset deposit. When the date passes you can tick it off.')+'</p>'+
-    ask.slice(0,4).map(e=>'<div class="ask">'+TY[e.type].i+' '+nice(parse(e.date))+': '+amtTxt(e,p)+' <button class="mini" data-conf="'+e.id+'">Yes</button><button class="mini" data-skip="'+e.id+'">No</button></div>').join('');
+    ask.slice(0,4).map(e=>'<div class="ask">'+TY[e.type].i+' '+nice(parse(e.date))+': '+amtTxt(e,p)+' <button class="mini" data-conf="'+esc(e.id)+'">Yes</button><button class="mini" data-skip="'+esc(e.id)+'">No</button></div>').join('');
   $('hMs').innerHTML='<h3>Milestones</h3>'+MS.map(m=>'<div class="ms'+(m.t!=null&&m.t<=TODAY.getTime()?' done':'')+'"><i>'+(m.t!=null&&m.t<=TODAY.getTime()?'✓':'◇')+'</i><span>'+(m.q===1?'Debt-free':Math.round(m.q*100)+'% paid off')+'</span><b>'+(m.t==null?'not on your plan':(m.t<=TODAY.getTime()?'':'on track for ')+my(new Date(m.t)))+'</b></div>').join('');
   /* pace by loan year */
   const Yr=365.25*864e5,yrs=[];for(const st of ps.steps){const i=Math.max(0,Math.floor((st.d-s0-1)/Yr));(yrs[i]=yrs[i]||{s:0,n:0,a:st.d,b:st.d});yrs[i].s+=st.pace;yrs[i].n++;yrs[i].b=st.d}
@@ -840,7 +882,7 @@ function hist(ps,fu){const p=PR(),s0=parse(p.start),k=ps.steps.length,N=p.term*p
    $('hSplit').innerHTML='<h3>Paid so far</h3><b>'+money(ps.paidTot)+'</b><div class="split"><i class="sp" style="width:'+pi+'%"></i><i class="si" style="width:'+(100-pi)+'%"></i></div><p><span class="kP">■</span> '+money(prin)+' to the loan itself ('+Math.round(pi)+'%)<br><span class="kI">■</span> '+money(ps.int)+' to interest ('+Math.round(100-pi)+'%)</p>'}
   {const f=fu.mid.first,cr=ps.cross||fu.mid.cross;
    if(f&&!ps.paidOff){const pr=Math.max(0,f.amt-f.i),pp=pr/(f.amt||1)*100;
-     $('hNext').innerHTML='<h3>Your next payment</h3><b>'+money(f.amt)+'</b><div class="split"><i class="sp" style="width:'+pp+'%"></i><i class="si" style="width:'+(100-pp)+'%"></i></div><p><span class="kP">■</span> '+money(pr)+' off the loan · <span class="kI">■</span> '+money(f.i)+' interest</p><p>'+(cr?(+cr<=+TODAY?'Since <b>'+my(cr)+'</b> most of each payment goes to the loan itself.':'From <b>'+my(cr)+'</b> most of each payment will go to the loan itself, not interest.'):'At this payment, interest takes most of each payment for the whole loan.')+'</p>'}
+     $('hNext').innerHTML='<h3>Your next payment</h3><b>'+money(f.amt)+'</b><div class="split"><i class="sp" style="width:'+pp+'%"></i><i class="si" style="width:'+(100-pp)+'%"></i></div><p><span class="kP">■</span> '+money(pr)+' off the loan · <span class="kI">■</span> '+money(f.i)+' interest</p>'+stress(p,ps)+'<p>'+(cr?(+cr<=+TODAY?'Since <b>'+my(cr)+'</b> most of each payment goes to the loan itself.':'From <b>'+my(cr)+'</b> most of each payment will go to the loan itself, not interest.'):'At this payment, interest takes most of each payment for the whole loan.')+'</p>'}
    else $('hNext').innerHTML='<h3>Your next payment</h3><b>Paid off</b><p>Nothing left to pay. 🎉</p>'}
   {const h=p.home;if(h>0){const eq=h-ps.B,lvr=ps.B/h*100;
      $('hEq').innerHTML='<h3>Your equity</h3><b class="g">'+money(eq)+'</b><div class="split"><i class="sp" style="width:'+Math.max(0,Math.min(100,100-lvr))+'%"></i><i class="sl" style="width:'+Math.min(100,lvr)+'%"></i></div><p>Home worth '+money(h)+'. You owe '+Math.round(lvr*10)/10+'% of it (your LVR).'+(lvr>80?' Many lenders look for 80% or less.':' That’s under the 80% many lenders look for.')+'</p>'}
@@ -862,27 +904,37 @@ function ghost(){const p=PR();let ids;
   if(Math.abs(dInt)<1)return null;
   return{ps,mid:fu.mid,from,dInt,dMo:fu.mid.off&&FU.mid.off?moBetween(FU.mid.off,fu.mid.off):null}}
 let PS,FU;
-function render(){sync();const p=PR();PS=past(p);FU=future(p,PS);GH=ghost();MS=milestones(p,PS,FU);stats(PS,FU);score(PS,FU);rows(PS);hist(PS,FU);offUI();refi();draw(PS,FU);if(window.__trNodeSync)window.__trNodeSync()}
+function render(){try{render_()}catch(err){console.error(err);showBroken()}}
+function showBroken(){const b=$('broken');if(b)b.hidden=false}
+function render_(){if($('broken'))$('broken').hidden=true;sync();const p=PR();PS=past(p);FU=future(p,PS);GH=ghost();MS=milestones(p,PS,FU);stats(PS,FU);score(PS,FU);rows(PS);hist(PS,FU);offUI();refi();draw(PS,FU);if(window.__trNodeSync)window.__trNodeSync()}
 function change(fn){fn(PR());commit();render()}
 /* refinance check: a rate change from tomorrow (and, if you choose, a lower payment that keeps your payoff date) */
 let rMode='pay';
-function refi(){const p=PR(),out=$('refiOut'),nr=num($('rRate').value),fee=num($('rFee').value)||0;
-  if(nr===null||nr<0||nr>25){out.className='refiOut';out.innerHTML='Enter the new rate you’ve been offered. Today’s rate is '+PS.s.rate+'%.';return}
+function refi(){const p=PR(),out=$('refiOut'),nr=num($('rRate').value),fee=num($('rFee').value)||0;out.className='refiOut';
+  if(nr===null||nr<0||nr>25){out.innerHTML='Enter the new rate you’ve been offered. Today’s rate is '+PS.s.rate+'%.';return}
+  if(fee<0){out.innerHTML='Switching costs can’t be negative. If the new lender offers cashback, take it off the costs and enter what’s left (0 if the cashback covers everything).';return}
   if(PS.paidOff){out.innerHTML='This loan is already paid off.';return}
-  const nd=new Date(TODAY);nd.setDate(nd.getDate()+1);const add=[{id:'__rr',date:iso(nd),type:'rate',amt:nr,added:0}];
-  let newPay=null;if(rMode==='date'&&FU.mid.off){let n=0;for(let k=PS.nextK;payDate(p,k)<=FU.mid.off;k++)n++;const r=nr/100/p.freq,B=PS.B;newPay=r?B*r/(1-Math.pow(1+r,-n)):B/n;add.push({id:'__rp',date:iso(nd),type:'pay',amt:newPay,added:1})}
-  const q={...p,log:[...p.log,...add]},a=life(p),b=life(q),dI=a.int-b.int,net=dI-fee,mo=a.off&&b.off?moBetween(b.off,a.off):null;
+  const nd=new Date(TODAY);nd.setDate(nd.getDate()+1);const rn={id:'__rr',date:iso(nd),type:'rate',amt:nr,keep:'pay',added:0};
+  const withN=extra=>({...p,log:[...p.log,rn,...extra]}),old=regPay(p);
+  let newPay=null,q=withN([]);
+  if(rMode==='date'&&FU.mid.off){const target=+FU.mid.off,pn={id:'__rp',date:iso(nd),type:'pay',amt:0,added:1},offFor=a=>{pn.amt=a;const f=future(withN([pn]),PS,{noFan:true});return f.mid.off?+f.mid.off:Infinity};
+    let lo=0,hi=PS.B*(1+nr/100/p.freq)+1;for(let i=0;i<48;i++){const m=(lo+hi)/2;if(offFor(m)>target)lo=m;else hi=m}newPay=Math.round(hi*100)/100;pn.amt=newPay;q=withN([pn])}
+  const a=life(p),b=life(q),dI=a.int-b.int,net=dI-fee,mo=a.off&&b.off?moBetween(b.off,a.off):null;
   const r0=PS.s.rate/100/12,r1=nr/100/12,mSave=Math.max(0,PS.B-PS.s.O)*(r0-r1),be=mSave>0?Math.ceil(fee/mSave):null;
+  const later=p.log.some(e=>e.type==='rate'&&!e.skip&&parse(e.date)>TODAY);
   out.className='refiOut '+(net>0?'yes':'no');
   out.innerHTML='<b class="big">'+(net>0?'Worth it: you save '+money(net):net<0?'Not worth it: costs '+money(-net)+' more':'About even')+'</b>'+
-    '<span>'+money(dI)+' less interest'+(fee?' − '+money(fee)+' to switch':'')+(mo&&mo>0?' · debt-free '+ymo(mo)+' sooner':'')+'</span>'+
-    (newPay?'<span>Your payment would drop from '+money(regPay(p))+' to <b>'+money(newPay)+'</b>/'+FL[p.freq]+', same payoff date.</span>':'')+
-    (fee&&be?'<span>You get the switching costs back in about <b>'+ymo(be)+'</b>.</span>':'')+'<small>Rough guide only: real offers have conditions, and fees vary. Not financial advice.</small>'}
+    '<span>'+(dI>=0?money(dI)+' less':money(-dI)+' more')+' interest'+(fee?', minus '+money(fee)+' to switch':'')+(mo&&mo>0&&rMode==='pay'?' · debt-free '+ymo(mo)+' sooner':'')+'</span>'+
+    (newPay?'<span>Your repayment would '+(newPay<=old?'drop':'rise')+' from '+money(old)+' to <b>'+money(newPay)+'</b>/'+FL[p.freq]+', and you’d still be debt-free in '+my(FU.mid.off)+'.</span>':'<span>You keep paying '+money(old)+'/'+FL[p.freq]+', so the lower rate pays the loan off sooner.</span>')+
+    (fee&&be?'<span>The switching costs are paid back by lower interest in about <b>'+ymo(be)+'</b>.</span>':'')+
+    (later?'<span>Your planned rate changes after today still apply on top of this.</span>':'')+
+    (p.home>0&&PS.B/p.home>.8?'<span>Your LVR is over 80%, so a new lender may charge lenders mortgage insurance (LMI). Add it to the switching costs.</span>':'')+
+    '<small>Doesn’t include ongoing fees, intro rates that revert, break costs on a fixed loan, or resetting to a new 30-year term. Rough guide only, not financial advice.</small>'}
 $('rRate').addEventListener('input',refi);$('rFee').addEventListener('input',refi);
 $('rMode').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;rMode=b.dataset.v;$('rMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));refi()});
 
 function sync(){const p=PR(),act=document.activeElement,set=(id,v)=>{if(act!==$(id))$(id).value=v};
-  $('prof').innerHTML=Object.entries(ST.profiles).map(([id,q])=>'<option value="'+id+'"'+(id===ST.cur?' selected':'')+'>'+q.name.replace(/[<>&]/g,'')+'</option>').join('');
+  $('prof').innerHTML=Object.entries(ST.profiles).map(([id,q])=>'<option value="'+esc(id)+'"'+(id===ST.cur?' selected':'')+'>'+esc(q.name)+'</option>').join('');
   $('delP').disabled=Object.keys(ST.profiles).length<2;
   set('pName',p.name);set('pStart',p.start);set('pTerm',p.term);set('pP',grp(p.P));set('pRate',p.rate);set('pPay',p.pay!=null?grp(p.pay):'');set('pStep',grp(p.step));set('pHome',p.home?grp(p.home):'');
   $('pPay').placeholder=grp(stdPay(p))+' (worked out from the term)';
@@ -936,8 +988,10 @@ $('exp').addEventListener('click',()=>{try{const b=new Blob([JSON.stringify(ST,n
   a.href=URL.createObjectURL(b);a.download='loan-tracker_'+iso(TODAY)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);if(window.loanSettings)loanSettings.markBackup();
   $('eMsg').textContent='Exported. Keep the file somewhere safe (on iPhone it is in Files › Downloads).'}catch(e){$('eMsg').textContent='Export is blocked here. Open the page directly in your browser to export.'}});
 $('imp').addEventListener('click',()=>$('impF').click());
+try{$('preImp').hidden=!localStorage.getItem('loanTracker.preImport')}catch(e){}
+$('preImp').addEventListener('click',()=>{try{const d=cleanST(JSON.parse(localStorage.getItem('loanTracker.preImport')));if(!d)return;burstT=0;ST=d;commit();render();localStorage.removeItem('loanTracker.preImport');$('preImp').hidden=true;$('eMsg').textContent='Restored what you had before the import.'}catch(e){}});
 $('impF').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;
-  try{const d=JSON.parse(await f.text());if(!d.profiles)throw 0;burstT=0;ST={v:1,cur:d.cur in d.profiles?d.cur:Object.keys(d.profiles)[0],profiles:d.profiles};commit();render();$('eMsg').textContent='Imported '+Object.keys(d.profiles).length+' profile(s). Undo puts back what you had.'}
+  try{const d=cleanST(JSON.parse(await f.text()));if(!d)throw 0;try{localStorage.setItem('loanTracker.preImport',JSON.stringify(ST))}catch(_){}burstT=0;ST=d;commit();render();$('eMsg').textContent='Imported '+Object.keys(d.profiles).length+' profile(s). Undo, or “Restore what I had before importing” in the log, puts back what you had.';$('preImp').hidden=false}
   catch(err){$('eMsg').textContent='That file isn\'t a Loan Tracker export.'}e.target.value=''});
 
 /* hover readout */
@@ -1030,6 +1084,7 @@ $('pOffTop').addEventListener('input',e=>{const v=num(e.target.value);change(p=>
       '<label class="neLab">Date</label><input type="date" class="f neD">'+
       (hasA?'<label class="neLab neAL"></label><div class="neRow"><button type="button" class="neStep" data-d="-1" aria-label="Less">−</button><span class="unit '+(pct?'post':'pre')+'">'+(pct?'':'<i>'+loanRegion.sym+'</i>')+'<input class="f neA" inputmode="decimal" autocomplete="off">'+(pct?'<i>%</i>':'')+'</span><button type="button" class="neStep" data-d="1" aria-label="More">+</button><span class="neFreq"></span></div>':'')+
       (e.type==='goal'?'<label class="neLab">Until</label><input type="date" class="f neU">':'')+
+      (e.type==='rate'?'<label class="neLab">When the rate changes</label><div class="seg neKeep"><button type="button" data-keep="term">Bank recalculates my repayment</button><button type="button" data-keep="pay">I keep paying the same</button></div>':'')+
       '<label class="neLab">Note (optional)</label><input class="f neNote" maxlength="80" placeholder="e.g. tax refund, pay rise, new job">'+
       '<div class="neStat"></div><p class="neEff"></p><p class="neErr" hidden></p>'+
       '<div class="neBtns"><button type="button" class="neDel">Delete</button><button type="button" class="neDone">Done</button></div>';
@@ -1040,6 +1095,7 @@ $('pOffTop').addEventListener('input',e=>{const v=num(e.target.value);change(p=>
     const D=ed.querySelector('.neD');if(act!==D)D.value=e.date;D.min=p.start;
     const A=ed.querySelector('.neA');if(A){ed.querySelector('.neAL').textContent=ty.a;if(act!==A)A.value=e.type==='rate'?e.amt:grp(e.amt);ed.querySelector('.neFreq').textContent=e.type==='pay'||e.type==='goal'?'/'+FL[p.freq]:''}
     const U=ed.querySelector('.neU');if(U&&act!==U)U.value=e.until||e.date;
+    ed.querySelectorAll('[data-keep]').forEach(b=>b.classList.toggle('on',(e.keep==='pay'?'pay':'term')===b.dataset.keep));
     ed.querySelector('.neStat').innerHTML=fut?'<span class="st plan">Plan</span> When this date passes it counts as done, unless you mark it as didn’t happen.':
       e.skip?'<span class="st miss">Didn’t happen</span> <button type="button" class="mini" data-k="did">It did happen</button>':
       e.plan&&!e.done?'<span class="st ask">You planned this</span> Did it happen? <button type="button" class="mini" data-k="did">Yes</button> <button type="button" class="mini" data-k="skip">No</button>':
@@ -1075,6 +1131,7 @@ $('pOffTop').addEventListener('input',e=>{const v=num(e.target.value);change(p=>
     if(ev.target.closest('.neX,.neDone')){closeEd();return}
     if(ev.target.closest('.neDel')){delE(edId);return}
     const k=ev.target.closest('[data-k]');if(k){mark(edId,k.dataset.k==='did');return}
+    const kp=ev.target.closest('[data-keep]');if(kp){setE({keep:kp.dataset.keep==='pay'?'pay':undefined});return}
     const st=ev.target.closest('.neStep');if(st){const s=stepOf(e),v=Math.round((e.amt+(+st.dataset.d)*s)*100)/100;if(e.type!=='offset'&&v<0)return;setE({amt:e.type==='rate'?Math.min(25,Math.max(0,v)):v})}});
   ed.addEventListener('keydown',e=>{if(e.key==='Escape')closeEd();if(e.key==='Enter'&&e.target.matches('input'))e.target.blur()});
   ['pointerdown','pointerup','pointermove','click'].forEach(t=>ed.addEventListener(t,e=>e.stopPropagation()));

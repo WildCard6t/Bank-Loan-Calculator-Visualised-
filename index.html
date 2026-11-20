@@ -15,7 +15,7 @@
 <script>
 /* colour theme: Auto (follows the phone), Light or Dark. Shared by both pages, remembered in this browser. Runs before the page paints. */
 (function(){var K='loanTheme',r=document.documentElement,v='auto';
- if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loanSettings)window.loanTheme.refresh();if(d.loan==='reloadAll')location.reload();if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})};if(window.loanEmbed)document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('toTracker');if(b)b.textContent='Send this loan to the Tracker →'})
+ if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){if(e.source!==window.parent||e.origin!==location.origin)return;var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loanSettings)window.loanTheme.refresh();if(d.loan==='reloadAll')location.reload();if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})};if(window.loanEmbed)document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('toTracker');if(b)b.textContent='Send this loan to the Tracker →'})
  var KS='loanSettings.v1',sc='indigo';
  function cfg(){try{return JSON.parse(localStorage.getItem(KS))||{}}catch(e){return {}}}
  var REG={AU:['en-AU','$'],NZ:['en-NZ','$'],UK:['en-GB','£'],US:['en-US','$'],CA:['en-CA','$']},c0=cfg(),cc=REG[c0.country]?c0.country:'AU';
@@ -85,7 +85,7 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-of
 .tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--panel);font-size:13px;line-height:1.45;padding:8px 10px;border-radius:8px;white-space:nowrap;display:none;z-index:2}
 .hint{font-size:13px;color:var(--mute);margin:0}
 #selftest{font-size:13px;margin:8px 0 0;font-weight:500}#selftest.good{color:var(--good)}#selftest.bad{color:var(--bad)}
-.note{font-size:13px;color:var(--mute);margin:14px 0 0;max-width:90ch}
+.note{font-size:13px;color:var(--mute);margin:14px 0 0;max-width:90ch}.note p{margin:0 0 8px}
 .k{display:none}
 @media(max-width:1300px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:900px){.main{grid-template-columns:minmax(0,1fr)}.chart{order:-1}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -330,9 +330,9 @@ html[data-device=phone] .nodeEd.min{position:fixed;left:auto!important;right:12p
         <div class="list" id="rateList"></div>
         <button type="button" class="addRow" id="addRate">+ Add a future rate change</button>
         <div class="ctl" id="rateModeBox"><div class="lab">When the rate changes</div>
-          <div class="seg" data-k="rateMode"><button data-v="payment">Keep my payment</button><button data-v="term">Keep my payoff date</button></div>
+          <div class="seg" data-k="rateMode"><button data-v="term">Bank recalculates my repayment</button><button data-v="payment">I keep paying the same</button></div>
         </div>
-        <p class="hint" id="rateHint">Plan for rates going up or down, for example 6.25% after 1 yr 6 mo. <b>Keep my payment</b>: you pay the same, so the payoff date moves. <b>Keep my payoff date</b>: your payment is recalculated at each change, like a bank does. Only <em>your</em> line follows the changes; the fan of other paths stays at today’s rate.</p>
+        <p class="hint" id="rateHint">Plan for rates going up or down, for example 6.25% after 1 yr 6 mo (0% works for an interest-free period). <b>Bank recalculates my repayment</b> is what lenders normally do on a variable loan: your repayment changes so the loan still ends on time. <b>I keep paying the same</b>: the payoff date moves instead. Only <em>your</em> line follows the changes; the fan of other paths stays at today’s rate.</p>
       </div>
 
       <div class="grp">
@@ -375,7 +375,8 @@ html[data-device=phone] .nodeEd.min{position:fixed;left:auto!important;right:12p
     </section>
   </div>
 
-  <p class="note"><b>Educational tool, not financial advice.</b> Interest is charged once per payment period here, so quarterly, half-yearly and yearly figures are slightly lower than a real Australian bank would charge. Fixed rate. Interest is charged each payment period on the balance minus any offset; no fees. Every figure is checked against a payment-by-payment simulation before release. Curves above the spine step evenly from the equalised payment down to $0 (the reddest line); switch to <em>mirror payments</em> to pair each one with a payoff curve the same distance on the other side. Hover or drag across the chart to read any moment. Dashed lines are loans that take longer than the chart (from 35 up to 100 years, whichever are past its right edge): they leave the right edge still owing money, and they crowd closer to the spine the longer they take.</p>
+  <div class="note"><p><b>What this assumes.</b> Educational tool, not financial advice. Interest is worked out once per repayment on the balance minus any offset. Real banks work it out daily, so expect small differences: usually a little more interest for monthly repayments and a little less for weekly or fortnightly ones. Rates stay the same unless you add a rate change; when you do, the bank recalculates your repayment unless you choose otherwise. No fees, lenders mortgage insurance or tax. Savings are measured until the loan is paid off, against the same loan without your extras (with the same rate changes). The self-test checks the core formulas for one standard loan, not every feature.</p>
+  <p><b>How to read the chart.</b> Curves above the spine step evenly from the equalised payment down to $0 (the reddest line); switch to <em>mirror payments</em> to pair each one with a payoff curve the same distance on the other side. Hover or drag across the chart to read any moment. Dashed lines are loans that take longer than the chart (from 35 up to 100 years, whichever are past its right edge): they leave the right edge still owing money, and they crowd closer to the spine the longer they take.</p></div>
   <p id="selftest"></p>
 </div>
 <i class="k" id="cMute" style="color:var(--mute)"></i><i class="k" id="cAcc" style="color:var(--acc)"></i><i class="k" id="cGood" style="color:var(--good)"></i><i class="k" id="cBad" style="color:var(--bad)"></i><i class="k" id="cLine" style="color:var(--line)"></i><i class="k" id="cPanel" style="color:var(--panel)"></i>
@@ -427,9 +428,23 @@ if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventLis
 <script>
 {
 const $=id=>document.getElementById(id);
-const DEF={P:300000,rate:6,T:40,freq:12,s:550,mode:'change',dens:'quarterly',cap:1,labels:true,fill:true,beyond:true,off:0,lump:0,lumpY:5,upper:'even',term:30,rec:0,recFrom:0,recTo:0,top:0,lumps:[],rates:[],rateMode:'payment',nodes:[],autoT:true};
+const DEF={P:300000,rate:6,T:40,freq:12,s:550,mode:'change',dens:'quarterly',cap:1,labels:true,fill:true,beyond:true,off:0,lump:0,lumpY:5,upper:'even',term:30,rec:0,recFrom:0,recTo:0,top:0,lumps:[],rates:[],rateMode:'term',nodes:[],autoT:true,rm2:true};
 let S={...DEF},saved=false,showC=false;
-try{const v=JSON.parse(localStorage.getItem('loanGraph.v2'));if(v){S={...DEF,...v};saved=true}}catch(e){}
+/* saved state is rebuilt from known fields only, so a damaged or booby-trapped backup can't break the page or run code */
+function cleanS(v){const o={...DEF};if(!v||typeof v!=='object')return o;
+  const fin=(x,d,lo,hi)=>{x=typeof x==='string'?parseFloat(x):x;return typeof x==='number'&&isFinite(x)&&x>=lo&&x<=hi?x:d};
+  const R={P:[1000,1e9],rate:[0.01,25],T:[5,40],freq:[1,365],s:[0,1000],cap:[0,2],off:[0,1e9],lump:[0,1e9],lumpY:[0,100],term:[1,40],rec:[0,1e8],recFrom:[0,100],recTo:[0,100],top:[0,1e8],customF:[1,365],pay:[0,1e8]};
+  for(const[k,[lo,hi]]of Object.entries(R))if(k in v)o[k]=fin(v[k],DEF[k],lo,hi);
+  o.freq=Math.round(o.freq);o.term=Math.round(o.term);o.T=Math.round(o.T);
+  for(const k of['labels','fill','beyond','autoT'])if(typeof v[k]==='boolean')o[k]=v[k];
+  const pick=(k,ok)=>{if(ok.includes(v[k]))o[k]=v[k]};pick('mode',['change','balance','percent']);pick('dens',['yearly','quarterly','monthly']);pick('upper',['even','mirror']);pick('rateMode',['payment','term']);
+  if(!v.rm2)o.rateMode='term';o.rm2=true;
+  const arr=x=>Array.isArray(x)?x:[];
+  o.lumps=arr(v.lumps).map(l=>({a:fin(l&&l.a,0,0,1e9),y:fin(l&&l.y,0,0,100)}));
+  o.rates=arr(v.rates).map(c=>({y:fin(c&&c.y,1,0,100),r:fin(c&&c.r,6,0,25)}));
+  o.nodes=arr(v.nodes).filter(n=>n&&typeof n.id==='string'&&/^[a-z0-9_-]{1,40}$/i.test(n.id)).map(n=>({id:n.id,y:fin(n.y,1,0,100),f:Math.round(fin(n.f,o.freq,1,365)),pay:fin(n.pay,0,0,1e8),note:String(n.note||'').slice(0,80)}));
+  return o}
+try{const v=JSON.parse(localStorage.getItem('loanGraph.v2'));if(v){S=cleanS(v);saved=true}}catch(e){}
 S.T=Math.min(40,S.T);
 const save=()=>{try{localStorage.setItem('loanGraph.v2',JSON.stringify(S))}catch(e){}};
 const FL=new Proxy({12:'mo',26:'fn',52:'wk',4:'qtr',2:'half-yr',1:'yr',365:'day'},{get:(o,k)=>o[k]||'pmt'});
@@ -454,7 +469,7 @@ function exitN(p){
   let B=S.P;for(let k=1;k<=200*S.freq;k++){const nb=step(B,p);if(nb<=0)return k-1+B/(B-nb);B=nb}return Infinity}
 /* follow YOUR loan exactly, period by period, for up to 100 years */
 const hasEx=()=>S.lump>0||S.rec>0||S.top>0||(S.lumps||[]).some(l=>l.a>0);
-const rateList=()=>(S.rates||[]).filter(c=>c.y>0&&c.r>0).map(c=>[Math.round(c.y*S.freq),c.r/100/S.freq,c]).sort((a,b)=>a[0]-b[0]);
+const rateList=()=>(S.rates||[]).filter(c=>c.y>0&&c.r>=0).map(c=>[Math.round(c.y*S.freq),c.r/100/S.freq,c]).sort((a,b)=>a[0]-b[0]);
 const hasRates=()=>rateList().length>0;
 /* nodes: points on your line where your plan changes. Each node: {id,y (years in),f (payments a year when made),pay (regular payment from here),note}.
    Built to hold more kinds of change later (lump, rate, note); today a node sets your regular payment from that point. */
@@ -479,12 +494,14 @@ function run(p,withExtra,withRates=withExtra){
     if(dbl===null&&nb>=2*S.P)dbl=k;
     if(k===Tp){atT=nb;totT=tot}B=nb}
   return{paid,int,dbl,atT:atT===null?0:atT,pts,tot,totT:totT===null?tot:totT,pchg,ppl}}
+const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>(v<0?'−':'')+loanRegion.sym+Math.round(Math.abs(v)).toLocaleString(loanRegion.locale);
 const kfmt=a=>{a=Math.abs(a);return loanRegion.sym+(a>=1e6?parseFloat((a/1e6).toFixed(2))+'M':a>=1e4?Math.round(a/1e3)+'k':a>=1e3?parseFloat((a/1e3).toFixed(1))+'k':Math.round(a))};
 const ym=y=>{const m=Math.round(y*12),a=Math.floor(m/12),b=m%12;return (a?a+' yr'+(a>1?'s':''):'')+(b?(a?' ':'')+b+' mo':'')||'0 mo'};
 
 /* payment slider: 0–500 grows (0 → equalised), 500–550 equalised → longest exit, 550–1000 longest exit → 1 year */
-const payFromS=s=>{const I=IO(),pT=exitPay(TP());if(s<=500)return I*s/500;if(s<=550)return I+(pT-I)*(s-500)/50;const y=S.T-(S.T-1)*(s-550)/450;return exitPay(y*S.freq)};
+const payFromS=s=>S.pay!=null&&s===S._sPay?S.pay:payFromS0(s);
+const payFromS0=s=>{const I=IO(),pT=exitPay(TP());if(s<=500)return I*s/500;if(s<=550)return I+(pT-I)*(s-500)/50;const y=S.T-(S.T-1)*(s-550)/450;return exitPay(y*S.freq)};
 const sFromPay=p=>{const I=IO(),pT=exitPay(TP());if(p<=I)return Math.max(0,500*p/I);if(p<=pT)return 500+50*(p-I)/(pT-I);const y=exitN(p)/S.freq;return Math.min(1000,550+450*(S.T-y)/(S.T-1))};
 
 const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
@@ -626,7 +643,7 @@ function stats(){rateSplit();
   /* total paid and the comparison with the standard loan for the term */
   if(R.paid!==null){$('sTotL').textContent='Total paid';$('sTot').textContent=money(R.tot);$('sTotN').textContent=money(S.P)+' loan + '+money(R.int)+' interest'}
   else{$('sTotL').textContent='Paid in '+S.T+' years';$('sTot').textContent=money(R.totT);$('sTotN').textContent='and still '+money(R.atT)+' owing'}
-  const pStd=exitPay(S.term*S.freq),RS=run(pStd,false);$('sStdL').textContent='vs standard '+S.term+'-yr loan';
+  const pStd=exitPay(S.term*S.freq),RS=run(pStd,false,true);$('sStdL').textContent='vs standard '+S.term+'-yr loan';
   if(R.paid===null){$('sStd').textContent='Never pays off';$('sStdN').textContent='standard is '+money(pStd)+'/'+f}
   else{const dI=RS.int-R.int,dT=(RS.paid-R.paid)/S.freq;
     if(Math.abs(dI)<1&&Math.abs(dT)<1/24){$('sStd').textContent='Same';$('sStdN').textContent='this is the standard payment'}
@@ -646,6 +663,7 @@ function stats(){rateSplit();
   if(HR){const Rn=run(p,true,false),dI=R.int-Rn.int;let t='',n='';
     const when=R.paid!==null&&Rn.paid!==null?R.paid-Rn.paid:null;
     t=(dI>=0?'+':'−')+money(Math.abs(dI))+' interest';
+    if(S.rateMode==='payment'&&R.paid===null){t='Never paid off at this payment';n='A bank wouldn\u2019t allow this: it would raise your repayment. Choose \u201cBank recalculates my repayment\u201d to see that.';$('sRate').textContent=t;$('sRateN').textContent=n;return}
     if(S.rateMode==='payment'){if(when===null)t+=R.paid===null?' · no longer paid off':'';else if(Math.abs(when)>=1)t+=' · paid off '+ym(Math.abs(when)/S.freq)+(when>0?' later':' sooner');else t+=' · same payoff date'}
     else{const last=R.pchg.length?R.pchg[R.pchg.length-1][1]:p;t+=' · payment '+money(p)+' → '+money(last)+'/'+f}
     n=R.pchg.map(([k,pp,rt])=>rt+'% after '+ym(k/S.freq)+(S.rateMode==='term'?' ('+money(pp)+'/'+f+')':'')).join(' · ');
@@ -675,7 +693,10 @@ const REDO=[];
 function undo(){if(!HIST.length)return;REDO.push(cur);S={...DEF,...JSON.parse(HIST.pop())};restoring=true;burstT=0;update()}
 function redo(){if(!REDO.length)return;HIST.push(cur);S={...DEF,...JSON.parse(REDO.pop())};restoring=true;burstT=0;update()}
 const grp=v=>Math.round(v).toLocaleString(loanRegion.locale);
-function update(){if(typeof autoLen==='function')autoLen();remember();save();sync();stats();draw();if(typeof pin!=='undefined'&&pin)showAt(pin.px,pin.py);if(window.__nodeSync)window.__nodeSync()}
+/* your repayment is kept in dollars: when the offset, loan, rate or frequency changes, the slider moves so the payment stays the same */
+let lastS=null;
+function keepPay(){if(lastS===null||S.pay==null||S.s!==lastS){S._sPay=null;S.pay=payFromS0(S.s);S._sPay=S.s}else{const ns=sFromPay(S.pay);S._sPay=null;if(isFinite(ns)&&ns>=0&&ns<=1000){S.s=ns;S._sPay=S.s}else{S.s=Math.max(0,Math.min(1000,isFinite(ns)?ns:1000));S.pay=payFromS0(S.s);S._sPay=S.s}}}
+function update(){keepPay();if(typeof autoLen==='function')autoLen();lastS=S.s;remember();save();sync();stats();draw();if(typeof pin!=='undefined'&&pin)showAt(pin.px,pin.py);if(window.__nodeSync)window.__nodeSync()}
 
 const num=(v,lo,hi,dflt)=>{v=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isFinite(v)?Math.min(hi,Math.max(lo,v)):dflt};
 $('loanR').addEventListener('input',e=>{S.P=+e.target.value;update()});
@@ -705,7 +726,7 @@ function lists(force){
   $('lumpList').innerHTML=(S.lumps||[]).map((l,i)=>'<div class="lrow"><span class="unit pre"><i>'+loanRegion.sym+'</i><input type="text" inputmode="numeric" data-l="'+i+'" data-f="a" value="'+(l.a?grp(l.a):'')+'" aria-label="Amount" placeholder="Amount"></span><label>after <input type="number" inputmode="decimal" min="0" max="40" step="0.25" data-l="'+i+'" data-f="y" value="'+l.y+'" aria-label="Paid after how many years"> yrs</label><button type="button" class="xRow" data-l="'+i+'" aria-label="Remove">✕</button></div>').join('');
   $('rateList').innerHTML=(S.rates||[]).map((c,i)=>'<div class="lrow"><label>after <input type="number" inputmode="decimal" min="0.25" max="40" step="0.25" data-r="'+i+'" data-f="y" value="'+c.y+'" aria-label="After how many years"> yrs</label><span class="unit post"><input type="number" inputmode="decimal" min="0.1" max="25" step="0.05" data-r="'+i+'" data-f="r" value="'+c.r+'" aria-label="New rate"><i>%</i></span><button type="button" class="xRow" data-r="'+i+'" aria-label="Remove">✕</button></div>').join('');
   $('rateModeBox').hidden=!(S.rates||[]).length;
-  $('nodeList').innerHTML=nodeList().map(([k,pay,n])=>'<div class="lrow nrow"><b class="nDot"></b><span class="nWhen">'+ym(n.y)+' in</span><span class="nPay">'+money(pay)+'/'+FL[S.freq]+'</span>'+(n.note?'<span class="nNote">'+n.note.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</span>':'')+'<button type="button" class="nEdit" data-n="'+n.id+'">Edit</button><button type="button" class="xRow" data-n="'+n.id+'" aria-label="Delete node">✕</button></div>').join('')}
+  $('nodeList').innerHTML=nodeList().map(([k,pay,n])=>'<div class="lrow nrow"><b class="nDot"></b><span class="nWhen">'+ym(n.y)+' in</span><span class="nPay">'+money(pay)+'/'+FL[S.freq]+'</span>'+(n.note?'<span class="nNote">'+n.note.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</span>':'')+'<button type="button" class="nEdit" data-n="'+esc(n.id)+'">Edit</button><button type="button" class="xRow" data-n="'+esc(n.id)+'" aria-label="Delete node">✕</button></div>').join('')}
 $('addLump').addEventListener('click',()=>{burstT=0;S.lumps=[...(S.lumps||[]),{a:5000,y:Math.min(S.T,(S.lumps||[]).length+2)}];lists(true);update();const ins=$('lumpList').querySelectorAll('input[data-f=a]');ins[ins.length-1].focus()});
 $('addRate').addEventListener('click',()=>{burstT=0;const rs=S.rates||[],lastR=rs.length?rs[rs.length-1].r:S.rate,lastY=rs.length?rs[rs.length-1].y:0;S.rates=[...rs,{y:Math.min(S.T,lastY+1),r:Math.round((lastR+0.25)*100)/100}];lists(true);update()});
 for(const id of['lumpList','rateList'])$(id).addEventListener('input',e=>{const t=e.target,isL=t.dataset.l!==undefined,i=+(isL?t.dataset.l:t.dataset.r),f=t.dataset.f;
@@ -770,7 +791,7 @@ function selfTest(){
   S.P=360000;const sc=exitN(3600*1.2);S.P=300000;c.push(['Scale ×1.2 gives same exit',near(sc,exitN(3600),1e-9)]);
   let B=P;const p30=exitPay(360);for(let k=0;k<360;k++)B=B*(1+r)-p30;c.push(['Month-by-month loop agrees',Math.abs(B)<1e-6]);
   S=keep;const bad=c.filter(x=>!x[1]),el=$('selftest');
-  el.textContent=bad.length?'Self-test: '+bad.length+' of '+c.length+' failed: '+bad.map(x=>x[0]).join('; '):'✓ Self-test on load: all '+c.length+' checks from the build spec passed.';
+  el.textContent=bad.length?'Self-test: '+bad.length+' of '+c.length+' failed: '+bad.map(x=>x[0]).join('; '):'✓ Self-test on load: all '+c.length+' core formula checks passed (standard loan, no extras).';
   el.className=bad.length?'bad':'good';return c.map(([n,ok])=>({n,ok}))}
 const SELF=selfTest();
 window.LoanMath={selfTest:()=>SELF,exitPay,delta,exitN,run,balAt,OFF,payFromS,sFromPay,IO,state:()=>({...S}),set:o=>{Object.assign(S,o);update()},readout:()=>({lump:$('sLumpBox').hidden?null:$('sLump').textContent,eq:$('sEq').textContent,pay:$('sPay').textContent,out:$('sOut').textContent,intL:$('sIntL').textContent,int:$('sInt').textContent})};
