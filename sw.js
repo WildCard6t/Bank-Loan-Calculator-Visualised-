@@ -1,7 +1,7 @@
 /* Offline support. Network first, so you always get the newest version when online;
    the saved copy is only used when there's no connection. Your loan data is not stored here
    (it lives in the browser's localStorage). */
-const CACHE = 'loan-v16';
+const CACHE = 'loan-v17';
 const FILES = ['./', 'index.html', 'graph.html', 'tracker.html', 'desktop.html', 'cashflow.html', 'cashflow.js', 'compound.html', 'pay.html', 'math.html', 'settings.css', 'settings.js', 'manifest.webmanifest', 'icons/apple-touch-icon.png', 'icons/icon-192.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
