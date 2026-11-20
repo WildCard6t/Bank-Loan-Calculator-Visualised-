@@ -191,6 +191,30 @@ html[data-device=phone] #payLock{top:6px;min-height:34px;font-size:12.5px;paddin
 .addRow{justify-self:start;min-height:40px;padding:0 14px;border:1px dashed var(--acc);border-radius:10px;background:none;color:var(--acc);font:inherit;font-size:14px;font-weight:500;cursor:pointer}.addRow:hover{background:var(--soft)}
 #sRateN{white-space:normal}
 html[data-device=phone] .addRow{min-height:44px;width:100%}
+
+/* nodes */
+.chart{position:relative}
+.nodeEd{position:absolute;z-index:8;width:300px;padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.25);display:grid;gap:8px;font-size:14px}
+.nodeEd[hidden]{display:none}
+.neHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.neHead b{font-size:15px}
+.neX{width:34px;height:34px;border:0;border-radius:50%;background:var(--bg);color:var(--ink);cursor:pointer;font:inherit}
+.neLab{font-size:12.5px;color:var(--mute);font-weight:500;margin-top:2px}
+.neRow{display:flex;align-items:center;gap:6px}.neRow .unit input{width:120px}
+.neStep{width:40px;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:20px;cursor:pointer}.neStep:hover{border-color:var(--acc)}
+.neFreq{color:var(--mute)}
+.neQuick{display:flex;flex-wrap:wrap;gap:6px}.neQuick button{min-height:32px;padding:0 10px;border:1px solid var(--line);border-radius:99px;background:none;color:var(--ink);font:inherit;font-size:13px;cursor:pointer}.neQuick button:hover{border-color:var(--acc);color:var(--acc)}
+.nodeEd input.neY,.nodeEd input.neNote{width:100%;font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);text-align:left}
+.neEff{margin:2px 0 0;padding:8px 10px;border-radius:10px;background:var(--soft);font-size:13.5px}
+.neBtns{display:flex;justify-content:space-between;gap:8px}.neBtns button{min-height:40px;padding:0 14px;border-radius:10px;font:inherit;font-size:14px;cursor:pointer}
+.neDel{border:1px solid var(--line);background:none;color:var(--bad)}.neDone{border:0;background:var(--acc);color:var(--acc-ink);font-weight:600}
+.nodeMenu{position:absolute;z-index:9;display:grid;min-width:230px;padding:6px;border-radius:12px;background:var(--panel);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.nodeMenu[hidden]{display:none}.nodeMenu button{min-height:40px;padding:0 12px;border:0;border-radius:8px;background:none;color:var(--ink);font:inherit;font-size:14px;text-align:left;cursor:pointer}.nodeMenu button:hover{background:var(--soft)}
+.nrow .nDot{width:14px;height:14px;border-radius:50%;border:3px solid var(--acc);background:var(--panel);flex:none}
+.nrow .nWhen{font-weight:600}.nrow .nPay{color:var(--ink)}.nrow .nNote{color:var(--mute);font-size:13px;flex:1 1 100%;order:9}
+.nEdit{margin-left:auto;min-height:34px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}.nrow .xRow{margin-left:0}
+html[data-device=phone] .nodeEd{position:fixed;left:0!important;right:0;bottom:0;top:auto!important;width:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));z-index:60;max-height:75vh;overflow:auto}
+html[data-device=phone] .neStep{width:46px;height:46px}
+html[data-device=phone] #payLock{max-width:calc(100% - 80px);overflow:hidden;text-overflow:ellipsis}
 </style>
 <link rel="stylesheet" href="settings.css">
 <script src="settings.js" defer></script>
@@ -286,6 +310,12 @@ html[data-device=phone] .addRow{min-height:44px;width:100%}
       </div>
 
       <div class="grp">
+        <h2>Nodes on your line</h2>
+        <div class="list" id="nodeList"></div>
+        <p class="hint" id="nodeHint">A node is a point on your line where your plan changes, such as paying more from a certain date. Unlock the padlock on the chart, then click your line (or press and hold on a phone) to add one. Nodes are saved with your loan and in backups.</p>
+      </div>
+
+      <div class="grp">
         <h2>Display</h2>
         <div class="ctl"><div class="lab">Y-axis shows</div>
           <div class="seg" data-k="mode"><button data-v="change">Change</button><button data-v="balance">Balance</button><button data-v="percent">% of loan</button></div>
@@ -317,7 +347,7 @@ html[data-device=phone] .addRow{min-height:44px;width:100%}
   <p class="note"><b>Educational tool, not financial advice.</b> Interest is charged once per payment period here, so quarterly, half-yearly and yearly figures are slightly lower than a real Australian bank would charge. Fixed rate. Interest is charged each payment period on the balance minus any offset; no fees. Every figure is checked against a payment-by-payment simulation before release. Curves above the spine step evenly from the equalised payment down to $0 (the reddest line); switch to <em>mirror payments</em> to pair each one with a payoff curve the same distance on the other side. Hover or drag across the chart to read any moment. Dashed lines are loans that take longer than the chart (from 35 up to 100 years, whichever are past its right edge): they leave the right edge still owing money, and they crowd closer to the spine the longer they take.</p>
   <p id="selftest"></p>
 </div>
-<i class="k" id="cMute" style="color:var(--mute)"></i><i class="k" id="cLine" style="color:var(--line)"></i><i class="k" id="cPanel" style="color:var(--panel)"></i>
+<i class="k" id="cMute" style="color:var(--mute)"></i><i class="k" id="cAcc" style="color:var(--acc)"></i><i class="k" id="cLine" style="color:var(--line)"></i><i class="k" id="cPanel" style="color:var(--panel)"></i>
 
 <script>
 /* device choice: shared by both pages, remembered in this browser */
@@ -356,7 +386,7 @@ if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventLis
 <script>
 {
 const $=id=>document.getElementById(id);
-const DEF={P:300000,rate:6,T:40,freq:12,s:550,mode:'change',dens:'quarterly',cap:1,labels:true,fill:true,beyond:true,off:0,lump:0,lumpY:5,upper:'even',term:30,rec:0,recFrom:0,recTo:0,top:0,lumps:[],rates:[],rateMode:'payment'};
+const DEF={P:300000,rate:6,T:40,freq:12,s:550,mode:'change',dens:'quarterly',cap:1,labels:true,fill:true,beyond:true,off:0,lump:0,lumpY:5,upper:'even',term:30,rec:0,recFrom:0,recTo:0,top:0,lumps:[],rates:[],rateMode:'payment',nodes:[]};
 let S={...DEF},saved=false,showC=false;
 try{const v=JSON.parse(localStorage.getItem('loanGraph.v2'));if(v){S={...DEF,...v};saved=true}}catch(e){}
 S.T=Math.min(40,S.T);
@@ -385,24 +415,29 @@ function exitN(p){
 const hasEx=()=>S.lump>0||S.rec>0||S.top>0||(S.lumps||[]).some(l=>l.a>0);
 const rateList=()=>(S.rates||[]).filter(c=>c.y>0&&c.r>0).map(c=>[Math.round(c.y*S.freq),c.r/100/S.freq,c]).sort((a,b)=>a[0]-b[0]);
 const hasRates=()=>rateList().length>0;
+/* nodes: points on your line where your plan changes. Each node: {id,y (years in),f (payments a year when made),pay (regular payment from here),note}.
+   Built to hold more kinds of change later (lump, rate, note); today a node sets your regular payment from that point. */
+const nodeList=()=>(S.nodes||[]).map(n=>[Math.round(n.y*S.freq),n.pay*(n.f||S.freq)/S.freq,n]).sort((a,b)=>a[0]-b[0]);
+const hasNodes=()=>(S.nodes||[]).length>0;
 function run(p,withExtra,withRates=withExtra){
   const Tp=TP(),tol=S.P*1e-7,xk=withExtra&&S.lump>0?Math.round(S.lumpY*S.freq):-1;
   const LS=new Map();if(withExtra)(S.lumps||[]).forEach(l=>{if(l.a>0){const k=Math.max(0,Math.round((l.y||0)*S.freq));LS.set(k,(LS.get(k)||0)+l.a)}});
   const RC=withRates?rateList():[],base=RC.length&&S.rateMode==='term'?run(p,withExtra,false):null,Nb=base&&base.paid!==null?base.paid:null;
-  let r=rr(),pp=p,ci=0;const pchg=[];
+  const ND=nodeList();let r=rr(),pp=p,ci=0,ni=0;const pchg=[],ppl=[];
   const rec=withExtra?(S.rec||0):0,rf=(S.recFrom||0)*S.freq,rt=S.recTo>0?S.recTo*S.freq:Infinity,top=withExtra?(S.top||0)*12/S.freq:0;
   let B=S.P,int=0,paid=null,dbl=null,atT=null,tot=0,totT=null;const pts=[[0,0]];
   if(xk===0||LS.has(0)){const x=Math.min(B,(xk===0?S.lump:0)+(LS.get(0)||0));B-=x;tot+=x;pts.push([0,B-S.P])}
   if(B<=tol)paid=0;
   for(let k=1;k<=100*S.freq&&paid===null;k++){
-    while(ci<RC.length&&RC[ci][0]<=k-1){const nr=RC[ci][1];if(Nb!==null){const n=Nb-(k-1);if(n>0){const A=x=>x>0?x/(1-Math.pow(1+x,-n)):1/n;pp=pp*A(nr)/A(r)}}r=nr;pchg.push([k-1,pp,RC[ci][2].r]);ci++}
+    while(ci<RC.length&&RC[ci][0]<=k-1){const nr=RC[ci][1];if(Nb!==null){const n=Nb-(k-1);if(n>0){const A=x=>x>0?x/(1-Math.pow(1+x,-n)):1/n;pp=pp*A(nr)/A(r)}}r=nr;pchg.push([k-1,pp,RC[ci][2].r]);ppl.push([k-1,pp]);ci++}
+    while(ni<ND.length&&ND[ni][0]<=k-1){pp=ND[ni][1];ppl.push([k-1,pp]);ni++}
     const off=OFF()+top*(k-1),i=r*Math.max(0,B-off);int+=i;
     const pay=pp+(k-1>=rf&&k-1<rt?rec:0)+(k===xk?S.lump:0)+(LS.get(k)||0);let nb=B+i-pay;tot+=Math.min(pay,B+i);
     if(nb<=tol){paid=k;if(k-1<Tp)pts.push([k-1+B/(B-nb),-S.P]);nb=0}
     else if(k<=Tp)pts.push([k,nb-S.P]);
     if(dbl===null&&nb>=2*S.P)dbl=k;
     if(k===Tp){atT=nb;totT=tot}B=nb}
-  return{paid,int,dbl,atT:atT===null?0:atT,pts,tot,totT:totT===null?tot:totT,pchg}}
+  return{paid,int,dbl,atT:atT===null?0:atT,pts,tot,totT:totT===null?tot:totT,pchg,ppl}}
 const money=v=>(v<0?'−':'')+loanRegion.sym+Math.round(Math.abs(v)).toLocaleString(loanRegion.locale);
 const kfmt=a=>{a=Math.abs(a);return loanRegion.sym+(a>=1e6?parseFloat((a/1e6).toFixed(2))+'M':a>=1e4?Math.round(a/1e3)+'k':a>=1e3?parseFloat((a/1e3).toFixed(1))+'k':Math.round(a))};
 const ym=y=>{const m=Math.round(y*12),a=Math.floor(m/12),b=m%12;return (a?a+' yr'+(a>1?'s':''):'')+(b?(a?' ':'')+b+' mo':'')||'0 mo'};
@@ -497,6 +532,11 @@ function draw(){
   /* one-off repayment markers on your line */
   {const ks=[];if(S.lump>0)ks.push(Math.round(S.lumpY*S.freq));(S.lumps||[]).forEach(l=>{if(l.a>0)ks.push(Math.round((l.y||0)*S.freq))});
    for(const k of ks){if(k>lt||k>Tp)continue;let v=me.pts[0][1];for(const[t,val]of me.pts){if(t<=k)v=val;else break}x.beginPath();x.arc(X(k),Y(v),4.5,0,7);x.fillStyle='#15803d';x.fill();x.strokeStyle=panel;x.lineWidth=2;x.stroke()}}
+  /* nodes */
+  {const acc=getComputedStyle($('cAcc')).color;G.nodes=[];
+   for(const[k,,n]of nodeList()){if(k>Tp)continue;let v=me.pts[0][1];for(const[t,val]of me.pts){if(t<=k)v=val;else break}
+     const nx=X(Math.min(k,lt)),ny=Y(v);G.nodes.push({id:n.id,x:nx,y:ny});
+     x.beginPath();x.arc(nx,ny,8,0,7);x.fillStyle=panel;x.fill();x.lineWidth=3;x.strokeStyle=acc;x.stroke();x.beginPath();x.arc(nx,ny,3.5,0,7);x.fillStyle=acc;x.fill()}}
   x.restore();
   x.beginPath();x.moveTo(X(0),Math.round(Y(-P))-.5);x.lineTo(X(Tp),Math.round(Y(-P))-.5);x.strokeStyle=ink;x.lineWidth=1.2;x.stroke();
 
@@ -576,7 +616,7 @@ const REDO=[];
 function undo(){if(!HIST.length)return;REDO.push(cur);S={...DEF,...JSON.parse(HIST.pop())};restoring=true;burstT=0;update()}
 function redo(){if(!REDO.length)return;HIST.push(cur);S={...DEF,...JSON.parse(REDO.pop())};restoring=true;burstT=0;update()}
 const grp=v=>Math.round(v).toLocaleString(loanRegion.locale);
-function update(){remember();save();sync();stats();draw();if(typeof pin!=='undefined'&&pin)showAt(pin.px,pin.py)}
+function update(){remember();save();sync();stats();draw();if(typeof pin!=='undefined'&&pin)showAt(pin.px,pin.py);if(window.__nodeSync)window.__nodeSync()}
 
 const num=(v,lo,hi,dflt)=>{v=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isFinite(v)?Math.min(hi,Math.max(lo,v)):dflt};
 $('loanR').addEventListener('input',e=>{S.P=+e.target.value;update()});
@@ -595,16 +635,17 @@ $('lumpR').addEventListener('input',e=>{S.lump=+e.target.value;update()});
 /* editable lists: more one-offs and rate changes */
 let listSig='';
 function lists(force){
-  const sig=JSON.stringify([S.lumps,S.rates]);if(!force&&sig===listSig)return;
+  const sig=JSON.stringify([S.lumps,S.rates,S.nodes,S.freq]);if(!force&&sig===listSig)return;
   const a=document.activeElement;if(!force&&a&&(a.closest('#lumpList')||a.closest('#rateList')))return;listSig=sig;
   $('lumpList').innerHTML=(S.lumps||[]).map((l,i)=>'<div class="lrow"><span class="unit pre"><i>'+loanRegion.sym+'</i><input type="text" inputmode="numeric" data-l="'+i+'" data-f="a" value="'+(l.a?grp(l.a):'')+'" aria-label="Amount" placeholder="Amount"></span><label>after <input type="number" inputmode="decimal" min="0" max="40" step="0.25" data-l="'+i+'" data-f="y" value="'+l.y+'" aria-label="Paid after how many years"> yrs</label><button type="button" class="xRow" data-l="'+i+'" aria-label="Remove">✕</button></div>').join('');
   $('rateList').innerHTML=(S.rates||[]).map((c,i)=>'<div class="lrow"><label>after <input type="number" inputmode="decimal" min="0.25" max="40" step="0.25" data-r="'+i+'" data-f="y" value="'+c.y+'" aria-label="After how many years"> yrs</label><span class="unit post"><input type="number" inputmode="decimal" min="0.1" max="25" step="0.05" data-r="'+i+'" data-f="r" value="'+c.r+'" aria-label="New rate"><i>%</i></span><button type="button" class="xRow" data-r="'+i+'" aria-label="Remove">✕</button></div>').join('');
-  $('rateModeBox').hidden=!(S.rates||[]).length}
+  $('rateModeBox').hidden=!(S.rates||[]).length;
+  $('nodeList').innerHTML=nodeList().map(([k,pay,n])=>'<div class="lrow nrow"><b class="nDot"></b><span class="nWhen">'+ym(n.y)+' in</span><span class="nPay">'+money(pay)+'/'+FL[S.freq]+'</span>'+(n.note?'<span class="nNote">'+n.note.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</span>':'')+'<button type="button" class="nEdit" data-n="'+n.id+'">Edit</button><button type="button" class="xRow" data-n="'+n.id+'" aria-label="Delete node">✕</button></div>').join('')}
 $('addLump').addEventListener('click',()=>{burstT=0;S.lumps=[...(S.lumps||[]),{a:5000,y:Math.min(S.T,(S.lumps||[]).length+2)}];lists(true);update();const ins=$('lumpList').querySelectorAll('input[data-f=a]');ins[ins.length-1].focus()});
 $('addRate').addEventListener('click',()=>{burstT=0;const rs=S.rates||[],lastR=rs.length?rs[rs.length-1].r:S.rate,lastY=rs.length?rs[rs.length-1].y:0;S.rates=[...rs,{y:Math.min(S.T,lastY+1),r:Math.round((lastR+0.25)*100)/100}];lists(true);update()});
 for(const id of['lumpList','rateList'])$(id).addEventListener('input',e=>{const t=e.target,isL=t.dataset.l!==undefined,i=+(isL?t.dataset.l:t.dataset.r),f=t.dataset.f;
-  const v=f==='a'?num(t.value,0,1e9,0):num(t.value,0,f==='r'?25:100,0);const arr=isL?[...S.lumps]:[...S.rates];arr[i]={...arr[i],[f]:v};if(isL)S.lumps=arr;else S.rates=arr;listSig=JSON.stringify([S.lumps,S.rates]);update()});
-for(const id of['lumpList','rateList'])$(id).addEventListener('click',e=>{const b=e.target.closest('.xRow');if(!b)return;burstT=0;if(b.dataset.l!==undefined)S.lumps=S.lumps.filter((_,j)=>j!==+b.dataset.l);else S.rates=S.rates.filter((_,j)=>j!==+b.dataset.r);lists(true);update()});
+  const v=f==='a'?num(t.value,0,1e9,0):num(t.value,0,f==='r'?25:100,0);const arr=isL?[...S.lumps]:[...S.rates];arr[i]={...arr[i],[f]:v};if(isL)S.lumps=arr;else S.rates=arr;listSig=JSON.stringify([S.lumps,S.rates,S.nodes,S.freq]);update()});
+for(const id of['lumpList','rateList'])$(id).addEventListener('click',e=>{const b=e.target.closest('.xRow');if(!b||b.dataset.n)return;burstT=0;if(b.dataset.l!==undefined)S.lumps=S.lumps.filter((_,j)=>j!==+b.dataset.l);else S.rates=S.rates.filter((_,j)=>j!==+b.dataset.r);lists(true);update()});
 for(const id of['lumpList','rateList'])$(id).addEventListener('focusout',()=>setTimeout(()=>lists(),0));
 $('lumpN').addEventListener('input',e=>{const v=num(e.target.value,0,1e9,null);if(v!==null){S.lump=v;update()}});
 $('lumpYR').addEventListener('input',e=>{S.lumpY=+e.target.value;update()});
@@ -684,7 +725,7 @@ update();
   const lock=document.createElement('button');lock.id='payLock';lock.type='button';fig.appendChild(lock);
   function place(){if(typeof G!=='undefined'&&G)lock.style.left=(G.L+8)+'px'}
   function paint(){lock.classList.toggle('open',unlocked);lock.setAttribute('aria-pressed',String(unlocked));
-    lock.innerHTML=unlocked?'<span>🔓</span>Drag or tap to set your payoff time':'<span>🔒</span>Unlock to drag';
+    lock.innerHTML=unlocked?'<span>🔓</span>Unlocked: click your line to add a node':'<span>🔒</span>Unlock to edit the line';
     lock.title=unlocked?'Unlocked: drag across the chart, or tap a time, and your payment changes to match. Tap to lock again.':'Locked so a stray tap can’t change your payment. Tap to unlock, then drag the line to the time you want to be debt-free.';
     fig.classList.toggle('dragmode',unlocked);place()}
   function arm(){clearTimeout(relockT);relockT=setTimeout(()=>{if(!drag){unlocked=false;paint()}},120000)}
@@ -692,7 +733,7 @@ update();
   lock.addEventListener('click',e=>{e.stopPropagation();unlocked=!unlocked;paint();if(unlocked){arm();if(typeof pin!=='undefined'){pin=null;hide()}}});
   function exitAt(p){const R=run(p,true);if(R.paid===null)return Infinity;const l=R.pts[R.pts.length-1];return l[1]<=-S.P+1e-6?l[0]:R.paid}
   function solve(n){
-    if(!(hasEx()||hasRates()))return exitPay(n);
+    if(!(hasEx()||hasRates()||hasNodes()))return exitPay(n);
     if(exitAt(0)<=n)return 0;let lo=0,hi=S.P*(1+rr())+1;
     for(let i=0;i<50;i++){const m=(lo+hi)/2;if(exitAt(m)<=n)hi=m;else lo=m}return hi}
   function target(px,py){
@@ -705,15 +746,101 @@ update();
     const x=G.L+n/G.Tp*G.pw;showAt(Math.min(G.L+G.pw,x),Math.min(G.Tm+G.ph-2,Math.max(G.Tm+2,py)));
     tip.innerHTML='<b>Debt-free in '+ym(n/S.freq)+'</b><br>Payment: '+money(payFromS(S.s))+'/'+FL[S.freq]+'<br><small style="opacity:.7">Undo puts it back</small>'}
   const pos=e=>{const r=fig.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
-  fig.addEventListener('pointerdown',e=>{if(!unlocked||e.target===lock)return;const[px,py]=pos(e);if(!G||px<G.L-10||px>G.L+G.pw+10)return;
-    e.preventDefault();e.stopImmediatePropagation();drag=true;last=null;burstT=0;try{fig.setPointerCapture(e.pointerId)}catch(_){}setTo(px,py);arm()},true);
-  fig.addEventListener('pointermove',e=>{if(!drag)return;e.stopImmediatePropagation();const[px,py]=pos(e);cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>setTo(px,py))},true);
-  const end=e=>{if(!drag)return;e.stopImmediatePropagation();drag=false;burstT=0;arm()};
+  /* ---- magnetic hover: the spot on your line under the cursor ---- */
+  function lineAt(px){if(!G||!G.me)return null;const pts=G.me.pts,Tp=G.Tp,t=(px-G.L)/G.pw*Tp;if(t<0||t>Tp)return null;
+    const lastT=pts[pts.length-1][0];if(t>lastT+.5)return null;let v=pts[0][1];
+    for(let i=1;i<pts.length;i++){if(pts[i][0]>=t){const[a0,b0]=pts[i-1],[a1,b1]=pts[i];v=a1>a0?b0+(b1-b0)*(t-a0)/(a1-a0):b1;break}v=pts[i][1]}
+    const k=Math.max(1,Math.min(Math.round(t),Math.max(1,Math.floor(lastT))));
+    return{k,x:G.L+k/Tp*G.pw,y:Math.max(G.Tm,Math.min(G.Tm+G.ph,G.Y(Math.max(-S.P,v)))),t}}
+  const reach=e=>e&&e.pointerType==='touch'?34:22;
+  function near(px,py,e){const h=lineAt(px);if(!h)return null;return Math.abs(h.y-py)<=reach(e)?h:null}
+  function nodeHit(px,py,e){if(!G||!G.nodes)return null;const r=e&&e.pointerType==='touch'?24:15;let best=null;for(const n of G.nodes){const d=Math.hypot(n.x-px,n.y-py);if(d<=r&&(!best||d<best.d))best={...n,d}}return best}
+  function ring(h,kind){const d=window.devicePixelRatio||1,o=ov.getContext('2d');o.setTransform(d,0,0,d,0,0);
+    const acc=getComputedStyle($('cAcc')).color;o.beginPath();o.arc(h.x,h.y,kind==='node'?13:10,0,7);o.lineWidth=2.5;o.strokeStyle=acc;o.stroke();o.globalAlpha=.18;o.fillStyle=acc;o.fill();o.globalAlpha=1}
+  let pressT=null,press=null;
+  fig.addEventListener('pointermove',e=>{if(!unlocked||drag||press||e.buttons)return;const[px,py]=pos(e);const nh=nodeHit(px,py,e),h=nh?null:near(px,py,e);
+    if(nh){ring(nh,'node');const n=nodeById(nh.id);if(n)tip.innerHTML='<b>📍 Node, '+ym(n.y)+' in</b><br>Click to edit · right-click for more'}
+    else if(h){ring(h);tip.innerHTML='<b>'+ym(h.k/S.freq)+' in</b><br>Click to add a node here<br><small style="opacity:.7">Right-click for options</small>'}
+    fig.style.cursor=nh||h?'pointer':''});
+  /* ---- nodes ---- */
+  const nodeById=id=>(S.nodes||[]).find(n=>n.id===id);
+  function payAt(k){const p=payFromS(S.s),R=run(p,true);let pp=p;for(const[kk,v]of R.ppl){if(kk<=k-1)pp=v;else break}return pp}
+  function addNode(k){if(!unlocked)return null;let n=(S.nodes||[]).find(m=>Math.round(m.y*S.freq)===k);
+    if(!n){n={id:'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),y:Math.round(k/S.freq*10000)/10000,f:S.freq,pay:payAt(k),note:''};burstT=0;S.nodes=[...(S.nodes||[]),n];update()}return n}
+  function setNode(id,o){S.nodes=(S.nodes||[]).map(n=>n.id===id?{...n,...o}:n);update()}
+  function delNode(id){burstT=0;S.nodes=(S.nodes||[]).filter(n=>n.id!==id);closeEd();update()}
+  /* editor */
+  const ed=document.createElement('div');ed.className='nodeEd';ed.hidden=true;ed.setAttribute('role','dialog');ed.setAttribute('aria-label','Edit node');document.querySelector('.chart').appendChild(ed);let edId=null;
+  function openEd(id){const n=nodeById(id);if(!n)return;edId=id;burstT=0;hide();menu.hidden=true;
+    ed.innerHTML='<div class="neHead"><b>📍 Node, <span class="neWhen"></span> in</b><button type="button" class="neX" aria-label="Close">✕</button></div>'+
+      '<label class="neLab">Your payment from here</label>'+
+      '<div class="neRow"><button type="button" class="neStep" data-d="-1" aria-label="Pay less">−</button><span class="unit pre"><i>'+loanRegion.sym+'</i><input type="text" inputmode="decimal" class="nePay" aria-label="Payment from this node"></span><button type="button" class="neStep" data-d="1" aria-label="Pay more">+</button><span class="neFreq"></span></div>'+
+      '<div class="neQuick"><button type="button" data-q="-100">−100</button><button type="button" data-q="100">+100</button><button type="button" data-q="500">+500</button><button type="button" data-q="base">Back to before</button></div>'+
+      '<label class="neLab">When (years in)</label><input type="number" class="neY" min="0" max="40" step="0.0833" inputmode="decimal">'+
+      '<label class="neLab">Note (optional)</label><input type="text" class="neNote" maxlength="80" placeholder="e.g. pay rise, second job">'+
+      '<p class="neEff"></p>'+
+      '<div class="neBtns"><button type="button" class="neDel">Delete node</button><button type="button" class="neDone">Done</button></div>';
+    ed.hidden=false;edRefresh(true);if(document.documentElement.dataset.device!=='phone')ed.querySelector('.nePay').focus()}
+  function stepAmt(){return S.freq>=52?10:S.freq>=12?50:S.freq>=4?100:500}
+  function edRefresh(full){if(ed.hidden||!edId)return;const n=nodeById(edId);if(!n){closeEd();return}const k=Math.round(n.y*S.freq),pay=n.pay*(n.f||S.freq)/S.freq,f=FL[S.freq];
+    ed.querySelector('.neWhen').textContent=ym(n.y);ed.querySelector('.neFreq').textContent='/'+f;
+    const pi=ed.querySelector('.nePay');if(document.activeElement!==pi)pi.value=grp(pay);
+    const yi=ed.querySelector('.neY');if(document.activeElement!==yi)yi.value=Math.round(n.y*100)/100;
+    if(full)ed.querySelector('.neNote').value=n.note||'';
+    const p=payFromS(S.s),R=run(p,true),keep=S.nodes;S.nodes=keep.filter(m=>m.id!==edId);const R0=run(p,true);S.nodes=keep;
+    let before=p;for(const[kk,v]of R0.ppl){if(kk<=k-1)before=v;else break}
+    let t='Before this node you pay '+money(before)+'/'+f+'. ';
+    if(R.paid!==null&&R0.paid!==null){const dT=R0.paid-R.paid,dI=R0.int-R.int;t+=Math.abs(dT)<1&&Math.abs(dI)<1?'No change yet. Change the payment to see the effect.':'This node: paid off '+ym(Math.abs(dT)/S.freq)+(dT>=0?' sooner':' later')+', '+(dI>=0?money(dI)+' less':money(-dI)+' more')+' interest.'}
+    else if(R.paid===null)t+='At this payment the loan is never paid off.';else t+='Now paid off in '+ym(R.paid/S.freq)+'.';
+    ed.querySelector('.neEff').textContent=t;ed.dataset.before=before;place2()}
+  function place2(){if(ed.hidden||!G)return;if(document.documentElement.dataset.device==='phone'){ed.style.left='';ed.style.top='';return}
+    const g=(G.nodes||[]).find(m=>m.id===edId),chEl=document.querySelector('.chart'),ch=chEl.getBoundingClientRect(),fr=fig.getBoundingClientRect();
+    const gx=(g?g.x:G.L)+fr.left-ch.left,gy=(g?g.y:G.Tm)+fr.top-ch.top,w=ed.offsetWidth,h=ed.offsetHeight;
+    ed.style.left=Math.max(8,Math.min(ch.width-w-8,gx+(gx>ch.width/2?-w-22:22)))+'px';ed.style.top=Math.max(8,Math.min(ch.height-h-8,gy-h/2))+'px'}
+  function closeEd(){ed.hidden=true;edId=null;burstT=0}
+  window.__nodeSync=()=>{if(!ed.hidden){if(!nodeById(edId))closeEd();else edRefresh()}};
+  ed.addEventListener('input',e=>{if(!nodeById(edId))return;
+    if(e.target.matches('.nePay')){const v=num(e.target.value,0,1e8,null);if(v!==null)setNode(edId,{pay:v,f:S.freq})}
+    else if(e.target.matches('.neY')){const v=num(e.target.value,0,S.T,null);if(v!==null)setNode(edId,{y:v})}
+    else if(e.target.matches('.neNote'))setNode(edId,{note:e.target.value})});
+  ed.addEventListener('click',e=>{const n=nodeById(edId);if(!n)return;const pay=n.pay*(n.f||S.freq)/S.freq;
+    if(e.target.closest('.neX,.neDone')){closeEd();return}
+    if(e.target.closest('.neDel')){delNode(edId);return}
+    const st=e.target.closest('.neStep');if(st){setNode(edId,{pay:Math.max(0,pay+(+st.dataset.d)*stepAmt()),f:S.freq});return}
+    const q=e.target.closest('[data-q]');if(q){const v=q.dataset.q==='base'?+ed.dataset.before:Math.max(0,pay+(+q.dataset.q));setNode(edId,{pay:Math.round(v*100)/100,f:S.freq})}});
+  ed.addEventListener('keydown',e=>{if(e.key==='Escape')closeEd()});
+  $('nodeList').addEventListener('click',e=>{const b=e.target.closest('[data-n]');if(!b)return;if(b.classList.contains('xRow'))delNode(b.dataset.n);else openEd(b.dataset.n)});
+  /* menu: right-click, or press and hold on a phone */
+  const menu=document.createElement('div');menu.className='nodeMenu';menu.hidden=true;menu.setAttribute('role','menu');fig.appendChild(menu);
+  function openMenu(px,py,e){if(!unlocked)return false;const nh=nodeHit(px,py,e),h=nh?null:near(px,py,e);if(!nh&&!h)return false;
+    menu.innerHTML=nh?'<button type="button" data-m="edit">✎ Edit node</button><button type="button" data-m="del">✕ Delete node</button>':'<button type="button" data-m="add">📍 Add a node here ('+ym(h.k/S.freq)+' in)</button><button type="button" data-m="addpay">📍 Add a node and pay more from here</button>';
+    menu.dataset.id=nh?nh.id:'';menu.dataset.k=h?h.k:'';menu.hidden=false;hide();
+    menu.style.left=Math.max(4,Math.min(G.W-menu.offsetWidth-6,px+6))+'px';menu.style.top=Math.max(4,Math.min(G.H-menu.offsetHeight-6,py+6))+'px';return true}
+  ['pointerdown','pointerup','pointermove'].forEach(t=>menu.addEventListener(t,e=>e.stopPropagation()));
+  menu.addEventListener('click',e=>{e.stopPropagation();const b=e.target.closest('[data-m]');if(!b)return;const m=b.dataset.m;menu.hidden=true;
+    if(m==='edit')openEd(menu.dataset.id);else if(m==='del')delNode(menu.dataset.id);
+    else{const n=addNode(+menu.dataset.k);if(n){if(m==='addpay')setNode(n.id,{pay:Math.round((n.pay+stepAmt()*2)*100)/100,f:S.freq});openEd(n.id)}}});
+  document.addEventListener('pointerdown',e=>{if(!menu.hidden&&!menu.contains(e.target))menu.hidden=true});
+  ['pointerdown','pointerup','pointermove','click'].forEach(t=>ed.addEventListener(t,e=>e.stopPropagation()));
+  fig.addEventListener('contextmenu',e=>{if(!unlocked)return;e.preventDefault();const[px,py]=pos(e);openMenu(px,py,e)});
+  /* pointer: a node > your line (add a node) > anywhere else (drag to set the payoff time) */
+  fig.addEventListener('pointerdown',e=>{if(!unlocked||e.target===lock||menu.contains(e.target))return;if(e.button===2)return;const[px,py]=pos(e);if(!G||px<G.L-10||px>G.L+G.pw+10)return;
+    e.preventDefault();e.stopImmediatePropagation();arm();
+    const nh=nodeHit(px,py,e),h=nh?null:near(px,py,e);
+    if(nh||h){press={px,py,nh,h};clearTimeout(pressT);pressT=setTimeout(()=>{if(press&&openMenu(press.px,press.py,{pointerType:'touch'}))press.menu=true},550);return}
+    drag=true;last=null;burstT=0;try{fig.setPointerCapture(e.pointerId)}catch(_){}setTo(px,py)},true);
+  fig.addEventListener('pointermove',e=>{if(press){e.stopImmediatePropagation();const[px,py]=pos(e);
+      if(!press.menu&&!press.nh&&Math.hypot(px-press.px,py-press.py)>10){clearTimeout(pressT);press=null;drag=true;last=null;burstT=0;try{fig.setPointerCapture(e.pointerId)}catch(_){}setTo(px,py)}return}
+    if(!drag)return;e.stopImmediatePropagation();const[px,py]=pos(e);cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>setTo(px,py))},true);
+  const end=e=>{if(press){e.stopImmediatePropagation();clearTimeout(pressT);const p0=press;press=null;if(p0.menu||e.type==='pointercancel')return;
+      if(p0.nh)openEd(p0.nh.id);else{const n=addNode(p0.h.k);if(n)openEd(n.id)}return}
+    if(!drag)return;e.stopImmediatePropagation();drag=false;burstT=0;arm()};
   fig.addEventListener('pointerup',end,true);fig.addEventListener('pointercancel',end,true);
+  window.addEventListener('themechange',()=>requestAnimationFrame(place2));
   new ResizeObserver(()=>requestAnimationFrame(place)).observe(fig);
   window.addEventListener('devicechange',()=>requestAnimationFrame(place));
   paint();requestAnimationFrame(place);
-  window.LoanDrag={unlock:v=>{unlocked=v!==false;paint()},solve,geo:()=>G&&{L:G.L,pw:G.pw,Tm:G.Tm,ph:G.ph,Tp:G.Tp}};
+  window.LoanDrag={unlock:v=>{unlocked=v!==false;paint()},solve,addNode,openEd,lineAt,geo:()=>G&&{L:G.L,pw:G.pw,Tm:G.Tm,ph:G.ph,Tp:G.Tp}};
 })();
 }
 </script>

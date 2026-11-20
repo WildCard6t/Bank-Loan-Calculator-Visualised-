@@ -187,6 +187,8 @@ html.embed nav,html.embed .go .goTxt,html.embed .go a{display:none}
 html.embed .go{display:none!important}
 html.embed .go button{min-height:42px;font-size:15px}
 html.embed .fig{min-height:300px}
+.cap{margin:2px 10px 10px;font-size:14px;line-height:1.5;color:var(--mute);max-width:110ch}.cap b{color:var(--ink);font-weight:600}.capTip{display:block;margin-top:4px;font-size:13px}.capTip a{color:var(--acc)}
+html[data-device=phone] .cap{font-size:13px;margin:2px 4px 8px}
 </style>
 <link rel="stylesheet" href="settings.css">
 <script src="settings.js" defer></script>
@@ -216,6 +218,7 @@ html.embed .fig{min-height:300px}
   </div>
 
   <section class="panel chart">
+    <p class="cap" id="trCap"></p>
     <div class="axis"><span>Balance owing ($)</span><span>Date →</span></div>
     <div class="fig" id="fig" style="touch-action:pan-y"><canvas id="cv"></canvas><canvas id="ov"></canvas><div class="tip" id="tip"></div></div>
     <div class="legend" id="legend"></div>
@@ -274,7 +277,7 @@ html.embed .fig{min-height:300px}
 
   <p class="note">Saved in this browser only (no account yet), so use Export now and then as a backup. Interest is charged once per payment period on the balance at that time, and the rate is treated as fixed. Real banks work interest out daily, so the line will drift slightly from your bank's figure over time; a bank balance check snaps it back to the real number. Educational tool, not financial advice.</p>
 </div>
-<i class="k" id="cMute" style="color:var(--mute)"></i><i class="k" id="cLine" style="color:var(--line)"></i><i class="k" id="cPanel" style="color:var(--panel)"></i>
+<i class="k" id="cMute" style="color:var(--mute)"></i><i class="k" id="cAcc" style="color:var(--acc)"></i><i class="k" id="cLine" style="color:var(--line)"></i><i class="k" id="cPanel" style="color:var(--panel)"></i>
 
 <script>
 /* device choice: shared by both pages, remembered in this browser */
@@ -320,6 +323,7 @@ const kfmt=a=>loanRegion.sym+(a>=1e6?parseFloat((a/1e6).toFixed(2))+'M':a>=1e3?M
 const num=v=>{v=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isFinite(v)?v:null};
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const parse=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const grows=l=>{const a=l.pts[0],b=l.pts[l.pts.length-1];return a&&b&&b[1]>=a[1]-1};
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const nice=d=>loanRegion.mdy?MON[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear():d.getDate()+' '+MON[d.getMonth()]+' '+d.getFullYear();
 const my=d=>MON[d.getMonth()]+' '+d.getFullYear();
@@ -426,8 +430,8 @@ function draw(ps,fu){
   x.save();x.beginPath();x.rect(L,Tm,pw,ph+2);x.clip();
   /* future fan */
   const half=(p.lines-1)/2;x.lineJoin='round';
-  for(const l of fu.lines){if(l.j===0)continue;x.beginPath();l.pts.forEach(([d,v],i)=>i?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v)));x.strokeStyle=lineCol(l.j,half);x.lineWidth=2;x.stroke()}
-  const mid=fu.lines.find(l=>l.j===0);x.setLineDash([7,5]);x.beginPath();mid.pts.forEach(([d,v],i)=>i?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v)));x.strokeStyle=ink;x.lineWidth=2.2;x.stroke();x.setLineDash([]);
+  for(const l of fu.lines){if(l.j===0)continue;x.beginPath();l.pts.forEach(([d,v],i)=>i?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v)));x.strokeStyle=lineCol(l.j,half);x.globalAlpha=.6;x.lineWidth=1.6;x.stroke();x.globalAlpha=1}
+  const mid=fu.lines.find(l=>l.j===0);x.setLineDash([7,5]);x.beginPath();mid.pts.forEach(([d,v],i)=>i?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v)));x.strokeStyle=getComputedStyle($('cAcc')).color;x.lineWidth=3.4;x.stroke();x.setLineDash([]);
   /* past */
   x.beginPath();ps.pts.forEach(([d,v],i)=>i?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v)));x.strokeStyle=panel;x.lineWidth=7;x.stroke();x.strokeStyle=ink;x.lineWidth=3.2;x.stroke();
   for(const mk of ps.marks){x.beginPath();x.arc(X(mk.d),Y(mk.B),5.5,0,7);x.fillStyle=MK[mk.type];x.fill();x.strokeStyle=panel;x.lineWidth=2;x.stroke()}
@@ -437,14 +441,14 @@ function draw(ps,fu){
   x.fillStyle=ink;x.font=font(12);x.textAlign='center';x.textBaseline='top';x.fillText('Today',tx,Tm+ph+20);
   /* line-end labels */
   /* payoff dots on the $0 line, labels stacked in the right-hand gutter */
-  for(const l of fu.lines)if(l.off&&l.off.getTime()<=t1){x.beginPath();x.arc(X(l.off),Y(0),4,0,7);x.fillStyle=l.j===0?ink:lineCol(l.j,half);x.fill()}
+  for(const l of fu.lines)if(l.off&&l.off.getTime()<=t1){x.beginPath();x.arc(X(l.off),Y(0),4,0,7);x.fillStyle=l.j===0?getComputedStyle($('cAcc')).color:lineCol(l.j,half);x.fill()}
   if(!narrow){x.textAlign='left';x.textBaseline='middle';x.font=font(12);
     const lab=[...fu.lines].map(l=>{const inView=!(l.off&&l.off.getTime()<=t1);const v=inView?(at(l.pts,t1)??0):0;
-      return{l,y:inView?Y(v):Tm+ph,t:money(l.amt)+'/'+FL[p.freq]+' · '+(l.off?'paid off '+my(l.off):kfmt(v)+' left')}}).sort((a,b)=>a.y-b.y);
+      return{l,y:inView?Y(v):Tm+ph,t:money(l.amt)+'/'+FL[p.freq]+' · '+(l.off?'paid off '+my(l.off):grows(l)?'too low: debt grows':kfmt(v)+' left')}}).sort((a,b)=>a.y-b.y);
     for(let i=1;i<lab.length;i++)lab[i].y=Math.max(lab[i].y,lab[i-1].y+16);
     const over=lab.length?lab[lab.length-1].y-(Tm+ph):0;if(over>0)for(const a of lab)a.y-=over;
     for(let i=lab.length-2;i>=0;i--)lab[i].y=Math.min(lab[i].y,lab[i+1].y-16);
-    for(const a of lab){x.fillStyle=a.l.j===0?ink:lineCol(a.l.j,half);x.fillText(a.t,L+pw+8,a.y)}}
+    for(const a of lab){x.fillStyle=a.l.j===0?getComputedStyle($('cAcc')).color:lineCol(a.l.j,half);x.fillText(a.t,L+pw+8,a.y)}}
 }
 
 /* ---------- UI ---------- */
@@ -460,8 +464,9 @@ function stats(ps,fu){const p=PR(),pay=regPay(p);
   let ex=0,rd=0;for(const e of p.log)if(parse(e.date)<=TODAY){if(e.type==='extra')ex+=e.amt;if(e.type==='redraw')rd+=e.amt}
   $('sExt').textContent=money(ex-rd);$('sExtN').textContent=money(ex)+' extra · '+money(rd)+' redrawn';
   const half=(p.lines-1)/2,lg=$('legend');
-  $('plist').innerHTML=[...fu.lines].sort((a,b)=>b.j-a.j).map(l=>'<div><span><i style="background:'+(l.j===0?'var(--ink)':lineCol(l.j,half))+'"></i>'+money(l.amt)+'/'+FL[p.freq]+(l.j===0?' (regular)':'')+'</span><span>'+(l.off?'paid off '+my(l.off):'never paid off')+'</span></div>').join('');
-  lg.innerHTML='<span><i style="background:var(--ink);height:4px"></i>What has happened</span><span><i style="background:repeating-linear-gradient(90deg,var(--ink) 0 6px,transparent 6px 10px)"></i>Keep paying '+money(pay)+'/'+FL[p.freq]+'</span>'+
+  {const me=fu.lines.find(l=>l.j===0),hi=fu.lines.filter(l=>l.j>0).length;$('trCap').innerHTML='<b>How much you owe over time.</b> The solid line up to <b>Today</b> is what has already happened, from your log. After Today, the <b style="color:var(--acc)">thick dashed line is your plan</b>: keep paying '+money(pay)+'/'+FL[p.freq]+(me&&me.off?' and you\u2019re debt-free in <b>'+my(me.off)+'</b>':'')+'. '+(hi?'The faint lines show what happens if you pay more each '+({52:'week',26:'fortnight',12:'month'}[p.freq]||'payment')+' (blue and green, debt-free sooner) or less (orange and red, later). ':'')+'<span class="capTip">To drag a line or add nodes, use <a href="index.html">Every path out of a loan</a> for now. It\u2019s coming to the Tracker next.</span>'}
+  $('plist').innerHTML=[...fu.lines].sort((a,b)=>b.j-a.j).map(l=>'<div><span><i style="background:'+(l.j===0?'var(--acc)':lineCol(l.j,half))+'"></i>'+money(l.amt)+'/'+FL[p.freq]+(l.j===0?' (regular)':'')+'</span><span>'+(l.off?'paid off '+my(l.off):grows(l)?'never paid off: doesn\u2019t cover the interest':'never paid off')+'</span></div>').join('');
+  lg.innerHTML='<span><i style="background:var(--ink);height:4px"></i>What has happened</span><span><i style="background:repeating-linear-gradient(90deg,var(--acc) 0 6px,transparent 6px 10px);height:4px"></i><b style="color:var(--ink)">Your plan</b>: keep paying '+money(pay)+'/'+FL[p.freq]+'</span>'+
     (half?'<span><i style="background:'+mix(MORE,1)+'"></i>Pay more</span><span><i style="background:'+mix(LESS,1)+'"></i>Pay less</span>':'')+
     '<span><i class="dot" style="background:'+MK.extra+'"></i>Extra repayment</span><span><i class="dot" style="background:'+MK.redraw+'"></i>Redraw</span><span><i class="dot" style="background:'+MK.balance+'"></i>Bank check</span>';
 }
