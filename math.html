@@ -114,7 +114,7 @@ canvas{display:block;width:100%;height:min(70vh,620px);touch-action:none;cursor:
 (function(){
 const M = math, $ = id => document.getElementById(id);
 const COLS = ['#ff5d6c','#ff9d3d','#ffd43b','#35d07f','#4da3ff','#a78bfa','#f472b6'];
-const KNOWN = new Set(['x','y','t','theta','e','pi','i','tau','phi']);
+const KNOWN = new Set(['x','y','t','theta','e','pi','i','tau','phi','p']);
 const EXAMPLES = {
   'Sine Wave':'y = a*sin(b*x)', 'Rose Curve':'r = cos(k*theta)', 'Circle':'x^2 + y^2 = r0^2',
   'Heart':'(x^2 + y^2 - 1)^3 = x^2*y^3', 'Spiral':'r = 0.3*theta', 'Damped Wave':'y = e^(-x/d)*cos(4x)',
@@ -125,6 +125,44 @@ const EXAMPLES = {
 const DEF = {a:1,b:1,c:0,k:3,d:3,r0:3};
 /* Word drawings get the Wiggle (line boil) on by default. Add new word presets to this list. */
 const WORDS = new Set(['Hello']);
+/* Stories: each sentence slides in, wiggles, then slides out as the next one arrives. Longer sentences are drawn smaller.
+   To add one: add a line of text to the list. Letters come from the stroke font below. */
+const STORIES = {'Hello Story':['HELLO','WELCOME TO MATH VISUALIZER']};
+
+/* lerp(t, a, b, c, ...): walks straight from a to b to c ... as t goes 0 -> 2pi. Lets one equation draw a whole pen stroke. */
+M.import({lerp:function(t){const v=[].slice.call(arguments,1),n=v.length-1;if(n<1)return v[0];let u=Math.min(Math.max(t/(2*Math.PI),0),1)*n,i=Math.min(Math.floor(u),n-1);return v[i]+(v[i+1]-v[i])*(u-i)}},{override:true});
+
+/* Stroke font: each letter is a 2 wide x 4 tall box, made of pen strokes (lists of points). 'O' marks an oval. */
+const FONT={A:[[0,0,1,4,2,0],[.5,2,1.5,2]],B:[[0,0,0,4,1.5,4,2,3.5,2,2.5,1.5,2,0,2],[1.5,2,2,1.5,2,.5,1.5,0,0,0]],C:[[2,4,0,4,0,0,2,0]],
+ D:[[0,0,0,4,1.2,4,2,3,2,1,1.2,0,0,0]],E:[[2,4,0,4,0,0,2,0],[0,2,1.5,2]],F:[[2,4,0,4,0,0],[0,2,1.5,2]],G:[[2,4,0,4,0,0,2,0,2,2,1,2]],
+ H:[[0,0,0,4],[2,0,2,4],[0,2,2,2]],I:[[1,0,1,4],[.3,4,1.7,4],[.3,0,1.7,0]],J:[[2,4,2,0,0,0,0,1]],K:[[0,0,0,4],[2,4,0,2,2,0]],L:[[0,4,0,0,2,0]],
+ M:[[0,0,0,4,1,2,2,4,2,0]],N:[[0,0,0,4,2,0,2,4]],O:['O'],P:[[0,0,0,4,1.5,4,2,3.5,2,2.5,1.5,2,0,2]],Q:['O',[1.2,1,2,0]],
+ R:[[0,0,0,4,1.5,4,2,3.5,2,2.5,1.5,2,0,2],[1,2,2,0]],S:[[2,4,0,4,0,2,2,2,2,0,0,0]],T:[[0,4,2,4],[1,4,1,0]],U:[[0,4,0,0,2,0,2,4]],
+ V:[[0,4,1,0,2,4]],W:[[0,4,.5,0,1,2,1.5,0,2,4]],X:[[0,0,2,4],[0,4,2,0]],Y:[[0,4,1,2,2,4],[1,2,1,0]],Z:[[0,4,2,4,0,0,2,0]],
+ '!':[[1,4,1,1.2],[1,.4,1,0]],'.':[[1,0,1,.4]],',':[[1.1,.4,.8,-.6]],'?':[[0,3,0,4,2,4,2,2,1,2,1,1.2],[1,.4,1,0]],'-':[[.3,2,1.7,2]],"'":[[1,4,1,3]]};
+const STEP=3,FRAME=18;
+function sentence(str){
+  str=str.toUpperCase();const w=str.length*STEP-1,k=Math.min(1.2,FRAME/w),ox=-w*k/2,f=v=>+v.toFixed(2),out=[];
+  [...str].forEach((ch,i)=>{(FONT[ch]||[]).forEach(st=>{const bx=ox+i*STEP*k;
+    if(st==='O'){out.push(`(${f(bx+k)} + ${f(k)}*cos(t) + p, ${f(2*k)}*sin(t))`);return}
+    const xs=[],ys=[];for(let j=0;j<st.length;j+=2){xs.push(f(bx+st[j]*k));ys.push(f((st[j+1]-2)*k))}
+    out.push(`(lerp(t, ${xs.join(', ')}) + p, lerp(t, ${ys.join(', ')}))`)})});
+  return out.join('\n');
+}
+let anim={p:0},story=null;
+function stopStory(){if(story){cancelAnimationFrame(story.raf);story=null;anim.p=0}}
+function playStory(lines){
+  stopStory();setWig(true);view={cx:0,cy:0,s:W()/22};
+  const IN=900,HOLD=3200,OUT=900,ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+  story={i:-1,t0:0,raf:0};
+  const next=()=>{story.i=(story.i+1)%lines.length;story.t0=performance.now();$('src').value=sentence(lines[story.i]);rebuild();
+    $('info').insertAdjacentHTML('afterbegin',`<div class="row"><b>Story: “${esc(lines[story.i])}” (${story.i+1} of ${lines.length})</b></div>`)};
+  next();
+  const tick=now=>{if(!story)return;const e=now-story.t0,span=W()/view.s;
+    if(e<IN)anim.p=span*(1-ease(e/IN));else if(e<IN+HOLD)anim.p=0;else if(e<IN+HOLD+OUT)anim.p=-span*ease((e-IN-HOLD)/OUT);else{next();anim.p=span}
+    if(e<IN||e>IN+HOLD)draw();story.raf=requestAnimationFrame(tick)};
+  story.raf=requestAnimationFrame(tick);
+}
 
 /* ---------- LaTeX -> plain maths (tested 4/4 in groundwork) ---------- */
 const FN = 'sin|cos|tan|ln|log|exp|arcsin|arccos|arctan|sinh|cosh|tanh|sec|csc|cot';
@@ -146,7 +184,7 @@ function compile(txt){const n=M.parse(txt);return {node:n,fn:n.compile(),syms:sy
 function classify(line){
   line=line.trim(); if(!line||line.startsWith('#'))return null;
   line=line.replace(/θ/g,'theta').replace(/π/g,'pi').replace(/²/g,'^2').replace(/·|×/g,'*');
-  const m = line.match(/^\((.*),(.*)\)$/);
+  let m=null;if(/^\(.*\)$/.test(line)){let d=0;const inner=line.slice(1,-1);for(let i=0;i<inner.length;i++){const c=inner[i];if(c=='(')d++;else if(c==')')d--;else if(c==','&&d===0){m=[0,inner.slice(0,i),inner.slice(i+1)];break}if(d<0)break}}
   if(m && !line.includes('=')){const X=compile(m[1]),Y=compile(m[2]);return {kind:'param',fx:X.fn,fy:Y.fn,syms:new Set([...X.syms,...Y.syms]),say:'Parametric curve: (x, y) traced as t goes from 0 to 2π.'}}
   const parts=line.split('=');
   if(parts.length>2)throw new Error('Too many = signs');
@@ -193,7 +231,7 @@ function drawSliders(){
     r.oninput=()=>{p.v=+r.value;o.textContent=p.v.toFixed(2);draw()};
     box.appendChild(d);});
 }
-function scope(extra){const s={};for(const k in params)s[k]=params[k].v;return Object.assign(s,extra)}
+function scope(extra){const s={p:anim.p};for(const k in params)s[k]=params[k].v;return Object.assign(s,extra)}
 function ev(f,sc){try{const v=f.evaluate(sc);return typeof v==='number'?v:(v&&v.re!==undefined&&Math.abs(v.im)<1e-9?v.re:NaN)}catch(e){return NaN}}
 
 /* ---------- renderer ---------- */
@@ -227,7 +265,7 @@ function draw(){
     if(s.kind==='fx')stroke(s.col,P=>{for(let px=0;px<=w;px+=1){const x=iX(px);P(px,Y(ev(s.f,scope({x}))))}});
     else if(s.kind==='fy')stroke(s.col,P=>{for(let py=0;py<=h;py+=1){const y=iY(py);P(X(ev(s.f,scope({y}))),py)}});
     else if(s.kind==='polar')stroke(s.col,P=>{for(let i=0;i<=2000;i++){const t=i/2000*4*Math.PI,r=ev(s.f,scope({theta:t,t}));P(X(r*Math.cos(t)),Y(r*Math.sin(t)))}});
-    else if(s.kind==='param')stroke(s.col,P=>{for(let i=0;i<=2000;i++){const t=i/2000*2*Math.PI,sc=scope({t});P(X(ev(s.fx,sc)),Y(ev(s.fy,sc)))}});
+    else if(s.kind==='param')stroke(s.col,P=>{for(let i=0;i<=800;i++){const t=i/800*2*Math.PI,sc=scope({t});P(X(ev(s.fx,sc)),Y(ev(s.fy,sc)))}});
     else if(s.kind==='implicit')implicit(s);
   });
 }
@@ -284,7 +322,8 @@ const KEY='mathVisualizer.presets.v1';
 function mine(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
 function load(src,lang){$('lang').value=lang||(src.includes('\\')?'latex':'plain');$('src').value=src;params={};rebuild();fit()}
 function chips(){
-  const ex=$('examples');ex.innerHTML='';for(const n in EXAMPLES){const b=document.createElement('button');b.type='button';b.textContent=n;b.onclick=()=>{load(EXAMPLES[n]);setWig(WORDS.has(n))};ex.appendChild(b)}
+  const ex=$('examples');ex.innerHTML='';for(const n in EXAMPLES){const b=document.createElement('button');b.type='button';b.textContent=n;b.onclick=()=>{stopStory();load(EXAMPLES[n]);setWig(WORDS.has(n))};ex.appendChild(b)}
+  for(const n in STORIES){const b=document.createElement('button');b.type='button';b.textContent='▶ '+n;b.onclick=()=>playStory(STORIES[n]);ex.appendChild(b)}
   const m=$('mine'),p=mine();m.innerHTML='';const names=Object.keys(p);
   if(!names.length)m.innerHTML='<span class="note" style="margin:0">None yet.</span>';
   names.forEach(n=>{const b=document.createElement('button');b.type='button';b.textContent=n;b.onclick=()=>{load(p[n].src,p[n].lang);for(const k in p[n].params||{})if(params[k])params[k].v=p[n].params[k];drawSliders();setWig(!!p[n].wiggle)};
@@ -293,7 +332,7 @@ function chips(){
 $('save').onclick=()=>{const n=(prompt('Name this Preset')||'').trim();if(!n)return;const q=mine(),pv={};for(const k in params)pv[k]=params[k].v;
   q[n]={src:$('src').value,lang:$('lang').value,params:pv,wiggle:wig};try{localStorage.setItem(KEY,JSON.stringify(q))}catch(e){alert('Could not save: browser storage is full or blocked.')}chips()};
 
-$('src').addEventListener('input',e=>{rebuild();if(e.inputType==='insertFromPaste')fit()});$('lang').addEventListener('change',rebuild);
+$('src').addEventListener('input',e=>{stopStory();rebuild();if(e.inputType==='insertFromPaste')fit()});$('lang').addEventListener('change',rebuild);
 addEventListener('resize',size);addEventListener('themechange',draw);
 chips();$('src').value='y = a*sin(b*x)\nr = cos(k*theta)';
 size();view.s=Math.min(W(),H())/16;rebuild();
