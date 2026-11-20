@@ -69,7 +69,8 @@ a.tile:active{transform:translateY(-1px) scale(.99)}
 .s-tall{grid-column:span 5;grid-row:span 4}
 .s-wide{grid-column:span 4;grid-row:span 2}
 .s-sq{grid-column:span 3;grid-row:span 2}
-.soon{grid-column:span 5;grid-row:span 1;box-shadow:none;background:transparent;border:2px dashed var(--line);justify-content:center;color:var(--mute)}
+.s-cg{grid-column:span 5;grid-row:span 2}
+.soon{grid-column:span 7;grid-row:span 1;box-shadow:none;background:transparent;border:2px dashed var(--line);justify-content:center;color:var(--mute)}
 .soon::before,.soon::after{display:none}
 .soon b{font-size:15px;color:var(--mute)}
 @media(max-width:760px){
@@ -79,6 +80,7 @@ a.tile:active{transform:translateY(-1px) scale(.99)}
  .s-hero{grid-column:span 2;grid-row:span 3}
  .s-tall{grid-column:span 1;grid-row:span 4}
  .s-wide,.s-sq{grid-column:span 1;grid-row:span 2}
+ .s-cg{grid-column:span 2;grid-row:span 2}
  .soon{grid-column:span 2;grid-row:span 1}
  .s-sq::after,.s-wide::after,.s-tall::after{background:linear-gradient(to top,var(--fade) 42%,transparent 80%)}
 }
@@ -132,6 +134,16 @@ a.tile:active{transform:translateY(-1px) scale(.99)}
         <path d="M40 100 C70 60 100 50 128 44" stroke="#ff9d3d"/><path d="M172 98 C200 80 230 70 260 50" stroke="#35d07f"/>
       </svg>
       <b>Combined View</b><span class="d">Loan Graph and Loan Tracker side by side. Best on a computer.</span>
+    </a>
+    <a class="tile s-cg" href="compound.html" style="--c:#ffd43b">
+      <svg class="art" viewBox="0 0 500 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true" fill="none"><g transform="translate(0,-85)">
+        <path d="M20 200 L480 200 L480 150 L20 190Z" fill="#4da3ff" opacity=".22"/>
+        <path d="M20 190 L480 150 C380 140 300 130 20 188Z" fill="#35d07f" opacity=".22"/>
+        <path d="M20 188 C300 130 380 110 480 30 L480 150 C380 140 300 130 20 188Z" fill="#ff9d3d" opacity=".16"/>
+        <g stroke-width="2" stroke-linecap="round"><path d="M20 190 L480 150" stroke="#4da3ff"/><path d="M20 189 C300 128 380 118 480 100" stroke="#35d07f" opacity=".7"/><path d="M20 189 C300 129 380 125 480 70" stroke="#ffd43b" opacity=".7"/></g>
+        <path d="M20 188 C300 130 380 110 480 30" stroke="#ffe066" stroke-width="3" stroke-linecap="round" style="filter:drop-shadow(0 0 6px rgba(255,212,59,.7))"/></g>
+      </svg>
+      <em>New</em><b>Compound Growth</b><span class="d">Watch savings and investments snowball. Interest earning interest.</span>
     </a>
     <div class="tile soon"><b>✦ More tools coming soon</b></div>
   </nav>
