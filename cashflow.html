@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f4f3f0" id="themeColor">
+<meta name="theme-color" content="#0f111a" id="themeColor">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Loan Paths">
@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <script>
 /* colour theme: Auto (follows the phone), Light or Dark. Shared by both pages, remembered in this browser. Runs before the page paints. */
-(function(){var K='loanTheme',r=document.documentElement,v='auto';
+(function(){var K='loanTheme',r=document.documentElement,v='dark';
  if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){if(e.source!==window.parent||e.origin!==location.origin)return;var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loanSettings)window.loanTheme.refresh();if(d.loan==='reloadAll')location.reload();if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})};if(window.loanEmbed)document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('toTracker');if(b)b.textContent='Send this loan to the Tracker →'})
  var KS='loanSettings.v1',sc='indigo';
  function cfg(){try{return JSON.parse(localStorage.getItem(KS))||{}}catch(e){return {}}}
@@ -138,6 +138,51 @@ details#panel[open]>summary{margin-bottom:6px}
 @keyframes lift{to{transform:translateY(-120%);opacity:0}}
 @keyframes spark{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-120px) scale(1.6)}}
 @media (prefers-reduced-motion:reduce){.liq,.acc,.tick{transition:none}.acc,.vessel.ready .tank,.vessel.poof .liq,.vessel.poof .acc,.sparks i{animation:none}}
+/* ---- Pin board look: ruled paper, a glowing supply pipe, pinned reservoirs of different sizes ---- */
+:root{--rule:rgba(79,70,229,.07);--halo:transparent;--halo2:transparent}
+:root[data-theme=dark]{--rule:rgba(255,255,255,.04);--halo:rgba(120,90,255,.14);--halo2:rgba(255,93,108,.10)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--rule:rgba(255,255,255,.04);--halo:rgba(120,90,255,.14);--halo2:rgba(255,93,108,.10)}}
+body{background-color:var(--bg);background-image:radial-gradient(ellipse 60% 50% at 62% 45%,var(--halo),transparent 70%),radial-gradient(ellipse 40% 40% at 12% 10%,var(--halo2),transparent 70%),repeating-linear-gradient(to bottom,transparent 0,transparent 31px,var(--rule) 31px,var(--rule) 32px);background-attachment:fixed}
+.wrap{max-width:1180px}
+.hero.card{background:transparent;box-shadow:none;padding:0}
+.vessels{position:relative;padding-top:74px;align-items:start;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px 20px}
+.vessels::before{content:"";position:absolute;left:12px;right:12px;top:26px;height:12px;border-radius:99px;background:linear-gradient(90deg,#ff5d6c,#ff9d3d,#ffd43b,#35d07f,#4da3ff,#a78bfa);box-shadow:0 0 18px rgba(167,139,250,.45),0 0 6px rgba(77,163,255,.4);opacity:.9}
+.vessel{--c:#a78bfa;--off:0px;margin-top:var(--off);padding:14px;gap:8px;border-radius:16px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow)}
+.vessel::before{content:"";position:absolute;left:calc(50% - 3px);top:calc(-42px - var(--off));width:6px;height:calc(42px + var(--off));border-radius:3px;background:linear-gradient(var(--c),color-mix(in srgb,var(--c) 40%,transparent));box-shadow:0 0 10px color-mix(in srgb,var(--c) 60%,transparent)}
+.vessel::after{content:"";position:absolute;top:-6px;left:calc(50% - 6px);width:12px;height:12px;border-radius:50%;background:#c9c2ff;box-shadow:0 1px 3px rgba(0,0,0,.4),0 0 8px color-mix(in srgb,var(--c) 70%,transparent)}
+.tank{height:var(--th,170px);border:1.5px solid color-mix(in srgb,var(--c) 55%,var(--line));border-top-color:transparent;background:var(--bg);box-shadow:inset 0 0 18px color-mix(in srgb,var(--c) 10%,transparent)}
+.liq{background:linear-gradient(var(--c),color-mix(in srgb,var(--c) 70%,#000));box-shadow:0 -4px 18px color-mix(in srgb,var(--c) 66%,transparent)}
+.acc{background:repeating-linear-gradient(115deg,color-mix(in srgb,var(--c) 60%,transparent) 0 8px,color-mix(in srgb,var(--c) 30%,transparent) 8px 16px);background-size:32px 100%}
+.vessel.ready .tank{border-color:var(--c);box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 40%,transparent),0 0 24px color-mix(in srgb,var(--c) 55%,transparent);animation:glow2 2.2s ease-in-out infinite}
+.vessel .hv{background:var(--c);border-color:var(--c);color:#0d0f18}
+.vessel .add{background:var(--bg)}
+.vessel .valve input[type=range]{accent-color:var(--c)}
+@keyframes glow2{50%{box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 60%,transparent),0 0 34px color-mix(in srgb,var(--c) 70%,transparent)}}
+@media(max-width:560px){.vessel{--off:0px!important}}
+@media (prefers-reduced-motion:reduce){.vessel.ready .tank{animation:none}}
+
+/* ---- Cash-flow board layout: payday card and wish list on the left, the pinned reservoirs on the right ---- */
+.wrap{max-width:1240px}
+.boardHead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px 20px;margin:0 0 14px}
+.boardHead .sub{margin:0}
+.boardStat{display:grid;justify-items:end;gap:6px;font-size:14px;color:var(--mute)}.boardStat b{color:var(--ink)}.boardStat .over b{color:var(--bad)}
+.board{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:start}
+.side{display:grid;gap:14px}
+.side .card{margin:0;padding:14px 16px;border-radius:16px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow)}
+.k{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.payDate{font-size:14px;color:var(--mute);margin-top:4px}
+.payBig{font-size:28px;font-weight:600;color:var(--ink);margin-top:2px}.payBig small{font-size:13px;font-weight:400;color:var(--mute);margin-left:6px}
+.wTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.wTop b{font-size:16px}
+.wTop button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:18px;line-height:1;cursor:pointer}
+.wish{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);margin-bottom:8px;font-size:13px;color:var(--mute);display:grid;gap:2px;cursor:pointer;text-align:left;width:100%;font:inherit;font-size:13px}
+.wish b{color:var(--ink);font-size:14px}.wish .pp{color:var(--good,#35d07f);font-weight:600}
+.wAdd{width:100%;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;background:none;color:var(--mute);font:inherit;font-size:13px;text-align:left;cursor:pointer;margin-bottom:12px}
+.wAdd:hover,.addRes:hover{border-color:var(--acc);color:var(--ink)}
+#planFor{margin-top:6px;display:flex}.board .vessels{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}#planFor button{flex:1;font-size:13px}
+.planHint{font-size:12px;color:var(--mute);margin:8px 0 0}
+.addRes{display:grid;place-items:center;align-content:center;gap:6px;min-height:180px;margin-top:30px;border:1.5px dashed var(--line);border-radius:16px;background:none;color:var(--mute);font:inherit;font-size:13px;cursor:pointer;text-align:center;padding:14px}
+.addRes span{font-size:26px;color:var(--acc)}
+@media(max-width:820px){.board{grid-template-columns:1fr}.side{order:2}.boardStat{justify-items:start}}
 </style>
 <link rel="stylesheet" href="settings.css">
 <script src="settings.js" defer></script>
@@ -147,17 +192,27 @@ details#panel[open]>summary{margin-bottom:6px}
 <div class="wrap">
   <a class="homeL" href="index.html?home=1" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Bank Loan Visualised</span></a>
   <div id="topSw"><a href="index.html">Loan graph</a><a href="tracker.html">Loan Tracker</a><button id="setSw" type="button" title="Colours, layout and country" onclick="window.loanSettings&&loanSettings.open()">⚙ Settings</button><button id="devSw" type="button" aria-haspopup="true" aria-expanded="false" title="Choose how the page is laid out"></button></div>
-  <h1>Cash-flow</h1>
-  <p class="sub">Each vessel is something you are saving for. Money flows in on payday. The valve under each one sets how much it gets.</p>
-
-  <div class="bar2"><div class="chip" id="chip" aria-live="polite"></div>
+  <div class="boardHead"><div><h1>Cash-flow board</h1>
+  <p class="sub">Pin pieces where you like. Bigger reservoirs for bigger goals. Money flows in on payday, and the valve on each one sets how much it gets.</p></div>
+  <div class="boardStat"><span id="flow"></span><div class="chip" id="chip" aria-live="polite"></div></div></div>
+  <div class="bar2"><span></span>
     <div class="seg" id="mode" role="group" aria-label="Mode"><button type="button" data-v="guided">Guided</button><button type="button" data-v="free">Free</button></div></div>
   <div id="banner"></div>
 
-  <div class="card hero">
-    <div class="heroTop"><span id="nextPay"></span><span id="flow"></span></div>
-    <div id="vessels" class="vessels"></div>
-    <p class="hint" id="vHint">The dashed line is where each pot should be by now. The solid colour is banked money; the shimmer is what is on its way before the next payday.</p>
+  <div class="board">
+    <aside class="side">
+      <div class="card"><div class="k">Next payday</div><div class="payDate" id="nextPay"></div><div class="payBig" id="spareBig"></div></div>
+      <div class="card"><div class="wTop"><b>Wish list</b><button type="button" data-act="newWish" aria-label="Add a wish" title="Add a wish">+</button></div>
+        <div id="wishes"></div>
+        <button type="button" class="wAdd" data-act="newWish">+ Add a wish: name, cost, needed by, how flexible</button>
+        <div class="k">Plan for</div>
+        <div class="seg" id="planFor" role="group" aria-label="Plan for"><button type="button" data-v="cheap">Cheapest route</button><button type="button" data-v="emergency">Emergency</button></div>
+        <p class="planHint" id="planHint"></p></div>
+    </aside>
+    <div class="card hero">
+      <div id="vessels" class="vessels"></div>
+      <p class="hint" id="vHint">The solid colour is money you have banked. The stripes are money on its way. The dashed line is where each reservoir should be by now.</p>
+    </div>
   </div>
 
   <div class="card" id="shelfCard" hidden><h2>Achieved</h2><div id="shelf"></div></div>
@@ -274,16 +329,21 @@ function bufferVesselHTML(){
 }
 function renderVessels(){
   const box=$('vessels');box.innerHTML='';
+  /* each reservoir gets the next colour along the spectrum and its own height off the pipe, so the board reads as hand-pinned */
+  const PAL=['#ff5d6c','#ff9d3d','#ffd43b','#35d07f','#4da3ff','#a78bfa','#ff7eb3'],OFF=[0,44,16,60,26,50];
+  const paint=el=>{const i=box.children.length;el.style.setProperty('--c',PAL[i%PAL.length]);el.style.setProperty('--off',OFF[i%OFF.length]+'px')};
   sorted(res).forEach(r=>{const p=S.pots.find(x=>x.id===r.id);if(!p)return;const d=document.createElement('div');d.innerHTML=vesselHTML(r,p);const el=d.firstChild;
-    if(adding.has(p.id))el.querySelector('.add').hidden=false;box.appendChild(el)});
-  if(res.totals&&res.totals.bufferTarget>0){const d=document.createElement('div');d.innerHTML=bufferVesselHTML();box.appendChild(d.firstChild)}
+    if(adding.has(p.id))el.querySelector('.add').hidden=false;paint(el);box.appendChild(el)});
+  if(res.totals&&res.totals.bufferTarget>0){const d=document.createElement('div');d.innerHTML=bufferVesselHTML();const el=d.firstChild;paint(el);box.appendChild(el)}
   if(!box.children.length)box.innerHTML='<p class="hint">No pots yet. Open "Inputs, list and numbers" below and add one.</p>';
+  if(S.pots.length){const ad=document.createElement('button');ad.type='button';ad.className='addRes';ad.dataset.act='newRes';ad.innerHTML='<span>+</span>Add a reservoir<br>for extra money';box.appendChild(ad)}
   updateVessels();
 }
 function updateVessels(){
   if(!res)return;const L=CF.levelsAt(S,now()),fc=flowNow(),wk=perWord();
   document.querySelectorAll('#vessels .vessel').forEach(el=>{
     const id=el.dataset.id,l=L[id];if(!l)return;const price=l.price||1,pc=v=>Math.max(0,Math.min(100,v*100/price));
+    el.style.setProperty('--th',Math.round(110+150*Math.min(1,Math.max(0,Math.log10(Math.max(price/100,100)/100)/2)))+'px');
     el.querySelector('.liq').style.height=pc(l.banked)+'%';
     const a=el.querySelector('.acc');a.style.bottom=pc(l.banked)+'%';a.style.height=Math.min(pc(l.accruing),100-pc(l.banked))+'%';
     const tk=el.querySelector('.tick');if(tk){tk.style.display=l.tick<0?'none':'';tk.style.bottom='calc('+pc(l.tick)+'% - 1px)'}
@@ -303,9 +363,19 @@ function updateVessels(){
     el.querySelector('.link').hidden=!valve;
   });
   const next=CF.parseDate(S.income.next),dn=next==null?null:Math.round(next-today());
-  $('nextPay').textContent=next==null?'Set a next payday below':'Next payday: '+dstr(next)+(dn<=0?' (today)':' (in '+dn+(dn===1?' day':' days')+')');
-  $('flow').textContent='Valves ask '+money0(fc.committed)+' of '+money0(fc.spare)+' spare';$('flow').className=fc.over>0?'over':'';
+  $('nextPay').textContent=next==null?'Set a next payday in Inputs below':dstr(next)+(dn<=0?', today':', in '+dn+(dn===1?' day':' days'));
+  $('spareBig').innerHTML=money0(fc.spare)+'<small>spare</small>';
+  $('flow').innerHTML='Valves ask <b>'+money0(fc.committed)+'</b> of <b>'+money0(fc.spare)+'</b> spare';$('flow').className=fc.over>0?'over':'';
+  renderWishes(fc);
 }
+/* ---- Wish list: the flexible one-off goals, with what each gets per payday ---- */
+function renderWishes(fc){
+  const w=sorted(res).filter(r=>!r.firm&&r.repeat==='none'&&!r.invalid);
+  $('wishes').innerHTML=w.map(r=>'<button type="button" class="wish" data-act="openPot" data-id="'+esc(r.id)+'"><span><b>'+esc(r.name)+'</b> '+money0(r.price||0)+'</span><span>needed by '+dstr(r.due)+'</span><span><span class="pp">'+money0(fc.asks[r.id]||0)+'</span> each payday</span></button>').join('')||'<p class="hint" style="margin:0 0 8px">No wishes yet.</p>';
+  const pf=planFor();document.querySelectorAll('#planFor button').forEach(b=>{b.classList.toggle('on',b.dataset.v===pf);b.setAttribute('aria-pressed',b.dataset.v===pf)});
+  $('planHint').textContent=pf==='emergency'?'Emergency: bills and the safety buffer come first; wishes wait their turn.':'Cheapest route: every wish fills at the lowest steady amount that still makes its date.';
+}
+function planFor(){try{return localStorage.getItem('cashFlow.planFor')||'cheap'}catch(e){return'cheap'}}
 function renderShelf(){const a=S.achieved||[];$('shelfCard').hidden=!a.length;
   $('shelf').innerHTML=a.slice().reverse().map(x=>'<div class="shelfRow"><b>✓ '+esc(x.name)+'</b><span>'+money(x.saved)+'</span><span class="hint" style="margin:0">'+new Date(x.harvestedAt).toLocaleDateString(loc(),{day:'numeric',month:'short',year:'numeric'})+' · '+(x.daysEarly>0?x.daysEarly+(x.daysEarly===1?' day early':' days early'):x.daysEarly===0?'on the day':(-x.daysEarly)+(x.daysEarly===-1?' day late':' days late'))+'</span></div>').join('')}
 
@@ -384,6 +454,9 @@ function commit(full){
 
 /* ---------- buttons ---------- */
 document.addEventListener('click',e=>{
+  const pf=e.target.closest('#planFor [data-v]');if(pf){try{localStorage.setItem('cashFlow.planFor',pf.dataset.v)}catch(x){}renderWishes(flowNow());return}
+  const nw=e.target.closest('[data-act=newWish],[data-act=newRes]');if(nw){$('panel').open=true;$('addPot').click();$('panel').scrollIntoView({behavior:reduced()?'auto':'smooth'});return}
+  const op=e.target.closest('[data-act=openPot]');if(op){$('panel').open=true;open.add(op.dataset.id);paint(null,true);const el=document.querySelector('#pots [data-id="'+op.dataset.id+'"]');(el||$('panel')).scrollIntoView({behavior:reduced()?'auto':'smooth'});return}
   const a=e.target.closest('[data-act]'),pe=e.target.closest('[data-id]'),id=pe&&pe.dataset.id;
   const mb=e.target.closest('#mode button');if(mb){S.settings.mode=mb.dataset.v;dismissed='';last=clone(S);save();paint(null,true);return}
   const rb=e.target.closest('#reward button');if(rb){S.settings.reward=rb.dataset.v;last=clone(S);save();paintStatic();return}
