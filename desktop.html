@@ -12,11 +12,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
 <script>
 /* colour theme: same switch and storage key as the two pages */
-(function(){var K='loanTheme',r=document.documentElement,v='auto';try{v=localStorage.getItem(K)||'auto'}catch(e){}
- if(v==='light'||v==='dark')r.dataset.theme=v;
+(function(){var K='loanTheme',r=document.documentElement,v='auto';
+ var KS='loanSettings.v1',sc='indigo';
+ function cfg(){try{return JSON.parse(localStorage.getItem(KS))||{}}catch(e){return {}}}
+ var REG={AU:['en-AU','$'],NZ:['en-NZ','$'],UK:['en-GB','£'],US:['en-US','$'],CA:['en-CA','$']},c0=cfg(),cc=REG[c0.country]?c0.country:'AU';
+ window.loanRegion={country:cc,locale:REG[cc][0],sym:REG[cc][1],mdy:cc==='US'};
  function bar(){var m=document.getElementById('themeColor');if(m)m.content=getComputedStyle(r).getPropertyValue('--bg').trim()||'#f4f3f0'}
- window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){if(t==='auto')delete r.dataset.theme;else r.dataset.theme=t;try{localStorage.setItem(K,t)}catch(e){};bar()},bar:bar};
+ function apply(){try{v=localStorage.getItem(K)||v}catch(e){}if(v==='light'||v==='dark')r.dataset.theme=v;else delete r.dataset.theme;sc=cfg().scheme||sc;if(sc!=='indigo')r.dataset.scheme=sc;else delete r.dataset.scheme;bar()}
+ function fire(){window.dispatchEvent(new Event('themechange'))}
+ apply();
+ window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){v=t;try{localStorage.setItem(K,t)}catch(e){};apply();fire()},setScheme:function(s){sc=s;var o=cfg();o.scheme=s;try{localStorage.setItem(KS,JSON.stringify(o))}catch(e){};apply();fire()},refresh:function(){apply();fire()},bar:bar};
+ addEventListener('storage',function(e){if(e.key===K||e.key===KS)window.loanTheme.refresh()});
  document.addEventListener('DOMContentLoaded',bar);
+ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){bar();fire()})}catch(e){}
 })();
 </script>
 <style>
@@ -57,6 +65,8 @@ main[data-view=tracker]{grid-template-columns:minmax(0,1fr)}main[data-view=track
 @media(max-width:1000px){.brand span{display:none}}
 @media(max-width:760px){main{grid-template-columns:minmax(0,1fr)}.div{display:none}main:not([data-view]) #pT,main[data-view=split] #pT{display:none}}
 </style>
+<link rel="stylesheet" href="settings.css">
+<script src="settings.js" defer></script>
 </head>
 <body>
 <header>
@@ -66,7 +76,7 @@ main[data-view=tracker]{grid-template-columns:minmax(0,1fr)}main[data-view=track
   </div>
   <span class="sp"></span>
   <button class="pill pri" id="send" title="Copies the loan in the graph into a new Tracker profile">Send graph loan to Tracker →</button>
-  <button class="pill" id="themeSw"></button>
+  <button class="pill" id="setSw" title="Colours and country">⚙ Settings</button>
   <a class="pill" href="index.html" title="The pages on their own, with the phone layout">Single pages</a>
 </header>
 <main id="main">
@@ -88,11 +98,7 @@ div.addEventListener('pointermove',e=>{if(!div.hasPointerCapture(e.pointerId))re
 div.addEventListener('pointerup',()=>{div.classList.remove('drag');main.classList.remove('drag');save()});
 div.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){st.split=Math.min(75,Math.max(30,st.split+(e.key==='ArrowLeft'?-2:2)));layout();save()}});
 div.addEventListener('dblclick',()=>{st.split=55;layout();save()});
-/* theme switch: tells both frames too */
-const L={auto:'◐ Auto',light:'☀ Light',dark:'☾ Dark'},N={auto:'light',light:'dark',dark:'auto'};
-function showTheme(){const v=loanTheme.get();$('themeSw').textContent=L[v];$('themeSw').title='Colours: '+v+'. Click to change.'}
-$('themeSw').onclick=()=>{const v=N[loanTheme.get()];loanTheme.set(v);showTheme();for(const f of[$('fG'),$('fT')])f.contentWindow.postMessage({loanTheme:v},'*')};
-showTheme();
+$('setSw').onclick=()=>window.loanSettings&&loanSettings.open();
 /* hand-off: the graph saves the loan, then the Tracker frame reloads and picks it up */
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),2600)}
 addEventListener('message',e=>{if(e.source!==$('fG').contentWindow)return;if((e.data||{}).loan==='toTracker'){$('fT').contentWindow.postMessage({loan:'reload'},'*');if(st.view==='graph'){st.view='split';save();layout()}toast('Loan copied into a new Tracker profile')}});

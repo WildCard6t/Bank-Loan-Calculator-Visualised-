@@ -15,13 +15,19 @@
 <script>
 /* colour theme: Auto (follows the phone), Light or Dark. Shared by both pages, remembered in this browser. Runs before the page paints. */
 (function(){var K='loanTheme',r=document.documentElement,v='auto';
- if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})};if(window.loanEmbed)document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('toTracker');if(b)b.textContent='Send this loan to the Tracker →'})
-try{v=localStorage.getItem(K)||'auto'}catch(e){}
- if(v==='light'||v==='dark')r.dataset.theme=v;
+ if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loanSettings)window.loanTheme.refresh();if(d.loan==='reloadAll')location.reload();if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})};if(window.loanEmbed)document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('toTracker');if(b)b.textContent='Send this loan to the Tracker →'})
+ var KS='loanSettings.v1',sc='indigo';
+ function cfg(){try{return JSON.parse(localStorage.getItem(KS))||{}}catch(e){return {}}}
+ var REG={AU:['en-AU','$'],NZ:['en-NZ','$'],UK:['en-GB','£'],US:['en-US','$'],CA:['en-CA','$']},c0=cfg(),cc=REG[c0.country]?c0.country:'AU';
+ window.loanRegion={country:cc,locale:REG[cc][0],sym:REG[cc][1],mdy:cc==='US'};
  function bar(){var m=document.getElementById('themeColor');if(m)m.content=getComputedStyle(r).getPropertyValue('--bg').trim()||'#f4f3f0'}
- window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){if(t==='auto')delete r.dataset.theme;else r.dataset.theme=t;try{localStorage.setItem(K,t)}catch(e){};bar();window.dispatchEvent(new Event('themechange'))},bar:bar};
+ function apply(){try{v=localStorage.getItem(K)||v}catch(e){}if(v==='light'||v==='dark')r.dataset.theme=v;else delete r.dataset.theme;sc=cfg().scheme||sc;if(sc!=='indigo')r.dataset.scheme=sc;else delete r.dataset.scheme;bar()}
+ function fire(){window.dispatchEvent(new Event('themechange'))}
+ apply();
+ window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){v=t;try{localStorage.setItem(K,t)}catch(e){};apply();fire()},setScheme:function(s){sc=s;var o=cfg();o.scheme=s;try{localStorage.setItem(KS,JSON.stringify(o))}catch(e){};apply();fire()},refresh:function(){apply();fire()},bar:bar};
+ addEventListener('storage',function(e){if(e.key===K||e.key===KS)window.loanTheme.refresh()});
  document.addEventListener('DOMContentLoaded',bar);
- try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){bar();window.dispatchEvent(new Event('themechange'))})}catch(e){}
+ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){bar();fire()})}catch(e){}
 })();
 </script>
 <title>Live Loan Graph</title>
@@ -166,6 +172,8 @@ html.embed .go{display:none!important}
 html.embed .go button{min-height:42px;font-size:15px}
 html.embed .fig{min-height:300px}
 </style>
+<link rel="stylesheet" href="settings.css">
+<script src="settings.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -304,10 +312,7 @@ html.embed .fig{min-height:300px}
 window.addEventListener('DOMContentLoaded',()=>{
   const dev=document.getElementById('devSw');if(!dev)return;
   const box=document.createElement('div');box.id='topSw';dev.replaceWith(box);
-  const t=document.createElement('button');t.id='themeSw';t.type='button';
-  const L={auto:'◐ Auto',light:'☀ Light',dark:'☾ Dark'},N={auto:'light',light:'dark',dark:'auto'};
-  const show=()=>{const v=loanTheme.get();t.textContent=L[v];t.title='Colours: '+v+(v==='auto'?' (follows your phone or computer)':'')+'. Tap to change.'};
-  t.onclick=()=>{loanTheme.set(N[loanTheme.get()]);show()};show();
+  const t=document.createElement('button');t.id='setSw';t.type='button';t.textContent='⚙ Settings';t.title='Colours, layout and country';t.onclick=()=>window.loanSettings&&loanSettings.open();
   const cv=document.createElement('a');cv.id='combSw';cv.href='desktop.html';cv.textContent='⧉ Combined view';cv.title='Graph and Tracker side by side on one screen';
   box.append(cv,t,dev);
 });
@@ -356,8 +361,8 @@ function run(p,withExtra){
     if(dbl===null&&nb>=2*S.P)dbl=k;
     if(k===Tp){atT=nb;totT=tot}B=nb}
   return{paid,int,dbl,atT:atT===null?0:atT,pts,tot,totT:totT===null?tot:totT}}
-const money=v=>(v<0?'−':'')+'$'+Math.round(Math.abs(v)).toLocaleString('en-AU');
-const kfmt=a=>{a=Math.abs(a);return '$'+(a>=1e6?parseFloat((a/1e6).toFixed(2))+'M':a>=1e4?Math.round(a/1e3)+'k':a>=1e3?parseFloat((a/1e3).toFixed(1))+'k':Math.round(a))};
+const money=v=>(v<0?'−':'')+loanRegion.sym+Math.round(Math.abs(v)).toLocaleString(loanRegion.locale);
+const kfmt=a=>{a=Math.abs(a);return loanRegion.sym+(a>=1e6?parseFloat((a/1e6).toFixed(2))+'M':a>=1e4?Math.round(a/1e3)+'k':a>=1e3?parseFloat((a/1e3).toFixed(1))+'k':Math.round(a))};
 const ym=y=>{const m=Math.round(y*12),a=Math.floor(m/12),b=m%12;return (a?a+' yr'+(a>1?'s':''):'')+(b?(a?' ':'')+b+' mo':'')||'0 mo'};
 
 /* payment slider: 0–500 grows (0 → equalised), 500–550 equalised → longest exit, 550–1000 longest exit → 1 year */
@@ -513,7 +518,7 @@ function remember(){const j=JSON.stringify(S),now=Date.now();
 const REDO=[];
 function undo(){if(!HIST.length)return;REDO.push(cur);S={...DEF,...JSON.parse(HIST.pop())};restoring=true;burstT=0;update()}
 function redo(){if(!REDO.length)return;HIST.push(cur);S={...DEF,...JSON.parse(REDO.pop())};restoring=true;burstT=0;update()}
-const grp=v=>Math.round(v).toLocaleString('en-AU');
+const grp=v=>Math.round(v).toLocaleString(loanRegion.locale);
 function update(){remember();save();sync();stats();draw();if(typeof pin!=='undefined'&&pin)showAt(pin.px,pin.py)}
 
 const num=(v,lo,hi,dflt)=>{v=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isFinite(v)?Math.min(hi,Math.max(lo,v)):dflt};

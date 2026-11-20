@@ -1,0 +1,71 @@
+/* Settings panel and colour schemes, shared by index.html, tracker.html and desktop.html.
+   A scheme only changes the accent (buttons, highlights, selected options).
+   The loan curves keep their own colours so the graph always reads the same. */
+
+/* ---- colour schemes (Indigo is the default, defined in each page) ---- */
+:root[data-scheme=ocean]{--acc:#0e7490;--acc-ink:#ffffff;--soft:#e3f3f6}
+:root[data-scheme=forest]{--acc:#2f7d4f;--acc-ink:#ffffff;--soft:#e5f2e9}
+:root[data-scheme=sunset]{--acc:#c2410c;--acc-ink:#ffffff;--soft:#fdeee6}
+:root[data-scheme=graphite]{--acc:#1a1c29;--acc-ink:#ffffff;--soft:#ecebe8}
+@media (prefers-color-scheme:dark){
+  :root[data-scheme=ocean]:not([data-theme=light]){--acc:#4fc3dc;--acc-ink:#0f111a;--soft:#12303a}
+  :root[data-scheme=forest]:not([data-theme=light]){--acc:#5fcf8e;--acc-ink:#0f111a;--soft:#15301f}
+  :root[data-scheme=sunset]:not([data-theme=light]){--acc:#ff9466;--acc-ink:#0f111a;--soft:#3a2016}
+  :root[data-scheme=graphite]:not([data-theme=light]){--acc:#eceef5;--acc-ink:#0f111a;--soft:#262a3a}
+}
+:root[data-scheme=ocean][data-theme=dark]{--acc:#4fc3dc;--acc-ink:#0f111a;--soft:#12303a}
+:root[data-scheme=forest][data-theme=dark]{--acc:#5fcf8e;--acc-ink:#0f111a;--soft:#15301f}
+:root[data-scheme=sunset][data-theme=dark]{--acc:#ff9466;--acc-ink:#0f111a;--soft:#3a2016}
+:root[data-scheme=graphite][data-theme=dark]{--acc:#eceef5;--acc-ink:#0f111a;--soft:#262a3a}
+
+/* ---- the panel ---- */
+.set-ov{position:fixed;inset:0;z-index:100;background:rgba(10,12,20,.45);display:grid;place-items:center;padding:20px;animation:setFade .15s ease-out}
+.set-ov[hidden]{display:none}
+.set{width:min(460px,100%);max-height:min(720px,calc(100vh - 40px));overflow:auto;background:var(--panel);color:var(--ink);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);font:15px/1.5 Geist,system-ui,sans-serif;overscroll-behavior:contain}
+.set>header{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px;background:var(--panel);border-bottom:1px solid var(--line)}
+.set>header h2{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+.set-x{width:40px;height:40px;border:0;border-radius:50%;background:var(--bg);color:var(--ink);font:inherit;font-size:16px;cursor:pointer}
+.set-x:hover{background:var(--soft)}
+.set section{padding:14px 18px;border-bottom:1px solid var(--line);display:grid;gap:8px}
+.set section[hidden]{display:none}
+.set h3{margin:0 0 2px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.set-lab{font-size:13px;font-weight:500;color:var(--mute);margin-top:4px}
+.set-hint{margin:0;font-size:13px;color:var(--mute)}
+.set-seg{display:flex;background:var(--bg);border-radius:10px;padding:3px;gap:3px}
+.set-seg button{flex:1;min-height:42px;border:0;border-radius:8px;background:none;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.set-seg button.on{background:var(--acc);color:var(--acc-ink);font-weight:600}
+.set-sw{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.set-sw button{display:grid;justify-items:center;gap:6px;padding:10px 4px 8px;border:2px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font:inherit;font-size:12.5px;cursor:pointer}
+.set-sw button i{width:30px;height:30px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.set-sw button.on{border-color:var(--acc);background:var(--soft);font-weight:600}
+.set-link{display:inline-flex;align-items:center;min-height:42px;color:var(--acc);font-weight:500;text-decoration:none}
+.set-link:hover{text-decoration:underline}
+.set-reset{min-height:42px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:none;color:var(--ink);font:inherit;font-size:14px;cursor:pointer;justify-self:start}
+.set-reset:hover{border-color:var(--bad,#d1342f);color:var(--bad,#d1342f)}
+.set footer{padding:12px 18px 16px}
+.set button:focus-visible,.set a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+@keyframes setFade{from{opacity:0}}
+/* phone: a sheet that slides up from the bottom */
+html[data-device=phone] .set-ov{place-items:end stretch;padding:0}
+html[data-device=phone] .set{width:100%;max-height:88vh;border-radius:20px 20px 0 0;padding-bottom:env(safe-area-inset-bottom);animation:setUp .2s ease-out}
+html[data-device=phone] .set-sw{grid-template-columns:repeat(3,minmax(0,1fr))}
+@keyframes setUp{from{transform:translateY(40px);opacity:.4}}
+@media (prefers-reduced-motion:reduce){.set-ov,.set{animation:none!important}}
+/* the Settings button in the top corner */
+#topSw #setSw,#setSw.pill{font-weight:500}
+
+/* data section */
+.set-row{display:flex;flex-wrap:wrap;gap:8px}
+.set-btn{flex:1 1 auto;min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer}
+.set-btn:hover{border-color:var(--acc)}
+.set-btn.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:600}
+.set-stat{margin:0;font-size:13.5px;color:var(--ink);padding:9px 12px;background:var(--bg);border-radius:10px}
+.set-stat.warn{background:color-mix(in srgb,#f59e0b 16%,var(--panel));}
+.set-stat.flash{background:var(--soft)}
+.set-confirm{display:grid;gap:8px;padding:12px;border:2px solid var(--acc);border-radius:12px;background:var(--soft);font-size:14px}
+.set-confirm span{color:var(--mute);font-size:13px}
+.set-reset.armed{border-color:var(--bad,#d1342f);background:var(--bad,#d1342f);color:#fff}
+#setSw.due{position:relative}
+#setSw.due::after{content:"";position:absolute;top:3px;right:3px;width:9px;height:9px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 2px var(--panel)}
+.set [hidden]{display:none!important}
+html[data-device=phone] .set-cty button{flex:1 1 45%!important}

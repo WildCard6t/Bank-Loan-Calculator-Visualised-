@@ -15,13 +15,19 @@
 <script>
 /* colour theme: Auto (follows the phone), Light or Dark. Shared by both pages, remembered in this browser. Runs before the page paints. */
 (function(){var K='loanTheme',r=document.documentElement,v='auto';
- if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})}
-try{v=localStorage.getItem(K)||'auto'}catch(e){}
- if(v==='light'||v==='dark')r.dataset.theme=v;
+ if(/[?&]embed=1/.test(location.search)){window.loanEmbed=true;r.classList.add('embed');r.dataset.device='desktop';addEventListener('message',function(e){var d=e.data||{};if(d.loanTheme)window.loanTheme.set(d.loanTheme);if(d.loanSettings)window.loanTheme.refresh();if(d.loan==='reloadAll')location.reload();if(d.loan==='reload')location.reload();if(d.loan==='sendLoan'){var b=document.getElementById('toTracker');if(b)b.click()}})}
+ var KS='loanSettings.v1',sc='indigo';
+ function cfg(){try{return JSON.parse(localStorage.getItem(KS))||{}}catch(e){return {}}}
+ var REG={AU:['en-AU','$'],NZ:['en-NZ','$'],UK:['en-GB','£'],US:['en-US','$'],CA:['en-CA','$']},c0=cfg(),cc=REG[c0.country]?c0.country:'AU';
+ window.loanRegion={country:cc,locale:REG[cc][0],sym:REG[cc][1],mdy:cc==='US'};
  function bar(){var m=document.getElementById('themeColor');if(m)m.content=getComputedStyle(r).getPropertyValue('--bg').trim()||'#f4f3f0'}
- window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){if(t==='auto')delete r.dataset.theme;else r.dataset.theme=t;try{localStorage.setItem(K,t)}catch(e){};bar();window.dispatchEvent(new Event('themechange'))},bar:bar};
+ function apply(){try{v=localStorage.getItem(K)||v}catch(e){}if(v==='light'||v==='dark')r.dataset.theme=v;else delete r.dataset.theme;sc=cfg().scheme||sc;if(sc!=='indigo')r.dataset.scheme=sc;else delete r.dataset.scheme;bar()}
+ function fire(){window.dispatchEvent(new Event('themechange'))}
+ apply();
+ window.loanTheme={get:function(){return r.dataset.theme||'auto'},set:function(t){v=t;try{localStorage.setItem(K,t)}catch(e){};apply();fire()},setScheme:function(s){sc=s;var o=cfg();o.scheme=s;try{localStorage.setItem(KS,JSON.stringify(o))}catch(e){};apply();fire()},refresh:function(){apply();fire()},bar:bar};
+ addEventListener('storage',function(e){if(e.key===K||e.key===KS)window.loanTheme.refresh()});
  document.addEventListener('DOMContentLoaded',bar);
- try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){bar();window.dispatchEvent(new Event('themechange'))})}catch(e){}
+ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){bar();fire()})}catch(e){}
 })();
 </script>
 <title>Loan Tracker</title>
@@ -182,6 +188,8 @@ html.embed .go{display:none!important}
 html.embed .go button{min-height:42px;font-size:15px}
 html.embed .fig{min-height:300px}
 </style>
+<link rel="stylesheet" href="settings.css">
+<script src="settings.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -292,10 +300,7 @@ html.embed .fig{min-height:300px}
 window.addEventListener('DOMContentLoaded',()=>{
   const dev=document.getElementById('devSw');if(!dev)return;
   const box=document.createElement('div');box.id='topSw';dev.replaceWith(box);
-  const t=document.createElement('button');t.id='themeSw';t.type='button';
-  const L={auto:'◐ Auto',light:'☀ Light',dark:'☾ Dark'},N={auto:'light',light:'dark',dark:'auto'};
-  const show=()=>{const v=loanTheme.get();t.textContent=L[v];t.title='Colours: '+v+(v==='auto'?' (follows your phone or computer)':'')+'. Tap to change.'};
-  t.onclick=()=>{loanTheme.set(N[loanTheme.get()]);show()};show();
+  const t=document.createElement('button');t.id='setSw';t.type='button';t.textContent='⚙ Settings';t.title='Colours, layout and country';t.onclick=()=>window.loanSettings&&loanSettings.open();
   const cv=document.createElement('a');cv.id='combSw';cv.href='desktop.html';cv.textContent='⧉ Combined view';cv.title='Graph and Tracker side by side on one screen';
   box.append(cv,t,dev);
 });
@@ -305,14 +310,14 @@ if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventLis
 {
 const $=id=>document.getElementById(id);
 const KEY='loanTracker.v1',FL=new Proxy({52:'wk',26:'fn',12:'mo',4:'qtr',2:'half-yr',1:'yr',365:'day'},{get:(o,k)=>o[k]||'pmt'}),PRESET=[1,2,4,12,26,52,365];let showC=false;
-const money=v=>(v<0?'−':'')+'$'+Math.round(Math.abs(v)).toLocaleString('en-AU');
-const grp=v=>Math.round(v).toLocaleString('en-AU');
-const kfmt=a=>'$'+(a>=1e6?parseFloat((a/1e6).toFixed(2))+'M':a>=1e3?Math.round(a/1e3)+'k':Math.round(a));
+const money=v=>(v<0?'−':'')+loanRegion.sym+Math.round(Math.abs(v)).toLocaleString(loanRegion.locale);
+const grp=v=>Math.round(v).toLocaleString(loanRegion.locale);
+const kfmt=a=>loanRegion.sym+(a>=1e6?parseFloat((a/1e6).toFixed(2))+'M':a>=1e3?Math.round(a/1e3)+'k':Math.round(a));
 const num=v=>{v=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isFinite(v)?v:null};
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const parse=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const nice=d=>d.getDate()+' '+MON[d.getMonth()]+' '+d.getFullYear();
+const nice=d=>loanRegion.mdy?MON[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear():d.getDate()+' '+MON[d.getMonth()]+' '+d.getFullYear();
 const my=d=>MON[d.getMonth()]+' '+d.getFullYear();
 const TODAY=(()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate())})();
 const uid=()=>Math.random().toString(36).slice(2,10);
@@ -463,7 +468,7 @@ function rows(ps){const p=PR(),tb=$('rows');
   tb.innerHTML=ev.map(e=>{const c=ps.checks[e.id],bad=parse(e.date)<parse(p.start);
     const chk=e.type==='balance'&&c?'Model said '+money(c.model)+'<br><small>off by '+money(c.diff)+'</small>':bad?'<small>Before the start date: ignored</small>':'';
     const sign=e.type==='extra'?'−':e.type==='redraw'?'+':'=';
-    return '<tr><td>'+nice(parse(e.date))+'</td><td><span class="tag '+e.type+'">'+name[e.type]+'</span></td><td class="n">'+sign+' '+money(e.amt)+'</td><td>'+(e.note?e.note.replace(/[<>&]/g,''):'')+'</td><td>'+chk+'</td><td><small>'+new Date(e.added).toLocaleString('en-AU',{dateStyle:'short',timeStyle:'short'})+'</small></td><td><button class="x" data-del="'+e.id+'" title="Delete (you can undo)">×</button></td></tr>'}).join('')}
+    return '<tr><td>'+nice(parse(e.date))+'</td><td><span class="tag '+e.type+'">'+name[e.type]+'</span></td><td class="n">'+sign+' '+money(e.amt)+'</td><td>'+(e.note?e.note.replace(/[<>&]/g,''):'')+'</td><td>'+chk+'</td><td><small>'+new Date(e.added).toLocaleString(loanRegion.locale,{dateStyle:'short',timeStyle:'short'})+'</small></td><td><button class="x" data-del="'+e.id+'" title="Delete (you can undo)">×</button></td></tr>'}).join('')}
 function sync(){const p=PR(),act=document.activeElement,set=(id,v)=>{if(act!==$(id))$(id).value=v};
   $('prof').innerHTML=Object.entries(ST.profiles).map(([id,q])=>'<option value="'+id+'"'+(id===ST.cur?' selected':'')+'>'+q.name.replace(/[<>&]/g,'')+'</option>').join('');
   $('delP').disabled=Object.keys(ST.profiles).length<2;
@@ -509,8 +514,8 @@ $('delP').addEventListener('click',()=>{if(Object.keys(ST.profiles).length<2)ret
 $('undo').addEventListener('click',undo);
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'&&!/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName)){e.preventDefault();undo()}});
 $('exp').addEventListener('click',()=>{try{const b=new Blob([JSON.stringify(ST,null,2)],{type:'application/json'}),a=document.createElement('a');
-  a.href=URL.createObjectURL(b);a.download='loan-tracker_'+iso(TODAY)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-  $('eMsg').textContent='Exported. Keep the file in Bank Loan VIsualised\\05 History.'}catch(e){$('eMsg').textContent='Export is blocked here. Open the page directly in your browser to export.'}});
+  a.href=URL.createObjectURL(b);a.download='loan-tracker_'+iso(TODAY)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);if(window.loanSettings)loanSettings.markBackup();
+  $('eMsg').textContent='Exported. Keep the file somewhere safe (on iPhone it is in Files › Downloads).'}catch(e){$('eMsg').textContent='Export is blocked here. Open the page directly in your browser to export.'}});
 $('imp').addEventListener('click',()=>$('impF').click());
 $('impF').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;
   try{const d=JSON.parse(await f.text());if(!d.profiles)throw 0;burstT=0;ST={v:1,cur:d.cur in d.profiles?d.cur:Object.keys(d.profiles)[0],profiles:d.profiles};commit();render();$('eMsg').textContent='Imported '+Object.keys(d.profiles).length+' profile(s). Undo puts back what you had.'}
