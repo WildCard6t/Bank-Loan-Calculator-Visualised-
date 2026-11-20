@@ -62,9 +62,10 @@ textarea:focus,select:focus{outline:2px solid var(--acc);outline-offset:1px}
 .note .row{display:flex;gap:8px;align-items:baseline;margin:2px 0}
 .dot{width:10px;height:10px;border-radius:50%;flex:none;transform:translateY(1px)}
 .err{color:var(--bad)}
-.sl{margin-top:12px}.sl .s{display:grid;grid-template-columns:28px 1fr 64px;gap:8px;align-items:center;margin:6px 0}
+.sl{margin-top:12px}.sl .s{display:grid;grid-template-columns:28px 1fr 56px 24px;gap:8px;align-items:center;margin:6px 0}
 .sl b{font-family:"Geist Mono",monospace}.sl output{font-variant-numeric:tabular-nums;text-align:right;font-size:14px}
 input[type=range]{width:100%;accent-color:var(--acc)}
+.sl input[type=checkbox]{width:18px;height:18px;accent-color:var(--acc);margin:0;cursor:pointer}
 .pre{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .pre button,button.b{padding:6px 10px;font-size:13px;cursor:pointer;border-radius:99px}
 .pre button{border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:13px;padding:5px 10px;border-radius:99px;cursor:pointer}
@@ -82,7 +83,7 @@ canvas{display:block;width:100%;height:min(70vh,620px);touch-action:none;cursor:
 <div class="wrap">
   <a class="homeL" href="index.html" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Finance Visualised</span></a>
   <div id="topSw"><a href="graph.html">Loan Graph</a><a href="tracker.html">Loan Tracker</a><a href="cashflow.html">Cash-Flow</a><button type="button" onclick="window.loanSettings&&loanSettings.open()">⚙ Settings</button></div>
-  <h1>Math Visualizer <small>Early Preview · v4</small></h1>
+  <h1>Math Visualizer <small>Early Preview · v5</small></h1>
   <p class="sub">Type an equation and watch it draw. Any extra letter (like <b>a</b> or <b>k</b>) becomes a Slider you can drag.</p>
   <div class="grid">
     <div class="card">
@@ -219,18 +220,31 @@ function rebuild(){
   if(!scenes.length&&!info.length)info.push('<div class="row">Type something like <b>y = x^2</b>.</div>');
   $('info').innerHTML=info.join('');
   // sliders: keep values for letters already present
-  const np={}; need.forEach(v=>np[v]=params[v]||{v:DEF[v]??1,min:v==='r0'?0.5:-5,max:v==='r0'?8:5});
+  const np={}; need.forEach(v=>np[v]=params[v]||{v:DEF[v]??1,min:v==='r0'?0.5:-5,max:v==='r0'?8:5,anim:true,dir:1});
   params=np; drawSliders(); draw();
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function drawSliders(){
   const box=$('sliders'); box.innerHTML='';
   Object.keys(params).forEach(k=>{const p=params[k],d=document.createElement('div');d.className='s';
-    d.innerHTML=`<b>${esc(k)}</b><input type="range" min="${p.min}" max="${p.max}" step="0.01" value="${p.v}" aria-label="Slider ${esc(k)}"><output>${p.v.toFixed(2)}</output>`;
-    const r=d.querySelector('input'),o=d.querySelector('output');
+    d.innerHTML=`<b>${esc(k)}</b><input type="range" min="${p.min}" max="${p.max}" step="0.01" value="${p.v}" aria-label="Slider ${esc(k)}"><output>${p.v.toFixed(2)}</output><input type="checkbox" title="Animate: sweep this Slider back and forth" aria-label="Animate ${esc(k)}" ${p.anim?'checked':''}>`;
+    const r=d.querySelector('input'),o=d.querySelector('output'),c=d.querySelector('input[type=checkbox]');
+    p.ui={r,o};
     r.oninput=()=>{p.v=+r.value;o.textContent=p.v.toFixed(2);draw()};
+    c.onchange=()=>{p.anim=c.checked;animate()};
     box.appendChild(d);});
+  animate();
 }
+/* Animate tick boxes: each ticked Slider sweeps back and forth across its range (about 6 s each way), redrawing live. */
+let animRaf=0,animLast=0;
+function animate(){if(animRaf)return;animLast=performance.now();
+  const step=now=>{const ks=Object.keys(params).filter(k=>params[k].anim);if(!ks.length){animRaf=0;return}
+    const dt=Math.min(now-animLast,100)/1000;animLast=now;
+    ks.forEach(k=>{const p=params[k],span=p.max-p.min;p.v+=p.dir*span*dt/6;
+      if(p.v>p.max){p.v=p.max;p.dir=-1}if(p.v<p.min){p.v=p.min;p.dir=1}
+      if(p.ui){p.ui.r.value=p.v;p.ui.o.textContent=p.v.toFixed(2)}});
+    draw();animRaf=requestAnimationFrame(step)};
+  animRaf=requestAnimationFrame(step)}
 function scope(extra){const s={p:anim.p};for(const k in params)s[k]=params[k].v;return Object.assign(s,extra)}
 function ev(f,sc){try{const v=f.evaluate(sc);return typeof v==='number'?v:(v&&v.re!==undefined&&Math.abs(v.im)<1e-9?v.re:NaN)}catch(e){return NaN}}
 
