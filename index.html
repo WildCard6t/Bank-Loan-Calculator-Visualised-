@@ -377,7 +377,7 @@ html[data-device=phone] .nodeEd.min{position:fixed;left:auto!important;right:12p
     <section class="chart">
       <div class="tools"><button id="undo" title="Undo last change (Ctrl+Z)" disabled>↶ Undo</button><button id="redo" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><button id="reset" title="Back to $300k at 6% over 30 years. Your display settings stay as they are.">Reset loan</button></div>
       <div class="axis"><span id="yTitle">Change in Principal ($)</span><span>Time to Exit (years) →</span></div>
-      <div class="fig" id="fig"><canvas id="cv"></canvas><canvas id="ov"></canvas><div class="tip" id="tip"></div></div>
+      <div class="fig" id="fig"><canvas id="cv" role="img" aria-label="Chart: every repayment path for this loan, balance owing against years. The key figures are in the boxes above the chart."></canvas><canvas id="ov" aria-hidden="true"></canvas><div class="tip" id="tip"></div></div>
     </section>
   </div>
 
@@ -453,7 +453,11 @@ function cleanS(v){const o={...DEF};if(!v||typeof v!=='object')return o;
   return o}
 try{const v=JSON.parse(localStorage.getItem('loanGraph.v2'));if(v){S=cleanS(v);saved=true}}catch(e){}
 S.T=Math.min(40,S.T);
-const save=()=>{try{localStorage.setItem('loanGraph.v2',JSON.stringify(S))}catch(e){}};
+/* tell the person when the browser refuses to save (private mode, storage full or blocked) instead of failing silently */
+function warnSave(){if(document.getElementById('saveWarn'))return;const d=document.createElement('div');d.id='saveWarn';d.setAttribute('role','alert');d.style.cssText='position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:80;max-width:min(560px,calc(100vw - 24px));background:var(--bad,#d1342f);color:#fff;padding:12px 40px 12px 14px;border-radius:12px;font-size:14px;line-height:1.45;box-shadow:0 6px 24px rgba(0,0,0,.25)';d.innerHTML='<b>Your changes aren\u2019t being saved.</b> This browser is blocking storage (private mode, storage full, or a blocked site). Use Export to keep a copy before you close this page.<button aria-label="Dismiss" style="position:absolute;top:6px;right:6px;border:0;background:none;color:#fff;font-size:20px;cursor:pointer;min-width:32px;min-height:32px">\u00d7</button>';d.querySelector('button').onclick=()=>d.remove();(document.body||document.documentElement).appendChild(d)}
+/* a page left open past midnight reloads when you come back to it, so "today" is really today */
+(function(){const day=new Date().toDateString(),chk=()=>{if(!document.hidden&&new Date().toDateString()!==day&&!/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName||''))location.reload()};document.addEventListener('visibilitychange',chk);window.addEventListener('focus',chk)})();
+const save=()=>{try{localStorage.setItem('loanGraph.v2',JSON.stringify(S))}catch(e){setTimeout(warnSave,0)}};
 const FL=new Proxy({12:'mo',26:'fn',52:'wk',4:'qtr',2:'half-yr',1:'yr',365:'day'},{get:(o,k)=>o[k]||'pmt'});
 const PRESET=[1,2,4,12,26,52,365];
 /* THE MODEL — one period = one payment:

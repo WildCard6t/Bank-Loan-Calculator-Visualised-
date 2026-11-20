@@ -400,7 +400,7 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
   <section class="panel chart">
     <p class="cap" id="trCap"></p>
     <div class="axis"><span>Balance owing ($)</span><span>Date →</span></div>
-    <div class="fig" id="fig" style="touch-action:pan-y"><canvas id="cv"></canvas><canvas id="ov"></canvas><div class="tip" id="tip"></div></div>
+    <div class="fig" id="fig" style="touch-action:pan-y"><canvas id="cv" role="img" aria-label="Chart: your loan balance over time. The solid line is what has happened; the lines after today are projections. The key figures are in the boxes above the chart."></canvas><canvas id="ov" aria-hidden="true"></canvas><div class="tip" id="tip"></div></div>
     <div class="legend" id="legend"></div>
     <div class="plist" id="plist"></div>
     <div class="trToast" id="trToast" hidden role="status"></div>
@@ -594,7 +594,11 @@ if(!ST){const id=uid();ST={v:1,cur:id,profiles:{[id]:example()}}}
 if(!ST.profiles[ST.cur])ST.cur=Object.keys(ST.profiles)[0];
 for(const q of Object.values(ST.profiles))if(q.view==null)q.view=10;
 
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){}};
+/* tell the person when the browser refuses to save (private mode, storage full or blocked) instead of failing silently */
+function warnSave(){if(document.getElementById('saveWarn'))return;const d=document.createElement('div');d.id='saveWarn';d.setAttribute('role','alert');d.style.cssText='position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:80;max-width:min(560px,calc(100vw - 24px));background:var(--bad,#d1342f);color:#fff;padding:12px 40px 12px 14px;border-radius:12px;font-size:14px;line-height:1.45;box-shadow:0 6px 24px rgba(0,0,0,.25)';d.innerHTML='<b>Your changes aren\u2019t being saved.</b> This browser is blocking storage (private mode, storage full, or a blocked site). Use Export to keep a copy before you close this page.<button aria-label="Dismiss" style="position:absolute;top:6px;right:6px;border:0;background:none;color:#fff;font-size:20px;cursor:pointer;min-width:32px;min-height:32px">\u00d7</button>';d.querySelector('button').onclick=()=>d.remove();(document.body||document.documentElement).appendChild(d)}
+/* a page left open past midnight reloads when you come back to it, so "today" is really today */
+(function(){const day=new Date().toDateString(),chk=()=>{if(!document.hidden&&new Date().toDateString()!==day&&!/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName||''))location.reload()};document.addEventListener('visibilitychange',chk);window.addEventListener('focus',chk)})();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){setTimeout(warnSave,0)}};
 const PR=()=>ST.profiles[ST.cur];
 
 /* undo: one step per burst of changes */
@@ -631,7 +635,7 @@ const TY={
   note:{n:'Note',m:'Just a note',i:'📝',c:'#6b7280',a:''}};
 const MK=Object.fromEntries(Object.entries(TY).map(([k,v])=>[k,v.c]));
 const evSort=(a,b)=>a.date<b.date?-1:a.date>b.date?1:(a.added||0)-(b.added||0);
-const live=(p,o={})=>p.log.filter(e=>TY[e.type]&&!e.skip&&!(o.skip&&o.skip.has(e.id))&&parse(e.date)>=parse(p.start)).sort(evSort);
+const live=(p,o={})=>p.log.filter(e=>(TY[e.type]||e.type==='adjust')&&!e.skip&&!(o.skip&&o.skip.has(e.id))&&parse(e.date)>=parse(p.start)).sort(evSort);
 /* s = {B balance, O offset, rate, pay regular payment, goal {amt,until}} */
 const annF=(x,n)=>x>0?x/(1-Math.pow(1+x,-n)):1/n;
 function applyEv(s,e,p,k){const t=e.type;
@@ -639,7 +643,7 @@ function applyEv(s,e,p,k){const t=e.type;
   if(t==='extra')s.B=Math.max(0,s.B-e.amt);else if(t==='redraw')s.B+=e.amt;else if(t==='balance')s.B=e.amt;
   else if(t==='pay'){s.pay=e.amt;s.goal=null}else if(t==='rate')s.rate=e.amt;
   else if(t==='goal')s.goal={amt:e.amt,until:parse(e.until||e.date).getTime()};
-  else if(t==='offset')s.O=Math.max(0,s.O+e.amt)}
+  else if(t==='offset')s.O=Math.max(0,s.O+e.amt);else if(t==='adjust')s.B=Math.max(0,s.B+e.amt)}
 const payNow=(s,d)=>s.goal&&d.getTime()<=s.goal.until?s.goal.amt:s.pay;
 const offOn=p=>!!(p.off&&(p.off.bal>0||p.off.top>0));
 
@@ -825,8 +829,14 @@ function stats(ps,fu){const p=PR(),pay=regPay(p);
 /* the score: money saved against the bank's standard schedule, always measured until the loan is paid off */
 let SC=null;
 /* the baseline: your loan with the same rate changes (the bank recalculating your repayment), standard repayments, and nothing extra */
-function baseProfile(p){return{...p,pay:null,off:null,log:p.log.filter(e=>e.type==='rate'&&!e.skip).map(e=>({...e,keep:undefined}))}}
-function score(ps,fu){const p=PR(),BL=life(baseProfile(p)),base=BL.int,bEnd=BL.off||schedEnd(p),cur=ps.int+fu.mid.int,saved=base-cur,mo=fu.mid.off?moBetween(fu.mid.off,bEnd):null,rateFx=schedInt(p)-base;
+/* the yardstick: the same loan with the bank's standard repayments and the same rate changes. Gaps found at bank balance checks
+   (fees, daily interest, a redraw you didn't log) go into the yardstick too, so they never count for or against you. */
+function baseProfile(p,ps){const cs=(ps||past(p)).checks,adj=p.log.filter(e=>e.type==='balance'&&!e.skip&&cs[e.id]&&Math.abs(cs[e.id].diff)>=.005).map(e=>({id:'adj_'+e.id,type:'adjust',date:e.date,amt:cs[e.id].diff,added:e.added||0}));
+  return{...p,pay:null,off:null,log:[...p.log.filter(e=>e.type==='rate'&&!e.skip).map(e=>({...e,keep:undefined})),...adj]}}
+const gapTotal=ps=>Object.values(ps.checks).reduce((a,c)=>a+c.diff,0);
+/* the score measures only what you did. Bank balance checks snap the real line to the bank's figure, but the gap they find
+   (fees, daily interest, an unlogged redraw) is not your doing, so the score is worked out as if the checks weren't there. */
+function score(ps0,fu0){const p0=PR(),chk=p0.log.some(e=>e.type==='balance'&&!e.skip),p=chk?{...p0,log:p0.log.filter(e=>e.type!=='balance')}:p0,ps=chk?past(p):ps0,fu=chk?future(p,ps,{noFan:true}):fu0,BL=life(baseProfile(p,ps)),base=BL.int,bEnd=BL.off||schedEnd(p),cur=ps.int+fu.mid.int,saved=base-cur,mo=fu.mid.off?moBetween(fu.mid.off,bEnd):null,rateFx=schedInt(p)-base;
   /* split the saving, in order: your history, then your offset, then your plans ahead (the three always add up) */
   const planIds=p.log.filter(e=>!e.skip&&parse(e.date)>TODAY&&e.type!=='note'&&e.type!=='offset').map(e=>e.id),sk=planIds.length?{skip:new Set(planIds)}:{};
   const iHist=life(p,{...sk,noOff:true}).int,iOff=offOn(p)?life(p,sk).int:iHist,fromOff=iHist-iOff,fromPlans=iOff-cur;
@@ -839,7 +849,8 @@ function score(ps,fu){const p=PR(),BL=life(baseProfile(p)),base=BL.int,bEnd=BL.o
   if(SC.never){cancelAnimationFrame($('scSaved')._r);$('scSaved').textContent='—';$('scSaved').dataset.v=0}else countTo($('scSaved'),Math.abs(saved),v=>money(v));
   $('scLead').textContent=saved>=-.5?'You’re on track to save':'You’re on track to pay';
   $('scSub').innerHTML=SC.never?'Your plan never pays the loan off: the payment doesn\u2019t cover the interest. A bank wouldn\u2019t allow this; add a node to pay more.':
-    (saved>=-.5?'in interest by the time your loan is paid off':'more interest than the bank’s schedule by the time it’s paid off')+' · <b>'+Math.round(Math.abs(SC.pct)*100)+'%</b> '+(saved>=-.5?'less':'more')+' than the '+money(base)+' the same loan would cost with standard repayments'+(p.log.some(e=>e.type==='rate'&&!e.skip)?' (and the same rate changes)':'');
+    (saved>=-.5?'in interest by the time your loan is paid off':'more interest than the bank’s schedule by the time it’s paid off')+' · <b>'+Math.round(Math.abs(SC.pct)*100)+'%</b> '+(saved>=-.5?'less':'more')+' than the '+money(base)+' the same loan would cost with standard repayments'+(p.log.some(e=>e.type==='rate'&&!e.skip)?' (and the same rate changes)':'')+
+    (Math.abs(gapTotal(ps0))>=1?'. Your bank checks found <b>'+(gapTotal(ps0)>0?'+':'\u2212')+money(Math.abs(gapTotal(ps0)))+'</b> the log doesn\u2019t explain (fees, daily interest, or a redraw you didn\u2019t log). That gap is left out of your score':'');
   $('scMo').textContent=mo==null?'–':ymo(mo);$('scMoN').textContent=mo==null?'not paid off':mo>=0?'sooner than '+my(bEnd):'later than '+my(bEnd);
   $('scStreak').textContent=streak+' mo';$('scStreakN').textContent=streak?'in a row at or above schedule'+(best>streak?' · best '+best:''):best?'best run: '+best+' mo. Pay a little extra to restart it':'pay at or above schedule to start one';
   const parts=[['History so far',SC.fromHist],['Your offset',SC.fromOff],['Plans ahead',SC.fromPlans]].filter(([,v])=>Math.abs(v)>=1);
@@ -858,7 +869,7 @@ function rows(ps){const p=PR(),tb=$('rows');
   const ev=[...p.log].filter(e=>TY[e.type]).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.added-a.added);
   if(!ev.length){tb.innerHTML='<tr><td colspan="7" class="empty">Nothing logged yet. Add an extra repayment, a redraw, a bank balance or a plan above, or unlock the chart and click your line.</td></tr>';return}
   tb.innerHTML=ev.map(e=>{const c=ps.checks[e.id],bad=parse(e.date)<parse(p.start),fut=parse(e.date)>TODAY;
-    let chk=e.type==='balance'&&c?'Model said '+money(c.model)+'<br><small>off by '+money(c.diff)+'</small>':bad?'<small>Before the start date: ignored</small>':'';
+    let chk=e.type==='balance'&&c?'Model said '+money(c.model)+(Math.abs(c.diff)<.5?'<br><small>matches</small>':'<br><small>Unexplained difference: '+(c.diff>0?'+':'\u2212')+money(Math.abs(c.diff))+'. Could be fees, daily interest or a redraw you didn\u2019t log. Not counted in your score.</small>'):bad?'<small>Before the start date: ignored</small>':'';
     if(fut)chk+='<span class="st plan">Plan</span>';
     else if(e.skip)chk+='<span class="st miss">Didn’t happen</span> <button class="mini" data-conf="'+esc(e.id)+'">It did</button>';
     else if(e.plan&&!e.done)chk+='<span class="st ask">Planned: did it happen?</span> <button class="mini" data-conf="'+esc(e.id)+'">Yes</button> <button class="mini" data-skip="'+esc(e.id)+'">No</button>';
@@ -871,7 +882,7 @@ function stress(p,ps){const n=Math.max(1,p.term*p.freq-(ps.nextK-1)),B=Math.max(
 /* your loan story: age, actual vs schedule, plans kept, milestones, pace by year, month by month */
 function hist(ps,fu){const p=PR(),s0=parse(p.start),k=ps.steps.length,N=p.term*p.freq,age=moBetween(s0,TODAY);
   $('hAge').innerHTML='<h3>Loan age</h3><b>'+ymo(age)+'</b><p>Started '+nice(s0)+'. '+k+' of '+N+' scheduled payments made ('+Math.round(k/N*100)+'% of the '+p.term+'-year term).</p>';
-  const bpP=baseProfile(p),bp=past(bpP),bf=future(bpP,bp,{noFan:true}),sb=bp.B,diff=sb-ps.B,sInt=bp.int,bAll=[...bp.pts,...bf.mid.pts];
+  const bpP=baseProfile(p,ps),bp=past(bpP),bf=future(bpP,bp,{noFan:true}),sb=bp.B,diff=sb-ps.B,sInt=bp.int,bAll=[...bp.pts,...bf.mid.pts];
   let aMo=0;if(Math.abs(diff)>=1){const hit=bAll.find(q=>q[1]<=ps.B+.005);aMo=hit?moBetween(TODAY,hit[0]):0}
   $('hVs').innerHTML='<h3>Actual vs the bank\u2019s schedule</h3><b class="'+(diff>=-.5?'g':'r')+'">'+(diff>=-.5?money(diff)+' ahead':money(-diff)+' behind')+'</b><p>At the standard repayment (now '+money(bp.s.pay)+'/'+FL[p.freq]+', no extras) you\u2019d owe '+money(sb)+' today. You owe '+money(ps.B)+(Math.abs(aMo)>=1?', about <b>'+ymo(aMo)+(aMo>0?' ahead':' behind')+'</b>':'')+'. Interest so far: '+money(ps.int)+' (schedule: '+money(sInt)+').</p>';
   const L=p.log.filter(e=>e.plan&&TY[e.type]),fut=L.filter(e=>parse(e.date)>TODAY),pastP=L.filter(e=>parse(e.date)<=TODAY),kept=pastP.filter(e=>e.done&&!e.skip),miss=pastP.filter(e=>e.skip),ask=pastP.filter(e=>!e.done&&!e.skip);
