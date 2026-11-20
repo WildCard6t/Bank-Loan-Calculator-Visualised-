@@ -237,12 +237,14 @@
   /* iPhone layer: a bottom tab bar to switch tools (shown only in the phone layout, see settings.css) */
   function tabBar(){
     const R=document.documentElement;if(R.classList.contains('embed')||/[?&]embed=1/.test(location.search)||document.getElementById('tabBar'))return;
+    if(!R.dataset.device){let d=null;try{d=localStorage.getItem('loanDevice')}catch(e){}R.dataset.device=d||((matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<760)?'phone':'desktop')}
     const here=(location.pathname.split('/').pop()||'index.html').toLowerCase();
     const I=d=>'<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
     const T=[['index.html','Home',I('<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>'),['','index.html']],
       ['cashflow.html','Cash-Flow',I('<rect x="4" y="8" width="5" height="12" rx="1.5"/><rect x="15" y="5" width="5" height="15" rx="1.5"/><path d="M6.5 8V4M17.5 5V3"/>'),['cashflow.html']],
       ['graph.html','Loans',I('<path d="M3 20h18"/><path d="M4 12c5-6 10-7 16-8"/><path d="M4 12c5 1 10 3 16 6"/><path d="M4 12h16"/>'),['graph.html','tracker.html']],
       ['compound.html','Growth',I('<path d="M3 20h18"/><path d="M4 17c6-1 11-4 16-12"/><path d="M15 5h5v5"/>'),['compound.html']],
+      ['math.html','Maths',I('<path d="M3 12h18M12 3v18" opacity=".45"/><path d="M3 15c3-8 6-8 9 0s6 8 9 0"/>'),['math.html']],
       ['pay.html','Pay',I('<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/>'),['pay.html']]];
     const nav=document.createElement('nav');nav.id='tabBar';nav.setAttribute('aria-label','Tools');
     nav.innerHTML=T.map(([h,n,ic,on])=>{const a=on.includes(here)||(here.indexOf('.')<0&&h==='index.html');

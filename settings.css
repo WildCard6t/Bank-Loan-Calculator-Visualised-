@@ -135,7 +135,7 @@ html[data-device=phone] #tabBar{display:flex;position:fixed;left:0;right:0;botto
   background:color-mix(in srgb,var(--panel,#fff) 88%,transparent);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);
   border-top:1px solid var(--line,#ddd)}
 html[data-device=phone] #tabBar a{flex:1 1 0;min-width:0;margin:0;padding:0!important;border:0!important;background:none;box-shadow:none;white-space:nowrap;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;
-  color:var(--mute,#666);text-decoration:none;font-size:11px;font-weight:600;letter-spacing:.01em;border-radius:12px;-webkit-tap-highlight-color:transparent}
+  color:var(--mute,#666);text-decoration:none;font-size:10.5px;font-weight:600;letter-spacing:.01em;border-radius:12px;-webkit-tap-highlight-color:transparent}
 html[data-device=phone] #tabBar a.on{color:var(--acc,#4f46e5)}
 html[data-device=phone] #tabBar a:active{background:var(--soft,#eef)}
 html[data-device=phone] #tabBar a:focus-visible{outline:2px solid var(--acc,#4f46e5);outline-offset:-2px}
