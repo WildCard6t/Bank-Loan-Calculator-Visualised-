@@ -1,4 +1,4 @@
-/* Settings panel, shared by index.html, tracker.html and desktop.html.
+/* Settings panel, shared by every page (home, graph, tracker, cash-flow, combined view).
    Everything is saved in this browser under localStorage "loanSettings.v1"
    (plus "loanTheme" for Auto/Light/Dark and "loanDevice" for the layout).
    To add a setting: add a <section> in html() and handle it in wire(). */
@@ -18,6 +18,17 @@
   const frames=msg=>document.querySelectorAll('iframe').forEach(f=>{try{f.contentWindow.postMessage(msg,'*')}catch(e){}});
   const dark=()=>root.dataset.theme==='dark'||(root.dataset.theme!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);
   let ov=null,lastFocus=null;
+  /* layout (phone or computer): detected automatically unless chosen here; "loanDevice" holds a choice */
+  const DK='loanDevice';
+  const guessDevice=()=>(matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<760)?'phone':'desktop';
+  function setDevice(v){
+    try{if(v==='phone'||v==='desktop')localStorage.setItem(DK,v);else localStorage.removeItem(DK)}catch(e){}
+    const d=v==='phone'||v==='desktop'?v:guessDevice();
+    if(window.loanEmbed||root.dataset.device===d)return;
+    root.dataset.device=d;
+    const sw=document.getElementById('devSw');if(sw)sw.textContent=(d==='phone'?'📱':'🖥️')+' Display ▾';
+    window.dispatchEvent(new Event('devicechange'));
+  }
 
   function html(){
     const hasLayout=!!document.getElementById('devSw');
@@ -45,10 +56,12 @@
         '<button type="button" class="set-btn" data-act="undo" id="setUndo" hidden>↶ Undo the last load or reset</button>'+
         '<p class="set-hint" id="setPersist"></p>'+
       '</section>'+
-      (hasLayout?'<section><h3>Layout</h3>'+
-        '<div class="set-seg" data-k="device"><button type="button" data-v="phone">📱 Phone</button><button type="button" data-v="desktop">🖥️ Computer</button></div>'+
-        '<a class="set-link" href="desktop.html">⧉ Combined view: graph and Tracker side by side</a>'+
-      '</section>':'')+
+      '<section><h3>Layout</h3>'+
+        '<label class="set-lab" for="setDev">Phone or computer layout</label>'+
+        '<select id="setDev" class="set-sel"><option value="auto"></option><option value="phone">📱 Phone</option><option value="desktop">🖥️ Computer</option></select>'+
+        '<p class="set-hint">Automatic picks the layout that suits this screen. Change it only if the pages look wrong.</p>'+
+        (hasLayout?'<a class="set-link" href="desktop.html">⧉ Combined view: graph and Tracker side by side</a>':'')+
+      '</section>'+
       '<section><h3>Reset</h3><div class="set-row"><button type="button" class="set-reset">Reset settings</button><button type="button" class="set-reset" data-act="wipe">Erase all my data</button></div>'+
         '<p class="set-hint" id="setWipeH">Reset settings only changes how things look and the country. Erase all my data removes every loan and Tracker log from this device (you get one chance to undo).</p></section>'+
       '<footer class="set-hint">Settings are saved on this device and shared by every page of the app.</footer>'+
@@ -59,7 +72,8 @@
     if(!ov)return;
     const s=get(),mode=window.loanTheme?loanTheme.get():'auto',scheme=s.scheme||'indigo',cty=window.loanRegion?loanRegion.country:'AU';
     const mark=(k,v)=>ov.querySelectorAll('[data-k="'+k+'"] button').forEach(b=>{const on=b.dataset.v===v;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
-    mark('mode',mode);mark('scheme',scheme);mark('country',s.country||cty);mark('device',root.dataset.device);
+    mark('mode',mode);mark('scheme',scheme);mark('country',s.country||cty);
+    const sel=ov.querySelector('#setDev');if(sel){let dv=null;try{dv=localStorage.getItem(DK)}catch(e){}sel.options[0].textContent='Automatic ('+(guessDevice()==='phone'?'phone':'computer')+')';sel.value=dv==='phone'||dv==='desktop'?dv:'auto'}
     const d=dark();ov.querySelectorAll('[data-k="scheme"] button').forEach(b=>{const c=SCHEMES.find(x=>x[0]===b.dataset.v);b.querySelector('i').style.background=d?c[3]:c[2]});
     const c=COUNTRIES.find(x=>x[0]===(s.country||cty))||COUNTRIES[0];
     const ex=c[0]==='US'?'Jul 20, 2026':'20 Jul 2026';
@@ -71,6 +85,7 @@
   }
 
   function wire(){
+    ov.addEventListener('change',e=>{if(e.target.id==='setDev'){setDevice(e.target.value);sync()}});
     ov.addEventListener('click',e=>{
       if(e.target===ov||e.target.closest('.set-x')){close();return}
       const b=e.target.closest('[data-k] button');
@@ -78,7 +93,6 @@
         if(k==='mode'){loanTheme.set(v);frames({loanSettings:1})}
         else if(k==='scheme'){loanTheme.setScheme(v);frames({loanSettings:1})}
         else if(k==='country'){const s=get();if((s.country||'AU')!==v){s.country=v;put(s);frames({loan:'reloadAll'});sessionStorage.setItem('loanSettingsOpen','1');location.reload();return}}
-        else if(k==='device'){const sw=document.getElementById('devSw');if(sw&&root.dataset.device!==v)sw.click()}
         sync();return}
       const act=e.target.closest('[data-act]');
       if(act){const a=act.dataset.act;

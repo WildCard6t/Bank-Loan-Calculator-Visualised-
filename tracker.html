@@ -98,17 +98,6 @@ td small{color:var(--mute)}
 .wrap{position:relative}
 #devSw{position:absolute;top:clamp(14px,2.4vw,32px);right:max(4vw,14px);min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:99px;font:inherit;font-size:13px;cursor:pointer;z-index:6}
 #devSw:hover{color:var(--ink);border-color:var(--acc)}
-#welcome{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:20px;overflow:auto}
-#welcome .box{max-width:620px;width:100%;text-align:center}
-#welcome h2{font-size:clamp(26px,5vw,38px);margin:0 0 6px;font-weight:600;letter-spacing:-.02em;color:var(--ink)}
-#welcome p{color:var(--mute);margin:0 0 22px}
-#welcome .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:520px){#welcome .opts{grid-template-columns:1fr}}
-#welcome button{position:relative;background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:22px 16px;cursor:pointer;color:var(--ink);font:inherit;text-align:left;display:grid;gap:6px}
-#welcome button:hover,#welcome button.rec{border-color:var(--acc)}
-#welcome button b{font-size:20px}#welcome button span{font-size:14px;color:var(--mute)}
-#welcome button em{position:absolute;top:10px;right:12px;font-style:normal;font-size:11px;font-weight:600;color:var(--acc);text-transform:uppercase;letter-spacing:.06em}
-#welcome small{display:block;margin-top:18px;color:var(--mute);font-size:13px}
 
 .plist{display:none}
 /* ---- phone layout ---- */
@@ -363,8 +352,8 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
 <div class="wrap">
   <p class="printHead" id="printHead"></p>
   <div class="broken" id="broken" hidden role="alert"><b>Something in this loan’s data couldn’t be shown.</b> Your other loans are safe. <button type="button" class="mini" onclick="document.getElementById('undo').click()">Undo last change</button> <button type="button" class="mini" onclick="document.getElementById('preImp').click()">Restore before import</button></div>
-  <nav><a href="index.html">← Every path out of a loan</a></nav>
-  <a class="homeL" href="index.html?home=1" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Bank Loan Visualised</span></a>
+  <nav><a href="graph.html">← Every path out of a loan</a></nav>
+  <a class="homeL" href="index.html" title="Home"><img src="icons/icon-192.png" alt="" width="26" height="26"><span>Bank Loan Visualised</span></a>
   <h1>Loan Tracker</h1>
   <p class="sub">Your real loan, from the day it started. Before Today the line is your history, coloured by how hard you were paying. From Today it becomes your plan, with a fan of better and worse paths. Add nodes on the line to record what happened or plan what’s next, and watch what it saves you.</p>
 
@@ -520,15 +509,7 @@ html[data-device=phone] .refi{padding:14px;margin-bottom:12px}
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden){closePop();b.focus()}});
     window.addEventListener('resize',closePop);window.addEventListener('scroll',closePop,{passive:true});
     document.body.appendChild(pop);w.prepend(b);
-    const home=/[?&]home=1/.test(location.search);if(home)try{history.replaceState(null,'',location.pathname)}catch(e){}
-    if(saved&&!home)return;
-    const o=document.createElement('div');o.id='welcome';o.setAttribute('role','dialog');o.setAttribute('aria-label','Choose a layout');
-    o.innerHTML='<div class="box"><h2>Welcome</h2><p>How are you viewing this? Pick the layout that suits your screen.</p><div class="opts">'+
-      '<button data-v="phone"'+(guess==='phone'?' class="rec"':'')+'>'+(guess==='phone'?'<em>Suggested</em>':'')+'<b>📱 Phone</b><span>The chart stays pinned at the top while you scroll the controls, with big touch-friendly buttons.</span></button>'+
-      '<button data-v="desktop"'+(guess==='desktop'?' class="rec"':'')+'>'+(guess==='desktop'?'<em>Suggested</em>':'')+'<b>🖥️ Computer</b><span>A wide chart with every label, and the controls laid out underneath.</span></button>'+
-      '</div><small>You can switch any time with the button in the top corner.</small></div>';
-    o.addEventListener('click',e=>{const t=e.target.closest('button[data-v]');if(t){apply(t.dataset.v);o.remove()}});
-    document.body.appendChild(o);o.querySelector('.rec').focus();
+    /* layout is detected automatically; it can be changed in Settings or with the Display button */
   });
 })();
 </script>

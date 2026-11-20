@@ -1,11 +1,13 @@
 # Bank Loan Visualised
 
-Two linked pages, plain HTML/CSS/JS with no build step:
+Plain HTML/CSS/JS with no build step:
 
-- `index.html`: **Every path out of a loan**, the explorer.
+- `index.html`: **Home**, a grid of tool tiles (each opens one tool). Add a tool by copying a tile; see the note at the top of its CSS.
+- `graph.html`: **Every path out of a loan**, the explorer.
+- `cashflow.html` + `cashflow.js`: **Cash-flow** board.
 - `tracker.html`: **Loan Tracker**, for one real loan per profile (saved in the browser).
 - `desktop.html`: **Combined view** for a computer, with the graph and the Tracker side by side (drag the divider to resize).
-- `settings.js` + `settings.css`: the Settings panel shared by all three pages (look, country and currency, layout, backup and restore).
+- `settings.js` + `settings.css`: the Settings panel shared by every page (look, country and currency, phone or computer layout, backup and restore).
 
 Live site (once GitHub Pages is switched on): https://wildcard6t.github.io/Bank-Loan-Calculator-Visualised-/
 
