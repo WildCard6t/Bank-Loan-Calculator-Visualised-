@@ -123,6 +123,8 @@ const EXAMPLES = {
   'Hello':'(-6, -2 + 4*t/(2pi))\n(-4, -2 + 4*t/(2pi))\n(-6 + 2*t/(2pi), 0)\n(-3, -2 + 4*t/(2pi))\n(-3 + 2*t/(2pi), 2)\n(-3 + 1.5*t/(2pi), 0)\n(-3 + 2*t/(2pi), -2)\n(0, -2 + 4*t/(2pi))\n(0 + 2*t/(2pi), -2)\n(3, -2 + 4*t/(2pi))\n(3 + 2*t/(2pi), -2)\n(7 + 1.2cos(t), 2sin(t))'
 };
 const DEF = {a:1,b:1,c:0,k:3,d:3,r0:3};
+/* Word drawings get the Wiggle (line boil) on by default. Add new word presets to this list. */
+const WORDS = new Set(['Hello']);
 
 /* ---------- LaTeX -> plain maths (tested 4/4 in groundwork) ---------- */
 const FN = 'sin|cos|tan|ln|log|exp|arcsin|arccos|arctan|sinh|cosh|tanh|sec|csc|cot';
@@ -273,22 +275,23 @@ function fit(){
   view={cx:(x0+x1)/2,cy:(y0+y1)/2,s:Math.min(W()/wx,H()/wy)};draw();
 }
 $('zre').onclick=fit;
-let wigT=null;$('wig').onclick=()=>{wig=!wig;$('wig').setAttribute('aria-pressed',wig);$('wig').style.borderColor=wig?'var(--acc)':'';$('wig').style.color=wig?'var(--acc)':'';
-  clearInterval(wigT);if(wig)wigT=setInterval(()=>{frame=(frame+1)%3;draw()},110);else draw()};
+let wigT=null;$('wig').onclick=()=>setWig(!wig);
+function setWig(on){wig=on;$('wig').setAttribute('aria-pressed',wig);$('wig').style.borderColor=wig?'var(--acc)':'';$('wig').style.color=wig?'var(--acc)':'';
+  clearInterval(wigT);if(wig)wigT=setInterval(()=>{frame=(frame+1)%3;draw()},110);else draw()}
 
 /* ---------- presets ---------- */
 const KEY='mathVisualizer.presets.v1';
 function mine(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
 function load(src,lang){$('lang').value=lang||(src.includes('\\')?'latex':'plain');$('src').value=src;params={};rebuild();fit()}
 function chips(){
-  const ex=$('examples');ex.innerHTML='';for(const n in EXAMPLES){const b=document.createElement('button');b.type='button';b.textContent=n;b.onclick=()=>load(EXAMPLES[n]);ex.appendChild(b)}
+  const ex=$('examples');ex.innerHTML='';for(const n in EXAMPLES){const b=document.createElement('button');b.type='button';b.textContent=n;b.onclick=()=>{load(EXAMPLES[n]);setWig(WORDS.has(n))};ex.appendChild(b)}
   const m=$('mine'),p=mine();m.innerHTML='';const names=Object.keys(p);
   if(!names.length)m.innerHTML='<span class="note" style="margin:0">None yet.</span>';
-  names.forEach(n=>{const b=document.createElement('button');b.type='button';b.textContent=n;b.onclick=()=>{load(p[n].src,p[n].lang);for(const k in p[n].params||{})if(params[k])params[k].v=p[n].params[k];drawSliders();draw()};
+  names.forEach(n=>{const b=document.createElement('button');b.type='button';b.textContent=n;b.onclick=()=>{load(p[n].src,p[n].lang);for(const k in p[n].params||{})if(params[k])params[k].v=p[n].params[k];drawSliders();setWig(!!p[n].wiggle)};
     b.oncontextmenu=e=>{e.preventDefault();if(confirm('Delete preset "'+n+'"?')){const q=mine();delete q[n];localStorage.setItem(KEY,JSON.stringify(q));chips()}};m.appendChild(b)});
 }
 $('save').onclick=()=>{const n=(prompt('Name this Preset')||'').trim();if(!n)return;const q=mine(),pv={};for(const k in params)pv[k]=params[k].v;
-  q[n]={src:$('src').value,lang:$('lang').value,params:pv};try{localStorage.setItem(KEY,JSON.stringify(q))}catch(e){alert('Could not save: browser storage is full or blocked.')}chips()};
+  q[n]={src:$('src').value,lang:$('lang').value,params:pv,wiggle:wig};try{localStorage.setItem(KEY,JSON.stringify(q))}catch(e){alert('Could not save: browser storage is full or blocked.')}chips()};
 
 $('src').addEventListener('input',e=>{rebuild();if(e.inputType==='insertFromPaste')fit()});$('lang').addEventListener('change',rebuild);
 addEventListener('resize',size);addEventListener('themechange',draw);
