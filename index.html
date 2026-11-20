@@ -171,6 +171,15 @@ html.embed nav,html.embed .go .goTxt,html.embed .go a{display:none}
 html.embed .go{display:none!important}
 html.embed .go button{min-height:42px;font-size:15px}
 html.embed .fig{min-height:300px}
+
+/* drag-to-set payoff: padlock and drag mode */
+#payLock{position:absolute;top:8px;left:72px;z-index:3;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 13px;border-radius:99px;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 70%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:var(--ink);font:inherit;font-size:13px;font-weight:500;cursor:pointer;opacity:.82;box-shadow:0 2px 10px rgba(0,0,0,.12);white-space:nowrap}
+#payLock:hover{opacity:1;border-color:var(--acc)}
+#payLock.open{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);opacity:1}
+#payLock span{font-size:15px;line-height:1}
+.fig.dragmode{touch-action:none;cursor:ew-resize}
+.fig.dragmode canvas{cursor:ew-resize}
+html[data-device=phone] #payLock{top:6px;min-height:34px;font-size:12.5px;padding:0 11px}
 </style>
 <link rel="stylesheet" href="settings.css">
 <script src="settings.js" defer></script>
@@ -604,6 +613,46 @@ const mo=new MutationObserver(draw);mo.observe(document.documentElement,{attribu
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw)}catch(e){}
 window.addEventListener('devicechange',()=>requestAnimationFrame(draw));
 update();
+/* Drag the payoff line. Locked by default (padlock in the chart corner) so a stray tap can't change your payment.
+   Unlocked: drag across the chart, or tap a spot, and your payment is solved so the loan is paid off right there
+   (snapped to whole months; tap below the chart on the year labels to snap to whole years). One drag = one Undo step.
+   With extra repayments or offset top-ups the payment is found by bisection on the exact period-by-period run(). */
+(function(){
+  let unlocked=false,drag=false,relockT=0,raf=0,last=null;
+  const lock=document.createElement('button');lock.id='payLock';lock.type='button';fig.appendChild(lock);
+  function place(){if(typeof G!=='undefined'&&G)lock.style.left=(G.L+8)+'px'}
+  function paint(){lock.classList.toggle('open',unlocked);lock.setAttribute('aria-pressed',String(unlocked));
+    lock.innerHTML=unlocked?'<span>🔓</span>Drag or tap to set your payoff time':'<span>🔒</span>Unlock to drag';
+    lock.title=unlocked?'Unlocked: drag across the chart, or tap a time, and your payment changes to match. Tap to lock again.':'Locked so a stray tap can’t change your payment. Tap to unlock, then drag the line to the time you want to be debt-free.';
+    fig.classList.toggle('dragmode',unlocked);place()}
+  function arm(){clearTimeout(relockT);relockT=setTimeout(()=>{if(!drag){unlocked=false;paint()}},120000)}
+  ['pointerdown','pointerup','pointermove'].forEach(t=>lock.addEventListener(t,e=>e.stopPropagation()));
+  lock.addEventListener('click',e=>{e.stopPropagation();unlocked=!unlocked;paint();if(unlocked){arm();if(typeof pin!=='undefined'){pin=null;hide()}}});
+  function exitAt(p){const R=run(p,true);if(R.paid===null)return Infinity;const l=R.pts[R.pts.length-1];return l[1]<=-S.P+1e-6?l[0]:R.paid}
+  function solve(n){
+    if(!(S.lump>0||S.rec>0||S.top>0))return exitPay(n);
+    if(exitAt(0)<=n)return 0;let lo=0,hi=S.P*(1+rr())+1;
+    for(let i=0;i<50;i++){const m=(lo+hi)/2;if(exitAt(m)<=n)hi=m;else lo=m}return hi}
+  function target(px,py){
+    const f=S.freq,t=Math.min(G.Tp,Math.max(0,(px-G.L)/G.pw*G.Tp)),axis=py>G.Tm+G.ph;
+    let n=axis?Math.round(t/f)*f:Math.round(Math.round(t/f*12)/12*f);
+    return Math.min(G.Tp,Math.max(f,n,1))}
+  function setTo(px,py){
+    if(!G)return;const n=target(px,py);if(last===n)return;last=n;
+    const p=solve(n);S.s=sFromPay(p);update();
+    const x=G.L+n/G.Tp*G.pw;showAt(Math.min(G.L+G.pw,x),Math.min(G.Tm+G.ph-2,Math.max(G.Tm+2,py)));
+    tip.innerHTML='<b>Debt-free in '+ym(n/S.freq)+'</b><br>Payment: '+money(payFromS(S.s))+'/'+FL[S.freq]+'<br><small style="opacity:.7">Undo puts it back</small>'}
+  const pos=e=>{const r=fig.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+  fig.addEventListener('pointerdown',e=>{if(!unlocked||e.target===lock)return;const[px,py]=pos(e);if(!G||px<G.L-10||px>G.L+G.pw+10)return;
+    e.preventDefault();e.stopImmediatePropagation();drag=true;last=null;burstT=0;try{fig.setPointerCapture(e.pointerId)}catch(_){}setTo(px,py);arm()},true);
+  fig.addEventListener('pointermove',e=>{if(!drag)return;e.stopImmediatePropagation();const[px,py]=pos(e);cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>setTo(px,py))},true);
+  const end=e=>{if(!drag)return;e.stopImmediatePropagation();drag=false;burstT=0;arm()};
+  fig.addEventListener('pointerup',end,true);fig.addEventListener('pointercancel',end,true);
+  new ResizeObserver(()=>requestAnimationFrame(place)).observe(fig);
+  window.addEventListener('devicechange',()=>requestAnimationFrame(place));
+  paint();requestAnimationFrame(place);
+  window.LoanDrag={unlock:v=>{unlocked=v!==false;paint()},solve,geo:()=>G&&{L:G.L,pw:G.pw,Tm:G.Tm,ph:G.ph,Tp:G.Tp}};
+})();
 }
 </script>
 <script>window.addEventListener('themechange',()=>{draw()});addEventListener('resize',()=>ticks());addEventListener('devicechange',()=>requestAnimationFrame(ticks));</script>
