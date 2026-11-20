@@ -189,6 +189,109 @@ html.embed .go button{min-height:42px;font-size:15px}
 html.embed .fig{min-height:300px}
 .cap{margin:2px 10px 10px;font-size:14px;line-height:1.5;color:var(--mute);max-width:110ch}.cap b{color:var(--ink);font-weight:600}.capTip{display:block;margin-top:4px;font-size:13px}.capTip a{color:var(--acc)}
 html[data-device=phone] .cap{font-size:13px;margin:2px 4px 8px}
+
+/* ---- v0.7: score, story, nodes, offset ---- */
+.add{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.add .ctl[hidden]{display:none}
+.tag{background:color-mix(in srgb,var(--t) 15%,var(--panel));color:color-mix(in srgb,var(--t) 80%,var(--ink))}
+.st{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:99px;margin:2px 4px 2px 0;white-space:nowrap}
+.st.plan{background:var(--soft);color:var(--acc)}.st.ask{background:color-mix(in srgb,#f59e0b 20%,var(--panel));color:color-mix(in srgb,#b45309 85%,var(--ink))}
+.st.miss{background:var(--bad-bg);color:var(--bad)}.st.kept,.st.hist{background:var(--good-bg);color:var(--good)}.st.hist{background:var(--bg);color:var(--mute)}
+.mini{min-height:28px;padding:0 10px;margin:2px 2px 0 0;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--ink);font:inherit;font-size:12.5px;cursor:pointer}.mini:hover{border-color:var(--acc)}
+tr.skipped td{opacity:.55}tr.skipped td:nth-child(3){text-decoration:line-through}
+tr.fut td:first-child{color:var(--acc);font-weight:500}
+.x+.x{margin-left:2px}
+.legend .dia{width:9px;height:9px;transform:rotate(45deg);border:2px solid var(--good);border-radius:1px;background:var(--panel)}
+.legend .ring{background:var(--panel)!important;border:3px solid var(--mute);width:11px;height:11px}
+.pY{color:#b38f00!important}.pG{color:#2f9a43!important}.pR{color:#d9480f!important}
+:root[data-theme=dark] .pY{color:#ffd000!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .pY{color:#ffd000!important}}
+
+/* score: money saved */
+.score{position:relative;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px 22px;margin:0 0 18px;padding:18px 20px;border-radius:16px;color:#f2fff6;
+  background:radial-gradient(120% 140% at 0% 0%,#1f9d55 0%,#13703c 45%,#0b4a29 100%);box-shadow:0 10px 30px rgba(11,74,41,.28)}
+.score.neg{background:radial-gradient(120% 140% at 0% 0%,#b45309 0%,#8a3b07 60%,#5c2804 100%);box-shadow:0 10px 30px rgba(92,40,4,.25)}
+.scMain{display:grid;gap:2px;align-content:start}
+.scLead{font-size:14px;font-weight:500;opacity:.9}
+.scBig{font-size:clamp(36px,5.4vw,60px);line-height:1.02;font-weight:600;letter-spacing:-.025em;font-variant-numeric:tabular-nums;text-shadow:0 2px 14px rgba(0,0,0,.18)}
+.scSub{font-size:14px;opacity:.92;max-width:62ch}.scSub b{font-weight:600}
+.scSide{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-content:start}
+.scSide div{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:10px 12px;display:grid}
+.scSide span{font-size:12px;text-transform:uppercase;letter-spacing:.06em;opacity:.8;font-weight:600}.scSide b{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}.scSide small{font-size:12.5px;opacity:.85}
+.scParts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
+.scParts span{display:inline-flex;align-items:baseline;gap:8px;padding:6px 12px;border-radius:99px;background:rgba(255,255,255,.12);font-size:13.5px}
+.scParts i{font-style:normal;opacity:.85}.scParts b{font-weight:600}.scParts b.m{color:#ffd0c2}
+.scFoot{grid-column:1/-1;margin:0;font-size:12.5px;opacity:.75}
+@media(max-width:900px){.score{grid-template-columns:minmax(0,1fr)}}
+html[data-device=phone] .score{margin:0 0 12px;padding:16px 14px;grid-template-columns:minmax(0,1fr)}
+html[data-device=phone] .scBig{font-size:42px}
+/* "this saved you" note */
+.chart{position:relative}
+.trToast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:7;max-width:min(560px,calc(100% - 24px));padding:10px 16px;border-radius:12px;background:#13703c;color:#f2fff6;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);text-align:center}
+.trToast[hidden]{display:none}.trToast.go{animation:tUp .35s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes tUp{from{transform:translate(-50%,14px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.trToast.go{animation:none}}
+
+/* story */
+.story{padding:18px;margin:0 0 18px;display:grid;gap:14px}
+.storyH{font-size:17px!important;color:var(--ink)!important;font-weight:600!important}
+.sGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media(max-width:1100px){.sGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.sBox{background:var(--bg);border-radius:12px;padding:12px 14px;display:grid;gap:4px;align-content:start}
+.sBox h3,.sPace h3{margin:0;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.sBox>b{font-size:20px;font-weight:600}.sBox>b.g{color:var(--good)}.sBox>b.r{color:var(--bad)}
+.sBox p{margin:0;font-size:13.5px;color:var(--mute)}.sBox p b{color:var(--ink)}
+.sBox .ask{font-size:13px;display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.ms{display:grid;grid-template-columns:18px 1fr auto;gap:6px;font-size:13.5px;align-items:baseline;color:var(--mute)}
+.ms i{font-style:normal}.ms b{font-weight:500;color:var(--ink);text-align:right}.ms.done{color:var(--good)}.ms.done b{color:var(--good)}
+.sPace{display:grid;gap:6px}
+.py{display:grid;grid-template-columns:minmax(120px,210px) minmax(0,1fr) minmax(120px,190px);gap:10px;align-items:center;font-size:13.5px}
+.py small{color:var(--mute);margin-left:4px}.py b{font-weight:500;font-variant-numeric:tabular-nums}
+.pb{position:relative;height:12px;border-radius:99px;background:var(--bg);overflow:hidden}.pb i{position:absolute;inset:0 auto 0 0;border-radius:99px}
+.pb u{position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.45}
+.sMon summary{cursor:pointer;font-weight:600;min-height:40px;display:flex;align-items:center}
+.monWrap{overflow-x:auto;-webkit-overflow-scrolling:touch;max-height:460px;overflow-y:auto}
+.mon{min-width:560px}.mon th{position:sticky;top:0;background:var(--panel)}
+.mon .g{color:var(--good)}.mon .r{color:var(--bad)}
+.pd{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+html[data-device=phone] .story{padding:14px;margin-bottom:12px}
+html[data-device=phone] .sGrid{grid-template-columns:minmax(0,1fr)}
+html[data-device=phone] .py{grid-template-columns:minmax(0,1fr) auto;gap:2px 10px}html[data-device=phone] .py .pb{grid-column:1/-1;grid-row:2}
+html[data-device=phone] .mon thead{display:table-header-group}html[data-device=phone] .mon,html[data-device=phone] .mon tbody{display:table}
+html[data-device=phone] .mon tbody tr{display:table-row}html[data-device=phone] .mon tbody td{display:table-cell;padding:6px 8px;border-bottom:1px solid var(--line)}
+
+/* offset */
+.offRes{font-size:13.5px;color:var(--mute);padding:10px 12px;border-radius:10px;background:var(--bg)}
+.offRes.on{display:grid;gap:2px;color:#f2fff6;background:linear-gradient(135deg,#1f9d55,#0f5f33)}
+.offRes.on b{font-size:24px;font-weight:600;color:#fff;font-variant-numeric:tabular-nums}.offRes.on span b{font-size:inherit}
+.offRes.on small{margin-top:4px;font-size:12.5px;opacity:.9}
+
+/* padlock + nodes */
+#trLock{position:absolute;top:8px;left:72px;z-index:3;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 13px;border-radius:99px;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 70%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:var(--ink);font:inherit;font-size:13px;font-weight:500;cursor:pointer;opacity:.82;box-shadow:0 2px 10px rgba(0,0,0,.12);white-space:nowrap;max-width:calc(100% - 84px);overflow:hidden;text-overflow:ellipsis}
+#trLock:hover{opacity:1;border-color:var(--acc)}#trLock.open{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);opacity:1}#trLock span{font-size:15px;line-height:1}
+html[data-device=phone] #trLock{top:6px;left:60px;min-height:34px;font-size:12.5px;padding:0 11px}
+.nodeEd{position:absolute;z-index:8;width:320px;padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.25);display:grid;gap:6px;font-size:14px}
+.nodeEd[hidden]{display:none}
+.neHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.neHead b{font-size:15px}
+.neX{width:34px;height:34px;border:0;border-radius:50%;background:var(--bg);color:var(--ink);cursor:pointer;font:inherit}
+.neLab{font-size:12.5px;color:var(--mute);font-weight:500;margin-top:4px}
+.nodeEd .f{min-height:40px}
+.neRow{display:flex;align-items:center;gap:6px}.neRow .unit{flex:1}
+.neStep{width:40px;height:40px;flex:none;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:20px;cursor:pointer}.neStep:hover{border-color:var(--acc)}
+.neFreq{color:var(--mute);flex:none}
+.neStat{font-size:13px;color:var(--mute);margin-top:4px}
+.neEff{margin:2px 0 0;padding:9px 11px;border-radius:10px;background:var(--soft);font-size:13.5px}.neEff.good{background:var(--good-bg);color:var(--ink)}.neEff.good b{color:var(--good)}
+.neErr{margin:0;font-size:13px;color:var(--bad)}.neErr[hidden]{display:none}
+.neBtns{display:flex;justify-content:space-between;gap:8px;margin-top:4px}.neBtns button{min-height:40px;padding:0 14px;border-radius:10px;font:inherit;font-size:14px;cursor:pointer}
+.neDel{border:1px solid var(--line);background:none;color:var(--bad)}.neDone{border:0;background:var(--acc);color:var(--acc-ink);font-weight:600}
+.nodeMenu{position:absolute;z-index:9;display:grid;min-width:250px;max-width:calc(100% - 8px);padding:6px;border-radius:12px;background:var(--panel);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.nodeMenu[hidden]{display:none}
+.nmHead{font-size:12px;font-weight:600;color:var(--mute);padding:6px 10px 4px;text-transform:uppercase;letter-spacing:.05em}
+.nodeMenu button{display:flex;align-items:center;gap:8px;min-height:38px;padding:0 10px;border:0;border-radius:8px;background:none;color:var(--ink);font:inherit;font-size:14px;text-align:left;cursor:pointer}.nodeMenu button:hover{background:var(--soft)}
+.nodeMenu button i{font-style:normal;width:20px;text-align:center}
+html[data-device=phone] .nodeEd{position:fixed;left:0!important;right:0;bottom:0;top:auto!important;width:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));z-index:60;max-height:80vh;overflow:auto}
+html[data-device=phone] .neStep{width:46px;height:46px}
+html[data-device=phone] .nodeMenu button{min-height:44px}
 </style>
 <link rel="stylesheet" href="settings.css">
 <script src="settings.js" defer></script>
@@ -197,7 +300,7 @@ html[data-device=phone] .cap{font-size:13px;margin:2px 4px 8px}
 <div class="wrap">
   <nav><a href="index.html">← Every path out of a loan</a></nav>
   <h1>Loan Tracker</h1>
-  <p class="sub">Your real loan. The solid line is what has actually happened, built from your repayment log. It drops with extra repayments and jumps back up with redraws. From today onwards it fans out into projected trajectories, because only the future is still open.</p>
+  <p class="sub">Your real loan, from the day it started. Before Today the line is your history, coloured by how hard you were paying. From Today it becomes your plan, with a fan of better and worse paths. Add nodes on the line to record what happened or plan what’s next, and watch what it saves you.</p>
 
   <div class="bar">
     <select id="prof" aria-label="Profile"></select>
@@ -212,10 +315,20 @@ html[data-device=phone] .cap{font-size:13px;margin:2px 4px 8px}
 
   <div class="stats">
     <div class="stat"><span>Balance today</span><b id="sBal">–</b><small id="sBalN"></small></div>
-    <div class="stat"><span>Paid off (at regular payment)</span><b id="sOff">–</b><small id="sOffN"></small></div>
+    <div class="stat"><span>Debt-free (on your plan)</span><b id="sOff">–</b><small id="sOffN"></small></div>
     <div class="stat"><span>Interest paid so far</span><b id="sInt">–</b><small id="sIntN"></small></div>
     <div class="stat"><span>Extra paid so far (net)</span><b id="sExt">–</b><small id="sExtN"></small></div>
   </div>
+
+  <section class="score" id="score" aria-live="polite">
+    <div class="scMain"><span class="scLead" id="scLead">You’re on track to save</span><b class="scBig" id="scSaved">$0</b><span class="scSub" id="scSub"></span></div>
+    <div class="scSide">
+      <div><span>Debt-free</span><b id="scMo">–</b><small id="scMoN"></small></div>
+      <div><span>Streak</span><b id="scStreak">0 mo</b><small id="scStreakN"></small></div>
+    </div>
+    <div class="scParts" id="scParts"></div>
+    <p class="scFoot">Measured against the bank’s standard schedule for your loan, and always until your loan is paid off, so every saving on this page adds up the same way.</p>
+  </section>
 
   <section class="panel chart">
     <p class="cap" id="trCap"></p>
@@ -223,6 +336,16 @@ html[data-device=phone] .cap{font-size:13px;margin:2px 4px 8px}
     <div class="fig" id="fig" style="touch-action:pan-y"><canvas id="cv"></canvas><canvas id="ov"></canvas><div class="tip" id="tip"></div></div>
     <div class="legend" id="legend"></div>
     <div class="plist" id="plist"></div>
+    <div class="trToast" id="trToast" hidden role="status"></div>
+  </section>
+
+  <section class="panel story" id="story" aria-labelledby="storyH">
+    <h2 id="storyH" class="storyH">Your loan story</h2>
+    <div class="sGrid"><div class="sBox" id="hAge"></div><div class="sBox" id="hVs"></div><div class="sBox" id="hPlan"></div><div class="sBox" id="hMs"></div></div>
+    <div class="sPace" id="hPace"></div>
+    <details id="hMon" class="sMon"><summary>Month by month</summary>
+      <div class="monWrap"><table class="mon"><thead><tr><th>Month</th><th style="text-align:right">Regular paid</th><th style="text-align:right">Extra / redraw</th><th style="text-align:right">Interest</th><th style="text-align:right">Owed at end</th><th>Pace</th></tr></thead><tbody id="monRows"></tbody></table></div>
+    </details>
   </section>
 
   <section class="saveCard" id="saveCard" aria-labelledby="saveH">
@@ -248,6 +371,15 @@ html[data-device=phone] .cap{font-size:13px;margin:2px 4px 8px}
         <div class="ctl"><label for="pPay"><span>Regular payment</span><span id="payTag"></span></label><span class="unit pre"><i>$</i><input class="f" id="pPay" inputmode="numeric" autocomplete="off" placeholder="worked out from the term"></span></div>
         <p class="hint" id="payHint"></p>
       </div>
+      <div class="grp offGrp">
+        <h2>Offset account</h2>
+        <div class="two">
+          <div class="ctl"><label for="pOffBal">Balance today</label><span class="unit pre"><i>$</i><input class="f" id="pOffBal" inputmode="numeric" autocomplete="off" placeholder="0"></span></div>
+          <div class="ctl"><label for="pOffTop" id="offTopL">Added each month</label><span class="unit pre"><i>$</i><input class="f" id="pOffTop" inputmode="numeric" autocomplete="off" placeholder="0"></span></div>
+        </div>
+        <div class="offRes" id="offRes"></div>
+        <p class="hint">Counts from today. To record money going in or out later, add an offset node on the chart.</p>
+      </div>
       <div class="grp">
         <h2>Projected trajectory</h2>
         <div><div class="lab">Projection lines</div>
@@ -262,11 +394,12 @@ html[data-device=phone] .cap{font-size:13px;margin:2px 4px 8px}
     </aside>
 
     <section class="panel logp">
-      <h2>Repayment log</h2>
+      <h2>Your log: history and plans</h2><p class="hint">Anything dated after today is a plan. Everything here also shows as a node on your line.</p>
       <div class="add">
         <div class="ctl"><label for="eDate">Date</label><input class="f" type="date" id="eDate"></div>
-        <div class="ctl"><label for="eType">Type</label><select class="f" id="eType"><option value="extra">Extra repayment</option><option value="redraw">Redraw (added to loan)</option><option value="balance">Bank balance check</option></select></div>
-        <div class="ctl"><label for="eAmt" id="eAmtL">Amount</label><span class="unit pre"><i>$</i><input class="f" id="eAmt" inputmode="numeric" autocomplete="off"></span></div>
+        <div class="ctl"><label for="eType">Type</label><select class="f" id="eType"><option value="extra">💰 Extra repayment</option><option value="redraw">↩ Redraw (added to loan)</option><option value="balance">🧾 Bank balance check</option><option value="pay">🔁 New regular payment</option><option value="goal">🎯 Pay a set amount until…</option><option value="offset">🏦 Offset deposit</option><option value="rate">📈 Interest rate change</option><option value="note">📝 Note</option></select></div>
+        <div class="ctl" id="eAmtBox"><label for="eAmt" id="eAmtL">Amount</label><span class="unit pre"><i id="eAmtU">$</i><input class="f" id="eAmt" inputmode="decimal" autocomplete="off"></span></div>
+        <div class="ctl" id="eUntilBox" hidden><label for="eUntil">Until</label><input class="f" type="date" id="eUntil"></div>
         <div class="ctl"><label for="eNote">Note (optional)</label><input class="f" id="eNote" maxlength="80"></div>
         <button class="btn pri" id="eAdd">Add</button>
       </div>
@@ -277,7 +410,7 @@ html[data-device=phone] .cap{font-size:13px;margin:2px 4px 8px}
 
   <p class="note">Saved in this browser only (no account yet), so use Export now and then as a backup. Interest is charged once per payment period on the balance at that time, and the rate is treated as fixed. Real banks work interest out daily, so the line will drift slightly from your bank's figure over time; a bank balance check snaps it back to the real number. Educational tool, not financial advice.</p>
 </div>
-<i class="k" id="cMute" style="color:var(--mute)"></i><i class="k" id="cAcc" style="color:var(--acc)"></i><i class="k" id="cLine" style="color:var(--line)"></i><i class="k" id="cPanel" style="color:var(--panel)"></i>
+<i class="k" id="cMute" style="color:var(--mute)"></i><i class="k" id="cAcc" style="color:var(--acc)"></i><i class="k" id="cLine" style="color:var(--line)"></i><i class="k" id="cPanel" style="color:var(--panel)"></i><i class="k" id="cGood" style="color:var(--good)"></i><i class="k" id="cBad" style="color:var(--bad)"></i>
 
 <script>
 /* device choice: shared by both pages, remembered in this browser */
@@ -368,116 +501,278 @@ try{const h=JSON.parse(localStorage.getItem('loanTracker.handoff'));if(h&&h.P){l
   const sp=stdPay(q);q.pay=Math.abs(h.pay-sp)<0.01?null:h.pay;ST.profiles[id]=q;ST.cur=id}}catch(e){}
 save();
 
-/* the past: start → today, one payment at a time, with log entries applied on their dates */
-function past(p){
-  const r=rr(p),pay=regPay(p),ev=p.log.filter(e=>parse(e.date)<=TODAY&&parse(e.date)>=parse(p.start)).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.added-b.added);
-  let B=p.P,k=0,ei=0,int=0,paidOff=null;const pts=[[parse(p.start),B]],marks=[],checks={};
-  const applyUntil=lim=>{while(ei<ev.length&&parse(ev[ei].date)<=lim){const e=ev[ei++],d=parse(e.date);
-      pts.push([d,B]);
-      if(e.type==='extra')B=Math.max(0,B-e.amt);else if(e.type==='redraw')B+=e.amt;else{checks[e.id]={model:B,diff:e.amt-B};B=e.amt}
-      pts.push([d,B]);marks.push({d,B,type:e.type,e});}};
+/* ---------- what you can attach to a point in time (a node) ---------- */
+const TY={
+  extra:{n:'Extra repayment',m:'Lump sum / extra repayment',i:'💰',c:'#18794e',a:'Amount'},
+  pay:{n:'New regular payment',m:'Change my regular payment from here',i:'🔁',c:'#7c3aed',a:'New regular payment'},
+  goal:{n:'Set amount until a date',m:'Pay a set amount until a date',i:'🎯',c:'#0e9488',a:'Pay this much each time'},
+  offset:{n:'Offset deposit',m:'Put money in my offset account',i:'🏦',c:'#15803d',a:'Amount (use − to take money out)'},
+  rate:{n:'Rate change',m:'Interest rate changes',i:'📈',c:'#c2410c',a:'New rate'},
+  redraw:{n:'Redraw',m:'Redraw (take money back out)',i:'↩',c:'#d61f1f',a:'Amount'},
+  balance:{n:'Bank check',m:'Bank balance check',i:'🧾',c:'#1d5bd8',a:'Balance on statement'},
+  note:{n:'Note',m:'Just a note',i:'📝',c:'#6b7280',a:''}};
+const MK=Object.fromEntries(Object.entries(TY).map(([k,v])=>[k,v.c]));
+const evSort=(a,b)=>a.date<b.date?-1:a.date>b.date?1:(a.added||0)-(b.added||0);
+const live=(p,o={})=>p.log.filter(e=>TY[e.type]&&!e.skip&&!(o.skip&&o.skip.has(e.id))&&parse(e.date)>=parse(p.start)).sort(evSort);
+/* s = {B balance, O offset, rate, pay regular payment, goal {amt,until}} */
+function applyEv(s,e){const t=e.type;
+  if(t==='extra')s.B=Math.max(0,s.B-e.amt);else if(t==='redraw')s.B+=e.amt;else if(t==='balance')s.B=e.amt;
+  else if(t==='pay'){s.pay=e.amt;s.goal=null}else if(t==='rate')s.rate=e.amt;
+  else if(t==='goal')s.goal={amt:e.amt,until:parse(e.until||e.date).getTime()};
+  else if(t==='offset')s.O=Math.max(0,s.O+e.amt)}
+const payNow=(s,d)=>s.goal&&d.getTime()<=s.goal.until?s.goal.amt:s.pay;
+const offOn=p=>!!(p.off&&(p.off.bal>0||p.off.top>0));
+
+/* the past: start → today, one payment at a time, with your nodes applied on their dates */
+function past(p,o={}){
+  const ev=live(p,o).filter(e=>parse(e.date)<=TODAY),std=stdPay(p);
+  const s={B:p.P,O:0,rate:p.rate,pay:regPay(p),goal:null};let k,ei=0,int=0,paidOff=null;
+  const pts=[[parse(p.start),p.P,0]],marks=[],checks={},steps=[],flows=[];
+  const applyUntil=lim=>{while(ei<ev.length&&parse(ev[ei].date)<=lim){const e=ev[ei++],d=parse(e.date),b0=s.B;
+      if(e.type==='balance')checks[e.id]={model:b0,diff:e.amt-b0};
+      applyEv(s,e);if(s.B!==b0){pts.push([d,b0,steps.length]);pts.push([d,s.B,steps.length])}
+      if(e.type==='extra')flows.push([d.getTime(),Math.min(e.amt,b0)]);if(e.type==='redraw')flows.push([d.getTime(),-e.amt]);
+      marks.push({d,B:s.B,type:e.type,e})}};
   for(k=1;k<100000;k++){const d=payDate(p,k);if(d>TODAY)break;
     applyUntil(new Date(d.getTime()-1));
-    if(B<=0){paidOff=paidOff||d;break}
-    const i=r*B;int+=i;B=B+i-pay;
-    if(B<=0){B=0;paidOff=d}
-    pts.push([d,B]);if(paidOff)break}
-  applyUntil(TODAY);pts.push([TODAY,B]);
-  return{pts,marks,checks,B,int,paidOff,nextK:k}}
+    if(s.goal&&d.getTime()>s.goal.until)s.goal=null;
+    if(s.B<=0){paidOff=paidOff||d;break}
+    const r=s.rate/100/p.freq,i=r*s.B,due=payNow(s,d),pay=Math.min(due,s.B+i);int+=i;s.B=s.B+i-pay;
+    if(s.B<=1e-6){s.B=0;paidOff=d}
+    steps.push({d,i,pay,reg:due,B:s.B});pts.push([d,s.B,steps.length-1]);if(paidOff)break}
+  applyUntil(TODAY);pts.push([TODAY,s.B,steps.length]);
+  /* pace: what you paid around each payment (regular + net extras over the surrounding year), against the standard payment */
+  const Hh=182.6*864e5;for(const st of steps){const t=st.d.getTime();let net=0;for(const[ft,a]of flows)if(ft>=t-Hh&&ft<t+Hh)net+=a;st.pace=(st.reg+net/p.freq)/std}
+  /* your offset account counts from today: its balance today is what you entered */
+  if(!o.noOff&&offOn(p))s.O=p.off.bal||0;
+  return{pts,marks,checks,B:s.B,int,paidOff,nextK:k,s,steps,std}}
 
-/* the future: from today, one line per projection offset */
-function future(p,ps){
-  const r=rr(p),pay=regPay(p),n=p.lines,half=(n-1)/2,lines=[];
-  const runLine=(amt,limit)=>{let B=ps.B;const pts=[[TODAY,B]];let off=null;
-    for(let k=ps.nextK;k<ps.nextK+200*p.freq;k++){const d=payDate(p,k);if(limit&&d>limit)break;
-      const nb=B+r*B-amt;if(nb<=0){pts.push([d,0]);off=d;break}B=nb;pts.push([d,B]);if(B>p.P*4)break}
-    return{pts,off}};
-  const Y=365.25*864e5,mid=runLine(pay,null);
+/* the future: from today, your plan (with your planned nodes) plus a fan of better and worse paths */
+function future(p,ps,o={}){
+  const half=(p.lines-1)/2,fe=live(p,o).filter(e=>parse(e.date)>TODAY),Y=365.25*864e5,lines=[],top=o.noOff||!offOn(p)?0:(p.off.top||0);
+  const runLine=(j,limit)=>{const s={...ps.s,goal:ps.s.goal&&{...ps.s.goal}};if(o.noOff)s.O=0;
+    const pts=[[TODAY,s.B]];let off=ps.paidOff?TODAY:null,int=0,ei=0,cover=null;
+    if(!off)for(let k=ps.nextK;k<ps.nextK+200*p.freq;k++){const d=payDate(p,k);if(limit&&d>limit){pts.push([d,s.B]);break}
+      while(ei<fe.length&&parse(fe[ei].date)<d){const e=fe[ei++],ed=parse(e.date),b0=s.B;if(o.noOff&&e.type==='offset')continue;applyEv(s,e);if(s.B!==b0)pts.push([ed,b0],[ed,s.B])}
+      if(s.goal&&d.getTime()>s.goal.until)s.goal=null;
+      if(s.B<=0){off=d;pts.push([d,0]);break}
+      s.O+=top;if(!cover&&s.O>0&&s.O>=s.B)cover=d;
+      const r=s.rate/100/p.freq,i=r*Math.max(0,s.B-s.O),amt=Math.max(0,payNow(s,d)-j*p.step);int+=i;
+      if(s.B+i-amt<=0){pts.push([d,0]);off=d;break}
+      s.B=s.B+i-amt;pts.push([d,s.B]);if(s.B>p.P*4)break}
+    return{pts,off,int,cover,amt:Math.max(0,payNow(ps.s,TODAY)-j*p.step)}};
+  const mid=runLine(0);mid.j=0;
   const end=p.view?new Date(TODAY.getTime()+p.view*Y):new Date(Math.min(parse(p.start).getTime()+100*Y,
     (mid.off?Math.max(mid.off.getTime(),TODAY.getTime()+5*Y):TODAY.getTime()+30*Y)+2*Y));
-  for(let j=-half;j<=half;j++){const amt=Math.max(0,pay-j*p.step);const L=runLine(amt,null);L.amt=amt;L.j=j;lines.push(L)}
-  return{lines,end,mid}}
+  if(o.noFan)return{lines:[mid],end,mid,fan:[]};
+  for(let j=-half;j<=half;j++)lines.push(j===0?mid:{...runLine(j),j});
+  const fan=[];if(half>0){const M=Math.round(half*8);for(let i=0;i<=M;i++){const j=-half+2*half*i/M;fan.push({j,...runLine(j,end)})}}
+  return{lines,end,mid,fan}}
+
+/* everything over the whole life of the loan, so every saving is measured the same way: until the loan is paid off */
+function life(p,o={}){const ps=past(p,o),fu=future(p,ps,{...o,noFan:true});return{ps,fu,int:ps.int+fu.mid.int,off:fu.mid.off}}
+/* the bank's standard schedule: the original amount, rate and term, no extras, no offset */
+function sched(p,k){const r=rr(p),pay=stdPay(p);if(!r)return Math.max(0,p.P-pay*k);return Math.max(0,p.P*Math.pow(1+r,k)-pay*(Math.pow(1+r,k)-1)/r)}
+function schedK(p,B){const r=rr(p),pay=stdPay(p);if(B<=0)return p.term*p.freq;if(!r)return(p.P-B)/pay;const a=pay/r;return Math.log((a-B)/(a-p.P))/Math.log(1+r)}
+const schedInt=p=>stdPay(p)*p.term*p.freq-p.P;
+const schedEnd=p=>payDate(p,p.term*p.freq);
+const moBetween=(a,b)=>Math.round((b-a)/(864e5*30.4375));
+const ymo=m=>{m=Math.abs(Math.round(m));const y=Math.floor(m/12),r=m%12;return(y?y+' yr'+(y>1?'s':''):'')+(y&&r?' ':'')+(r||!y?r+' mo':'')};
+/* the difference one node (or a set of nodes) makes, over the whole loan */
+function worth(p,ids){const a=life(p),b=life(p,{skip:new Set(ids)});return{dInt:b.int-a.int,dMo:a.off&&b.off?moBetween(a.off,b.off):null,a,b}}
+const paceCol=v=>{const f=Math.max(-1,Math.min(1,(v-1)/.4));return f>=0?mix(MORE,f):mix(LESS,-f)};
+const paceWord=v=>v<.97?'behind schedule':v<1.03?'on schedule':v<1.2?'ahead':'well ahead';
+const seriesAt=(ps,mid,t)=>{t=+t;if(t<=TODAY.getTime())return at(ps.pts,t);const v=at(mid.pts,t);return v!=null?v:(mid.off&&t>=mid.off.getTime()?0:null)};
+function milestones(p,ps,fu){const all=[...ps.pts.map(q=>[+q[0],q[1]]),...fu.mid.pts.map(q=>[+q[0],q[1]])],out=[];
+  for(const q of[.25,.5,.75,1]){const lim=p.P*(1-q);let hit=null;
+    for(let i=1;i<all.length;i++)if(all[i][1]<=lim+.005&&all[i-1][1]>lim+.005){const[a,va]=all[i-1],[b,vb]=all[i];hit=vb===va||a===b?b:a+(b-a)*(va-lim)/(va-vb);break}
+    out.push({q,t:hit,v:lim})}return out}
 
 /* ---------- drawing ---------- */
-const at=(pts,t)=>{let v=null;for(let i=0;i<pts.length-1;i++){const a=pts[i][0].getTime(),b=pts[i+1][0].getTime();if(t>=a&&t<=b){v=b>a?pts[i][1]+(pts[i+1][1]-pts[i][1])*(t-a)/(b-a):pts[i+1][1]}}return v};
+const at=(pts,t)=>{t=+t;let v=null;for(let i=0;i<pts.length-1;i++){const a=+pts[i][0],b=+pts[i+1][0];if(t>=a&&t<=b){v=b>a?pts[i][1]+(pts[i+1][1]-pts[i][1])*(t-a)/(b-a):pts[i+1][1]}}return v};
 
 const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
 const MORE=['#ffd000','#b5d22c','#3db54a','#0e9488','#1d5bd8'].map(hex),LESS=['#ffd000','#ffa400','#ff6a00','#c4122f'].map(hex);
 const mix=(st,f)=>{f=Math.min(1,Math.max(0,f))*(st.length-1);const i=Math.min(st.length-2,Math.floor(f)),u=f-i;return 'rgb('+st[i].map((v,k)=>Math.round(v+(st[i+1][k]-v)*u))+')'};
 const lineCol=(j,half)=>j===0?null:j<0?mix(MORE,-j/half):mix(LESS,j/half);
-const MK={extra:'#18794e',redraw:'#d61f1f',balance:'#1d5bd8'};
 let G=null;
 function draw(ps,fu){
   const fig=$('fig'),cv=$('cv'),ov=$('ov'),W=fig.clientWidth,H=fig.clientHeight,dp=window.devicePixelRatio||1;if(!W||!H)return;
   for(const c of[cv,ov]){c.width=Math.round(W*dp);c.height=Math.round(H*dp)}
   const x=cv.getContext('2d');x.setTransform(dp,0,0,dp,0,0);x.clearRect(0,0,W,H);
-  const ink=getComputedStyle(document.body).color,mute=getComputedStyle($('cMute')).color,line=getComputedStyle($('cLine')).color,panel=getComputedStyle($('cPanel')).color;
-  const p=PR(),narrow=W<560,L=narrow?58:70,R=narrow?20:200,Tm=14,B=34,pw=W-L-R,ph=H-Tm-B;
+  const cs=id=>getComputedStyle($(id)).color,ink=getComputedStyle(document.body).color,mute=cs('cMute'),line=cs('cLine'),panel=cs('cPanel'),acc=cs('cAcc'),good=cs('cGood'),bad=cs('cBad');
+  const p=PR(),narrow=W<560,L=narrow?58:70,R=narrow?20:200,Tm=14,B=46,pw=W-L-R,ph=H-Tm-B,gh=GH;
   const t0=parse(p.start).getTime(),t1=fu.end.getTime();
-  let ymax=0;for(const[,v]of ps.pts)ymax=Math.max(ymax,v);for(const l of fu.lines)for(const[d,v]of l.pts)if(d.getTime()<=t1)ymax=Math.max(ymax,v);
+  let ymax=0;for(const[,v]of ps.pts)ymax=Math.max(ymax,v);for(const l of fu.lines)for(const[d,v]of l.pts)if(+d<=t1)ymax=Math.max(ymax,v);
+  if(gh)for(const[d,v]of[...gh.ps.pts,...gh.mid.pts])if(+d<=t1&&+d>=+gh.from)ymax=Math.max(ymax,v);
   ymax=Math.min(ymax,p.P*2.5)*1.06||1;
-  const X=d=>L+(d.getTime()-t0)/(t1-t0)*pw,Y=v=>Tm+(1-Math.min(v,ymax*1.02)/ymax)*ph;
-  G={L,Tm,pw,ph,t0,t1,X,Y,W,H,ink,ps,fu};
+  const X=d=>L+(+d-t0)/(t1-t0)*pw,Y=v=>Tm+(1-Math.min(v,ymax*1.02)/ymax)*ph;
+  G={L,Tm,pw,ph,t0,t1,X,Y,W,H,ink,ps,fu,nodes:[],B};
   const font=s=>s+'px Geist,system-ui,sans-serif';x.font=font(12);x.lineWidth=1;
+  const path=(pts,from)=>{x.beginPath();let st=false;for(const[d,v]of pts){if(from!=null&&+d<from)continue;st?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v));st=true}};
   /* y grid */
   const raw=ymax/Math.max(3,ph/50),m=Math.pow(10,Math.floor(Math.log10(raw))),yt=[1,2,2.5,5,10].map(k=>k*m).find(k=>k>=raw);
   x.textAlign='right';x.textBaseline='middle';
   for(let v=0;v<=ymax;v+=yt){const yy=Math.round(Y(v))+.5;x.strokeStyle=line;x.beginPath();x.moveTo(L,yy);x.lineTo(L+pw,yy);x.stroke();x.fillStyle=mute;x.fillText(kfmt(v),L-8,yy)}
   /* x grid: years */
   const y0=new Date(t0).getFullYear(),y1=new Date(t1).getFullYear(),span=y1-y0,ys=[1,2,5,10].find(s=>pw/(span/s)>=(narrow?44:52))||10;
-  x.textAlign='center';x.textBaseline='top';
-  for(let y=y0+1;y<=y1;y++){const xx=Math.round(X(new Date(y,0,1)))+.5;if(xx<L||xx>L+pw)continue;x.strokeStyle=line;x.globalAlpha=(y%ys)?.35:1;x.beginPath();x.moveTo(xx,Tm);x.lineTo(xx,Tm+ph);x.stroke();x.globalAlpha=1;if(y%ys===0){x.fillStyle=mute;x.fillText(y,xx,Tm+ph+6)}}
-  x.save();x.beginPath();x.rect(L,Tm,pw,ph+2);x.clip();
-  /* future fan */
-  const half=(p.lines-1)/2;x.lineJoin='round';
-  for(const l of fu.lines){if(l.j===0)continue;x.beginPath();l.pts.forEach(([d,v],i)=>i?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v)));x.strokeStyle=lineCol(l.j,half);x.globalAlpha=.6;x.lineWidth=1.6;x.stroke();x.globalAlpha=1}
-  const mid=fu.lines.find(l=>l.j===0);x.setLineDash([7,5]);x.beginPath();mid.pts.forEach(([d,v],i)=>i?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v)));x.strokeStyle=getComputedStyle($('cAcc')).color;x.lineWidth=3.4;x.stroke();x.setLineDash([]);
-  /* past */
-  x.beginPath();ps.pts.forEach(([d,v],i)=>i?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v)));x.strokeStyle=panel;x.lineWidth=7;x.stroke();x.strokeStyle=ink;x.lineWidth=3.2;x.stroke();
-  for(const mk of ps.marks){x.beginPath();x.arc(X(mk.d),Y(mk.B),5.5,0,7);x.fillStyle=MK[mk.type];x.fill();x.strokeStyle=panel;x.lineWidth=2;x.stroke()}
+  x.textAlign='center';x.textBaseline='top';G.years=[];
+  for(let y=y0+1;y<=y1;y++){const xx=Math.round(X(new Date(y,0,1)))+.5;if(xx<L||xx>L+pw)continue;x.strokeStyle=line;x.globalAlpha=(y%ys)?.35:1;x.beginPath();x.moveTo(xx,Tm);x.lineTo(xx,Tm+ph);x.stroke();x.globalAlpha=1;G.years.push([y,xx]);if(y%ys===0){x.fillStyle=mute;x.fillText(y,xx,Tm+ph+12)}}
+  x.save();x.beginPath();x.rect(L,Tm,pw,ph+2);x.clip();x.lineJoin='round';
+  /* the fan from today: a soft gradient from better (blue, green) through the same (yellow) to worse (orange, red) */
+  const half=(p.lines-1)/2;
+  if(fu.fan.length>1){for(let i=0;i<fu.fan.length-1;i++){const a=fu.fan[i],b=fu.fan[i+1],jm=(a.j+b.j)/2,bl=b.pts[b.pts.length-1];
+      x.beginPath();a.pts.forEach(([d,v],k)=>k?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v)));if(a.off&&+bl[0]>+a.off)x.lineTo(X(bl[0]),Y(0));
+      for(let k=b.pts.length-1;k>=0;k--)x.lineTo(X(b.pts[k][0]),Y(b.pts[k][1]));x.closePath();
+      x.fillStyle=Math.abs(jm)<1e-9?mix(MORE,0):jm<0?mix(MORE,-jm/half):mix(LESS,jm/half);x.globalAlpha=.17;x.fill()}x.globalAlpha=1}
+  for(const l of fu.lines){if(l.j===0)continue;path(l.pts);x.strokeStyle=lineCol(l.j,half);x.globalAlpha=.55;x.lineWidth=1.4;x.stroke();x.globalAlpha=1}
+  /* the ghost: where your line was before your change, with the money between them shaded */
+  G.gLab=null;
+  if(gh){const from=Math.max(+gh.from,t0),N=260,Sm=[];
+    for(let i=0;i<=N;i++){const t=from+(t1-from)*i/N,c=seriesAt(ps,fu.mid,t),g=seriesAt(gh.ps,gh.mid,t);if(c==null||g==null)break;Sm.push([t,c,g])}
+    if(Sm.length>1&&Math.abs(gh.dInt)>=1){x.beginPath();Sm.forEach(([t,c],i)=>i?x.lineTo(X(t),Y(c)):x.moveTo(X(t),Y(c)));for(let i=Sm.length-1;i>=0;i--)x.lineTo(X(Sm[i][0]),Y(Sm[i][2]));x.closePath();
+      x.fillStyle=gh.dInt>0?good:bad;x.globalAlpha=.22;x.fill();x.globalAlpha=1;
+      let bi=0;for(let i=0;i<Sm.length;i++)if(Math.abs(Sm[i][2]-Sm[i][1])>Math.abs(Sm[bi][2]-Sm[bi][1]))bi=i;G.gLab=[X(Sm[bi][0]),Y((Sm[bi][1]+Sm[bi][2])/2)]}
+    const pp=[...gh.ps.pts.filter(q=>+q[0]>=from),...gh.mid.pts];
+    if(+gh.from<TODAY.getTime()){path(gh.ps.pts,from);x.strokeStyle=ink;x.globalAlpha=.3;x.lineWidth=3.2;x.stroke()}
+    path(gh.mid.pts);x.setLineDash([7,5]);x.strokeStyle=acc;x.globalAlpha=.32;x.lineWidth=3.2;x.stroke();x.setLineDash([]);x.globalAlpha=1}
+  /* your plan */
+  x.setLineDash([7,5]);path(fu.mid.pts);x.strokeStyle=acc;x.lineWidth=3.4;x.stroke();x.setLineDash([]);
+  /* your history, coloured by your pace */
+  x.lineCap='round';path(ps.pts);x.strokeStyle='rgba(15,17,26,.8)';x.lineWidth=7;x.stroke();
+  for(let i=1;i<ps.pts.length;i++){const a=ps.pts[i-1],b=ps.pts[i],st=ps.steps[Math.min(b[2],ps.steps.length-1)];
+    x.beginPath();x.moveTo(X(a[0]),Y(a[1]));x.lineTo(X(b[0]),Y(b[1]));x.strokeStyle=st?paceCol(st.pace):ink;x.lineWidth=3.6;x.stroke()}
+  x.lineCap='butt';
+  /* milestones: 25%, 50%, 75% paid, debt-free */
+  G.ms=[];for(const ms of MS||[]){if(ms.t==null||ms.t<t0||ms.t>t1)continue;const mx=X(ms.t),my_=Y(ms.v);G.ms.push({...ms,x:mx,y:my_});
+    x.beginPath();x.moveTo(mx,my_-7);x.lineTo(mx+7,my_);x.lineTo(mx,my_+7);x.lineTo(mx-7,my_);x.closePath();x.fillStyle=panel;x.fill();x.strokeStyle=ms.t<=TODAY.getTime()?good:mute;x.lineWidth=2;x.stroke();
+    x.fillStyle=ms.t<=TODAY.getTime()?good:mute;x.font='600 '+font(11);x.textAlign='left';x.textBaseline='bottom';x.fillText(ms.q===1?'Debt-free':Math.round(ms.q*100)+'%',mx+6,my_-6)}
+  /* nodes */
+  for(const e of[...p.log].sort(evSort)){if(!TY[e.type])continue;const t=parse(e.date).getTime();if(t<t0||t>t1)continue;let v=seriesAt(ps,fu.mid,t);if(v==null)v=0;
+    const nx=X(t),ny=Y(v),fut=t>TODAY.getTime(),c=TY[e.type].c;G.nodes.push({id:e.id,x:nx,y:ny});
+    x.globalAlpha=e.skip?.35:1;x.beginPath();x.arc(nx,ny,fut?7.5:6.5,0,7);
+    if(fut){x.fillStyle=panel;x.fill();x.lineWidth=3;x.strokeStyle=c;x.stroke();x.beginPath();x.arc(nx,ny,3,0,7);x.fillStyle=c;x.fill()}
+    else{x.fillStyle=c;x.fill();x.strokeStyle=panel;x.lineWidth=2;x.stroke()}
+    if(e.id===edSkip){x.beginPath();x.arc(nx,ny,12,0,7);x.strokeStyle=acc;x.lineWidth=2;x.stroke()}x.globalAlpha=1}
   x.restore();
+  /* the shaded area's label */
+  if(G.gLab){const s=(gh.dInt>0?'You save '+money(gh.dInt):'Costs '+money(-gh.dInt)+' more')+(gh.dMo?' · '+ymo(gh.dMo)+(gh.dMo>0?' sooner':' later'):'');
+    x.font='600 '+font(13);const tw=x.measureText(s).width+18,lx=Math.max(L+4,Math.min(L+pw-tw-4,G.gLab[0]-tw/2)),ly=Math.max(Tm+4,Math.min(Tm+ph-30,G.gLab[1]-13));
+    x.fillStyle=gh.dInt>0?good:bad;x.beginPath();x.roundRect?x.roundRect(lx,ly,tw,26,13):x.rect(lx,ly,tw,26);x.fill();x.fillStyle='#fff';x.textAlign='left';x.textBaseline='middle';x.fillText(s,lx+9,ly+13)}
+  /* pace strip under the past */
+  for(let i=0;i<ps.steps.length;i++){const a=i?ps.steps[i-1].d:parse(p.start),b=ps.steps[i].d,xa=Math.max(L,X(a)),xb=Math.min(L+pw,X(b));if(xb<=xa)continue;x.fillStyle=paceCol(ps.steps[i].pace);x.fillRect(xa,Tm+ph+3,xb-xa+.5,6)}
   /* today */
   const tx=Math.round(X(TODAY))+.5;x.strokeStyle=ink;x.globalAlpha=.55;x.setLineDash([3,4]);x.beginPath();x.moveTo(tx,Tm);x.lineTo(tx,Tm+ph);x.stroke();x.setLineDash([]);x.globalAlpha=1;
-  x.fillStyle=ink;x.font=font(12);x.textAlign='center';x.textBaseline='top';x.fillText('Today',tx,Tm+ph+20);
-  /* line-end labels */
+  x.fillStyle=ink;x.font='600 '+font(12);x.textAlign='center';x.textBaseline='top';x.fillText('Today',Math.max(L+20,Math.min(L+pw-20,tx)),Tm+ph+27);
   /* payoff dots on the $0 line, labels stacked in the right-hand gutter */
-  for(const l of fu.lines)if(l.off&&l.off.getTime()<=t1){x.beginPath();x.arc(X(l.off),Y(0),4,0,7);x.fillStyle=l.j===0?getComputedStyle($('cAcc')).color:lineCol(l.j,half);x.fill()}
+  for(const l of fu.lines)if(l.off&&+l.off<=t1){x.beginPath();x.arc(X(l.off),Y(0),4,0,7);x.fillStyle=l.j===0?acc:lineCol(l.j,half);x.fill()}
   if(!narrow){x.textAlign='left';x.textBaseline='middle';x.font=font(12);
-    const lab=[...fu.lines].map(l=>{const inView=!(l.off&&l.off.getTime()<=t1);const v=inView?(at(l.pts,t1)??0):0;
+    const lab=[...fu.lines].map(l=>{const inView=!(l.off&&+l.off<=t1);const v=inView?(at(l.pts,t1)??0):0;
       return{l,y:inView?Y(v):Tm+ph,t:money(l.amt)+'/'+FL[p.freq]+' · '+(l.off?'paid off '+my(l.off):grows(l)?'too low: debt grows':kfmt(v)+' left')}}).sort((a,b)=>a.y-b.y);
     for(let i=1;i<lab.length;i++)lab[i].y=Math.max(lab[i].y,lab[i-1].y+16);
     const over=lab.length?lab[lab.length-1].y-(Tm+ph):0;if(over>0)for(const a of lab)a.y-=over;
     for(let i=lab.length-2;i>=0;i--)lab[i].y=Math.min(lab[i].y,lab[i+1].y-16);
-    for(const a of lab){x.fillStyle=a.l.j===0?getComputedStyle($('cAcc')).color:lineCol(a.l.j,half);x.fillText(a.t,L+pw+8,a.y)}}
+    for(const a of lab){x.fillStyle=a.l.j===0?acc:lineCol(a.l.j,half);x.fillText(a.t,L+pw+8,a.y)}}
 }
 
 /* ---------- UI ---------- */
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const amtTxt=(e,p)=>{const f='/'+FL[p.freq];switch(e.type){case'extra':return'− '+money(e.amt);case'redraw':return'+ '+money(e.amt);case'balance':return'= '+money(e.amt);
+  case'pay':return money(e.amt)+f+' from here';case'goal':return money(e.amt)+f+' until '+nice(parse(e.until||e.date));case'rate':return(+e.amt).toFixed(2).replace(/\.?0+$/,'')+'% a year';
+  case'offset':return(e.amt<0?'− ':'+ ')+money(Math.abs(e.amt))+' offset';default:return''}};
 function stats(ps,fu){const p=PR(),pay=regPay(p);
   $('sBal').textContent=money(ps.B);
-  const lastChk=p.log.filter(e=>e.type==='balance'&&parse(e.date)<=TODAY).sort((a,b)=>a.date<b.date?1:-1)[0];
+  const lastChk=p.log.filter(e=>e.type==='balance'&&!e.skip&&parse(e.date)<=TODAY).sort((a,b)=>a.date<b.date?1:-1)[0];
   $('sBalN').textContent=ps.paidOff?'Paid off '+nice(ps.paidOff):lastChk?'From bank check of '+nice(parse(lastChk.date))+' onwards':'Estimate: no bank check logged yet';
-  const m=fu.lines.find(l=>l.j===0);
+  const m=fu.mid;
   if(ps.paidOff){$('sOff').textContent='Done';$('sOffN').textContent=nice(ps.paidOff)}
-  else if(m.off){$('sOff').textContent=my(m.off);const mo=Math.round((m.off-TODAY)/(864e5*30.4375));$('sOffN').textContent=Math.floor(mo/12)+' yrs '+(mo%12)+' mo from today'}
-  else{$('sOff').textContent='Not on track';$('sOffN').textContent='Regular payment doesn\'t cover the interest'}
+  else if(m.off){$('sOff').textContent=my(m.off);$('sOffN').textContent=ymo(moBetween(TODAY,m.off))+' from today'}
+  else{$('sOff').textContent='Not on track';$('sOffN').textContent='Your payment doesn\'t cover the interest'}
   $('sInt').textContent=money(ps.int);$('sIntN').textContent='Since '+nice(parse(p.start));
-  let ex=0,rd=0;for(const e of p.log)if(parse(e.date)<=TODAY){if(e.type==='extra')ex+=e.amt;if(e.type==='redraw')rd+=e.amt}
+  let ex=0,rd=0;for(const e of p.log)if(!e.skip&&parse(e.date)<=TODAY){if(e.type==='extra')ex+=e.amt;if(e.type==='redraw')rd+=e.amt}
   $('sExt').textContent=money(ex-rd);$('sExtN').textContent=money(ex)+' extra · '+money(rd)+' redrawn';
-  const half=(p.lines-1)/2,lg=$('legend');
-  {const me=fu.lines.find(l=>l.j===0),hi=fu.lines.filter(l=>l.j>0).length;$('trCap').innerHTML='<b>How much you owe over time.</b> The solid line up to <b>Today</b> is what has already happened, from your log. After Today, the <b style="color:var(--acc)">thick dashed line is your plan</b>: keep paying '+money(pay)+'/'+FL[p.freq]+(me&&me.off?' and you\u2019re debt-free in <b>'+my(me.off)+'</b>':'')+'. '+(hi?'The faint lines show what happens if you pay more each '+({52:'week',26:'fortnight',12:'month'}[p.freq]||'payment')+' (blue and green, debt-free sooner) or less (orange and red, later). ':'')+'<span class="capTip">To drag a line or add nodes, use <a href="index.html">Every path out of a loan</a> for now. It\u2019s coming to the Tracker next.</span>'}
-  $('plist').innerHTML=[...fu.lines].sort((a,b)=>b.j-a.j).map(l=>'<div><span><i style="background:'+(l.j===0?'var(--acc)':lineCol(l.j,half))+'"></i>'+money(l.amt)+'/'+FL[p.freq]+(l.j===0?' (regular)':'')+'</span><span>'+(l.off?'paid off '+my(l.off):grows(l)?'never paid off: doesn\u2019t cover the interest':'never paid off')+'</span></div>').join('');
-  lg.innerHTML='<span><i style="background:var(--ink);height:4px"></i>What has happened</span><span><i style="background:repeating-linear-gradient(90deg,var(--acc) 0 6px,transparent 6px 10px);height:4px"></i><b style="color:var(--ink)">Your plan</b>: keep paying '+money(pay)+'/'+FL[p.freq]+'</span>'+
-    (half?'<span><i style="background:'+mix(MORE,1)+'"></i>Pay more</span><span><i style="background:'+mix(LESS,1)+'"></i>Pay less</span>':'')+
-    '<span><i class="dot" style="background:'+MK.extra+'"></i>Extra repayment</span><span><i class="dot" style="background:'+MK.redraw+'"></i>Redraw</span><span><i class="dot" style="background:'+MK.balance+'"></i>Bank check</span>';
+  const half=(p.lines-1)/2,lg=$('legend'),me=fu.mid,hi=fu.lines.filter(l=>l.j>0).length,per={52:'week',26:'fortnight',12:'month'}[p.freq]||'payment';
+  $('trCap').innerHTML='<b>How much you owe over time.</b> Up to <b>Today</b> the line is your real history, coloured by your pace: <b class="pY">yellow</b> is the bank’s standard schedule, <b class="pG">green and blue</b> mean you paid more, <b class="pR">orange and red</b> less. The strip under the chart shows the same thing. After Today, the <b style="color:var(--acc)">dashed line is your plan</b>'+(me&&me.off?' (debt-free <b>'+my(me.off)+'</b>)':'')+'. '+(hi?'The coloured fan around it shows paying more or less each '+per+'. ':'')+
+    '<span class="capTip">🔒 Unlock the padlock on the chart, then click your line to add a node: a lump sum, a new payment, an offset deposit, a rate change, a note and more. Before Today it records what happened; after Today it is a plan.</span>';
+  $('plist').innerHTML=[...fu.lines].sort((a,b)=>b.j-a.j).map(l=>'<div><span><i style="background:'+(l.j===0?'var(--acc)':lineCol(l.j,half))+'"></i>'+money(l.amt)+'/'+FL[p.freq]+(l.j===0?' (your plan)':'')+'</span><span>'+(l.off?'paid off '+my(l.off):grows(l)?'never: doesn’t cover the interest':'never paid off')+'</span></div>').join('');
+  const used=new Set(p.log.filter(e=>TY[e.type]).map(e=>e.type));
+  lg.innerHTML='<span><i style="background:linear-gradient(90deg,'+mix(LESS,1)+','+mix(LESS,.5)+','+mix(MORE,0)+','+mix(MORE,.5)+','+mix(MORE,1)+');height:5px"></i>Your history (colour = pace)</span><span><i style="background:repeating-linear-gradient(90deg,var(--acc) 0 6px,transparent 6px 10px);height:4px"></i><b style="color:var(--ink)">Your plan</b>: '+money(pay)+'/'+FL[p.freq]+'</span>'+
+    (half?'<span><i style="background:linear-gradient(90deg,'+mix(MORE,1)+','+mix(MORE,0)+','+mix(LESS,1)+');height:8px;opacity:.6"></i>Pay more · same · less</span>':'')+
+    (GH?'<span><i style="background:var(--acc);opacity:.35;height:4px"></i>Before your change (ghost)</span><span><i style="background:var(--good);opacity:.4;height:10px"></i>Money saved</span>':'')+
+    '<span><i class="dia"></i>Milestone</span>'+[...used].map(t=>'<span><i class="dot" style="background:'+MK[t]+'"></i>'+TY[t].n+'</span>').join('')+'<span><i class="dot ring"></i>Planned</span>';
 }
+/* the score: money saved against the bank's standard schedule, always measured until the loan is paid off */
+let SC=null;
+function score(ps,fu){const p=PR(),base=schedInt(p),bEnd=schedEnd(p),cur=ps.int+fu.mid.int,saved=base-cur,mo=fu.mid.off?moBetween(fu.mid.off,bEnd):null;
+  /* split the saving, in order: your history, then your offset, then your plans ahead (the three always add up) */
+  const planIds=p.log.filter(e=>!e.skip&&parse(e.date)>TODAY&&e.type!=='note'&&e.type!=='offset').map(e=>e.id),sk=planIds.length?{skip:new Set(planIds)}:{};
+  const iHist=life(p,{...sk,noOff:true}).int,iOff=offOn(p)?life(p,sk).int:iHist,fromOff=iHist-iOff,fromPlans=iOff-cur;
+  /* streak: whole months in a row, up to now, at or above the standard schedule */
+  const mons=[];for(const st of ps.steps){const k=st.d.getFullYear()*12+st.d.getMonth(),l=mons[mons.length-1];if(l&&l.k===k){l.s+=st.pace;l.n++}else mons.push({k,s:st.pace,n:1})}
+  let streak=0;for(let i=mons.length-1;i>=0;i--){if(mons[i].s/mons[i].n>=.995)streak++;else break}
+  let best=0,run=0;for(const mm of mons){if(mm.s/mm.n>=.995){run++;best=Math.max(best,run)}else run=0}
+  SC={saved,pct:base>0?saved/base:0,mo,fromOff,fromPlans,fromHist:base-iHist,streak,best,base,cur,never:!fu.mid.off};
+  const el=$('score');el.classList.toggle('neg',saved<-.5);
+  countTo($('scSaved'),Math.abs(saved),v=>money(v));
+  $('scLead').textContent=saved>=-.5?'You’re on track to save':'You’re on track to pay';
+  $('scSub').innerHTML=SC.never?'Your plan never pays the loan off, so this keeps growing. Add a node to pay more.':
+    (saved>=-.5?'in interest by the time your loan is paid off':'more interest than the bank’s schedule by the time it’s paid off')+' · <b>'+Math.round(Math.abs(SC.pct)*100)+'%</b> '+(saved>=-.5?'less':'more')+' than the '+money(base)+' the standard '+p.term+'-year schedule would cost';
+  $('scMo').textContent=mo==null?'–':ymo(mo);$('scMoN').textContent=mo==null?'not paid off':mo>=0?'sooner than '+my(bEnd):'later than '+my(bEnd);
+  $('scStreak').textContent=streak+' mo';$('scStreakN').textContent=streak?'in a row at or above schedule'+(best>streak?' · best '+best:''):best?'best run: '+best+' mo. Pay a little extra to restart it':'pay at or above schedule to start one';
+  const parts=[['History so far',SC.fromHist],['Your offset',SC.fromOff],['Plans ahead',SC.fromPlans]].filter(([,v])=>Math.abs(v)>=1);
+  $('scParts').innerHTML=parts.length?parts.map(([n,v])=>'<span><i>'+n+'</i><b'+(v<0?' class="m"':'')+'>'+(v<0?'−':'+')+money(Math.abs(v)).replace('−','')+'</b></span>').join(''):'<span><i>Add an extra repayment, an offset balance or a higher payment and your savings show up here.</i></span>'}
+/* numbers count up to their new value */
+function countTo(el,v,f){const from=+el.dataset.v||0;el.dataset.v=v;if(matchMedia('(prefers-reduced-motion: reduce)').matches||Math.abs(v-from)<1||document.hidden){el.textContent=f(v);return}
+  const t0=performance.now(),D=700;cancelAnimationFrame(el._r);const tick=n=>{const u=Math.min(1,(n-t0)/D),e=1-Math.pow(1-u,3);el.textContent=f(from+(v-from)*e);if(u<1)el._r=requestAnimationFrame(tick)};el._r=requestAnimationFrame(tick)}
+/* a short "this saved you" note after you add something */
+let toastT=0;function toast(h){const t=$('trToast');t.innerHTML=h;t.hidden=false;t.classList.remove('go');void t.offsetWidth;t.classList.add('go');clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,6000)}
+function savedNote(id){const p=PR(),e=p.log.find(q=>q.id===id);if(!e||e.type==='note'||e.type==='balance')return;const w=worth(p,[id]);
+  if(Math.abs(w.dInt)<1){toast('Added. This doesn’t change your interest yet.');return}
+  toast(w.dInt>0?'<b>This saves you '+money(w.dInt)+'</b> in interest by the time your loan is paid off'+(w.dMo>0?', and you’re debt-free '+ymo(w.dMo)+' sooner':'')+'.':'This costs '+money(-w.dInt)+' more interest over the loan'+(w.dMo<0?' and adds '+ymo(-w.dMo):'')+'.')}
+
 function rows(ps){const p=PR(),tb=$('rows');
-  const ev=[...p.log].sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.added-a.added);
-  if(!ev.length){tb.innerHTML='<tr><td colspan="7" class="empty">Nothing logged yet. Add your first extra repayment, redraw or bank balance above.</td></tr>';return}
-  const name={extra:'Extra repayment',redraw:'Redraw',balance:'Bank check'};
-  tb.innerHTML=ev.map(e=>{const c=ps.checks[e.id],bad=parse(e.date)<parse(p.start);
-    const chk=e.type==='balance'&&c?'Model said '+money(c.model)+'<br><small>off by '+money(c.diff)+'</small>':bad?'<small>Before the start date: ignored</small>':'';
-    const sign=e.type==='extra'?'−':e.type==='redraw'?'+':'=';
-    return '<tr><td>'+nice(parse(e.date))+'</td><td><span class="tag '+e.type+'">'+name[e.type]+'</span></td><td class="n">'+sign+' '+money(e.amt)+'</td><td>'+(e.note?e.note.replace(/[<>&]/g,''):'')+'</td><td>'+chk+'</td><td><small>'+new Date(e.added).toLocaleString(loanRegion.locale,{dateStyle:'short',timeStyle:'short'})+'</small></td><td><button class="x" data-del="'+e.id+'" title="Delete (you can undo)">×</button></td></tr>'}).join('')}
+  const ev=[...p.log].filter(e=>TY[e.type]).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.added-a.added);
+  if(!ev.length){tb.innerHTML='<tr><td colspan="7" class="empty">Nothing logged yet. Add an extra repayment, a redraw, a bank balance or a plan above, or unlock the chart and click your line.</td></tr>';return}
+  tb.innerHTML=ev.map(e=>{const c=ps.checks[e.id],bad=parse(e.date)<parse(p.start),fut=parse(e.date)>TODAY;
+    let chk=e.type==='balance'&&c?'Model said '+money(c.model)+'<br><small>off by '+money(c.diff)+'</small>':bad?'<small>Before the start date: ignored</small>':'';
+    if(fut)chk+='<span class="st plan">Plan</span>';
+    else if(e.skip)chk+='<span class="st miss">Didn’t happen</span> <button class="mini" data-conf="'+e.id+'">It did</button>';
+    else if(e.plan&&!e.done)chk+='<span class="st ask">Planned: did it happen?</span> <button class="mini" data-conf="'+e.id+'">Yes</button> <button class="mini" data-skip="'+e.id+'">No</button>';
+    else if(e.plan)chk+='<span class="st kept">Plan kept ✓</span>';
+    return '<tr class="'+(e.skip?'skipped':'')+(fut?' fut':'')+'"><td>'+nice(parse(e.date))+'</td><td><span class="tag" style="--t:'+MK[e.type]+'">'+TY[e.type].i+' '+TY[e.type].n+'</span></td><td class="n">'+amtTxt(e,p)+'</td><td>'+esc(e.note)+'</td><td>'+chk+'</td><td><small>'+new Date(e.added).toLocaleString(loanRegion.locale,{dateStyle:'short',timeStyle:'short'})+'</small></td><td><button class="x" data-ed="'+e.id+'" title="Edit">✎</button><button class="x" data-del="'+e.id+'" title="Delete (you can undo)">×</button></td></tr>'}).join('')}
+
+/* your loan story: age, actual vs schedule, plans kept, milestones, pace by year, month by month */
+function hist(ps,fu){const p=PR(),s0=parse(p.start),k=ps.steps.length,N=p.term*p.freq,age=moBetween(s0,TODAY);
+  $('hAge').innerHTML='<h3>Loan age</h3><b>'+ymo(age)+'</b><p>Started '+nice(s0)+'. '+k+' of '+N+' scheduled payments made ('+Math.round(k/N*100)+'% of the '+p.term+'-year term).</p>';
+  const sb=sched(p,Math.min(k,N)),diff=sb-ps.B,kk=schedK(p,Math.max(0,ps.B)),aMo=Math.round((kk-k)*12/p.freq),sInt=stdPay(p)*Math.min(k,N)-(p.P-sb);
+  $('hVs').innerHTML='<h3>Actual vs the bank’s schedule</h3><b class="'+(diff>=-.5?'g':'r')+'">'+(diff>=-.5?money(diff)+' ahead':money(-diff)+' behind')+'</b><p>The standard schedule ('+money(stdPay(p))+'/'+FL[p.freq]+', no extras) has you owing '+money(sb)+' today. You owe '+money(ps.B)+(Math.abs(aMo)>=1?', about <b>'+ymo(aMo)+(aMo>0?' ahead':' behind')+'</b>':'')+'. Interest so far: '+money(ps.int)+' (schedule: '+money(sInt)+').</p>';
+  const L=p.log.filter(e=>e.plan&&TY[e.type]),fut=L.filter(e=>parse(e.date)>TODAY),pastP=L.filter(e=>parse(e.date)<=TODAY),kept=pastP.filter(e=>e.done&&!e.skip),miss=pastP.filter(e=>e.skip),ask=pastP.filter(e=>!e.done&&!e.skip);
+  $('hPlan').innerHTML='<h3>Your plans</h3><b>'+(pastP.length?kept.length+' kept'+(miss.length?' · '+miss.length+' missed':''):fut.length?fut.length+' planned':'None yet')+'</b><p>'+(pastP.length?fut.length+' still ahead'+(ask.length?'. '+ask.length+' date'+(ask.length>1?'s have':' has')+' passed. Did it happen?':'.'):fut.length?'When each date passes you can tick it off here.':'Add a node after Today to plan a lump sum, a pay rise or an offset deposit. When the date passes you can tick it off.')+'</p>'+
+    ask.slice(0,4).map(e=>'<div class="ask">'+TY[e.type].i+' '+nice(parse(e.date))+': '+amtTxt(e,p)+' <button class="mini" data-conf="'+e.id+'">Yes</button><button class="mini" data-skip="'+e.id+'">No</button></div>').join('');
+  $('hMs').innerHTML='<h3>Milestones</h3>'+MS.map(m=>'<div class="ms'+(m.t!=null&&m.t<=TODAY.getTime()?' done':'')+'"><i>'+(m.t!=null&&m.t<=TODAY.getTime()?'✓':'◇')+'</i><span>'+(m.q===1?'Debt-free':Math.round(m.q*100)+'% paid off')+'</span><b>'+(m.t==null?'not on your plan':(m.t<=TODAY.getTime()?'':'on track for ')+my(new Date(m.t)))+'</b></div>').join('');
+  /* pace by loan year */
+  const Yr=365.25*864e5,yrs=[];for(const st of ps.steps){const i=Math.max(0,Math.floor((st.d-s0-1)/Yr));(yrs[i]=yrs[i]||{s:0,n:0,a:st.d,b:st.d});yrs[i].s+=st.pace;yrs[i].n++;yrs[i].b=st.d}
+  $('hPace').innerHTML=yrs.length?'<h3>Your pace, year by year</h3>'+yrs.map((y,i)=>{if(!y)return'';const v=y.s/y.n;return'<div class="py"><span>Year '+(i+1)+' <small>'+my(y.a)+' – '+my(y.b)+'</small></span><span class="pb"><i style="width:'+Math.min(100,v/2*100)+'%;background:'+paceCol(v)+'"></i><u></u></span><b>'+Math.round(v*100)+'% · '+paceWord(v)+'</b></div>'}).join('')+'<p class="hint">100% is the bank’s standard payment. Extra repayments count across the year around them; redraws take away.</p>':'<h3>Your pace, year by year</h3><p class="hint">Shows up after your first payment.</p>';
+  if($('hMon').open)months(ps)}
+function months(ps){const p=PR(),M=new Map(),key=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),g=d=>{const kk=key(d);if(!M.has(kk))M.set(kk,{d,reg:0,ex:0,rd:0,off:0,int:0,end:null,ps:0,n:0});return M.get(kk)};
+  for(const st of ps.steps){const r=g(st.d);r.reg+=st.pay;r.int+=st.i;r.ps+=st.pace;r.n++}
+  for(const mk of ps.marks){const r=g(mk.d);if(mk.type==='extra')r.ex+=mk.e.amt;if(mk.type==='redraw')r.rd+=mk.e.amt}
+  for(const[d,v]of ps.pts)g(d).end=v;
+  const rws=[...M.values()].sort((a,b)=>b.d-a.d);
+  $('monRows').innerHTML=rws.map(r=>{const v=r.n?r.ps/r.n:null;return'<tr><td>'+my(r.d)+'</td><td class="n">'+money(r.reg)+'</td><td class="n">'+(r.ex?'<span class="g">−'+money(r.ex)+'</span> ':'')+(r.rd?'<span class="r">+'+money(r.rd)+'</span>':'')+'</td><td class="n">'+money(r.int)+'</td><td class="n">'+(r.end==null?'':money(r.end))+'</td><td>'+(v==null?'':'<i class="pd" style="background:'+paceCol(v)+'"></i>'+Math.round(v*100)+'%')+'</td></tr>'}).join('')}
+
+/* the ghost: your line before a change. While you edit a node, it's your line without that node; otherwise, without your plans ahead. */
+let GH=null,edSkip=null,MS=[];
+function ghost(){const p=PR();let ids;
+  if(edSkip)ids=[edSkip];else ids=p.log.filter(e=>!e.skip&&TY[e.type]&&parse(e.date)>TODAY&&e.type!=='note').map(e=>e.id);
+  if(!ids.length)return null;const e0=edSkip&&p.log.find(e=>e.id===edSkip);if(edSkip&&(!e0||e0.type==='note'||e0.skip))return null;
+  const skip=new Set(ids),ps=past(p,{skip}),fu=future(p,ps,{skip,noFan:true}),from=edSkip?parse(e0.date):TODAY,dInt=(ps.int+fu.mid.int)-(PS.int+FU.mid.int);
+  if(Math.abs(dInt)<1)return null;
+  return{ps,mid:fu.mid,from,dInt,dMo:fu.mid.off&&FU.mid.off?moBetween(FU.mid.off,fu.mid.off):null}}
+let PS,FU;
+function render(){sync();const p=PR();PS=past(p);FU=future(p,PS);GH=ghost();MS=milestones(p,PS,FU);stats(PS,FU);score(PS,FU);rows(PS);hist(PS,FU);offUI();draw(PS,FU);if(window.__trNodeSync)window.__trNodeSync()}
+function change(fn){fn(PR());commit();render()}
+
 function sync(){const p=PR(),act=document.activeElement,set=(id,v)=>{if(act!==$(id))$(id).value=v};
   $('prof').innerHTML=Object.entries(ST.profiles).map(([id,q])=>'<option value="'+id+'"'+(id===ST.cur?' selected':'')+'>'+q.name.replace(/[<>&]/g,'')+'</option>').join('');
   $('delP').disabled=Object.keys(ST.profiles).length<2;
@@ -487,12 +782,10 @@ function sync(){const p=PR(),act=document.activeElement,set=(id,v)=>{if(act!==$(
   const io=p.P*rr(p);$('payHint').textContent='Standard payment for '+p.term+' years: '+money(stdPay(p))+'/'+FL[p.freq]+'. Interest alone is '+money(io)+'/'+FL[p.freq]+' at the start.';
   const isC=showC||!PRESET.includes(p.freq);$('freqCBox').hidden=!isC;$('freqCHint').hidden=!(isC&&p.freq===13);set('freqC',p.freq);
   document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.classList.toggle('on',g.dataset.k==='freq'?(isC?b.dataset.v==='custom':String(p.freq)===b.dataset.v):String(p[g.dataset.k])===b.dataset.v)));
-  $('eDate').max=iso(TODAY);if(!$('eDate').value)$('eDate').value=iso(TODAY);$('eDate').min=p.start;
-  $('eAmtL').textContent=$('eType').value==='balance'?'Balance on statement':'Amount';
+  if(!$('eDate').value)$('eDate').value=iso(TODAY);$('eDate').min=p.start;
+  {const t=$('eType').value,fut=$('eDate').value&&parse($('eDate').value)>TODAY;$('eAmtL').textContent=TY[t].a+(t==='pay'||t==='goal'?' (/'+FL[p.freq]+')':'');$('eAmtBox').hidden=t==='note';$('eUntilBox').hidden=t!=='goal';
+   $('eAmtU').textContent=t==='rate'?'%':loanRegion.sym;$('eAdd').textContent=fut?'Add plan':'Add';}
 }
-let PS,FU;
-function render(){sync();PS=past(PR());FU=future(PR(),PS);stats(PS,FU);rows(PS);draw(PS,FU)}
-function change(fn){fn(PR());commit();render()}
 
 /* inputs */
 $('pName').addEventListener('input',e=>change(p=>p.name=e.target.value.trim()||'Untitled loan'));
@@ -508,14 +801,18 @@ document.querySelectorAll('.seg').forEach(g=>g.addEventListener('click',e=>{cons
 function setF(p,f){if(p.pay!=null&&p.freq!==f)p.pay=Math.round(p.pay*p.freq/f*100)/100;p.freq=f}
 $('freqC').addEventListener('input',e=>{const v=Math.round(num(e.target.value));if(v>=1&&v<=365){showC=true;change(p=>{setF(p,v);p.customF=v})}});
 $('freqC').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur()});
-$('eType').addEventListener('change',sync);
-$('eAdd').addEventListener('click',()=>{const p=PR(),d=$('eDate').value,a=num($('eAmt').value),msg=$('eMsg');
+$('eType').addEventListener('change',sync);$('eDate').addEventListener('change',sync);
+$('eAdd').addEventListener('click',()=>{const p=PR(),d=$('eDate').value,t=$('eType').value,a=num($('eAmt').value),msg=$('eMsg'),u=$('eUntil').value;
   if(!d){msg.textContent='Pick a date.';return}
-  if(parse(d)>TODAY){msg.textContent='The log is for things that have already happened. Future plans show up in the projected trajectory.';return}
+  const fut=parse(d)>TODAY;
+  if(fut&&t==='balance'){msg.textContent='A bank balance check can only be in the past.';return}
   if(parse(d)<parse(p.start)){msg.textContent='That date is before the loan started ('+nice(parse(p.start))+').';return}
-  if(a===null||a<0||(a===0&&$('eType').value!=='balance')){msg.textContent='Enter an amount.';return}
-  change(q=>q.log.push({id:uid(),date:d,type:$('eType').value,amt:a,note:$('eNote').value.trim(),added:Date.now()}));
-  burstT=0;$('eAmt').value='';$('eNote').value='';msg.textContent='Logged.'});
+  if(t!=='note'&&(a===null||(a<0&&t!=='offset')||(a===0&&!['balance','rate','pay'].includes(t)))){msg.textContent='Enter an amount.';return}
+  if(t==='rate'&&a>25){msg.textContent='Rate must be 25% or less.';return}
+  if(t==='goal'&&!(u&&u>d)){msg.textContent='Pick an end date after the start date.';return}
+  const e={id:uid(),date:d,type:t,amt:t==='note'?0:a,note:$('eNote').value.trim(),added:Date.now()};if(fut)e.plan=true;if(t==='goal')e.until=u;
+  change(q=>q.log.push(e));
+  burstT=0;$('eAmt').value='';$('eNote').value='';msg.textContent=fut?'Planned. It shows on your line after Today.':'Logged.';savedNote(e.id)});
 $('rows').addEventListener('click',e=>{const id=e.target.dataset?.del;if(id){burstT=0;change(p=>p.log=p.log.filter(x=>x.id!==id));$('eMsg').textContent='Deleted. Undo brings it back.'}});
 $('prof').addEventListener('change',e=>{ST.cur=e.target.value;showC=false;burstT=0;commit();render()});
 $('newP').addEventListener('click',()=>{const id=uid();ST.profiles[id]=blank('Loan '+(Object.keys(ST.profiles).length+1));ST.cur=id;burstT=0;commit();render();$('pName').focus();$('pName').select()});
@@ -538,15 +835,169 @@ fig.addEventListener('pointermove',e=>{if(!G)return;const r=fig.getBoundingClien
   const t=G.t0+(px-G.L)/G.pw*(G.t1-G.t0),d=new Date(t),dp=window.devicePixelRatio||1,o=$('ov').getContext('2d'),p=PR();
   o.setTransform(dp,0,0,dp,0,0);o.clearRect(0,0,G.W,G.H);o.strokeStyle=G.ink;o.globalAlpha=.4;o.beginPath();o.moveTo(px+.5,G.Tm);o.lineTo(px+.5,G.Tm+G.ph);o.stroke();o.globalAlpha=1;
   let h='<b>'+nice(d)+'</b>';
-  if(t<=TODAY.getTime()){const v=at(G.ps.pts,t);if(v!=null)h+='<br>Balance: '+money(v)}
-  else{const half=(p.lines-1)/2;for(const l of[...G.fu.lines].sort((a,b)=>a.j-b.j)){const v=at(l.pts,t);h+='<br>'+money(l.amt)+'/'+FL[p.freq]+': '+(v==null?(l.off&&t>l.off.getTime()?'paid off':'–'):money(v))}}
+  if(t<=TODAY.getTime()){const v=at(G.ps.pts,t);if(v!=null)h+='<br>Balance: '+money(v);const st=G.ps.steps.find(q=>+q.d>=t)||G.ps.steps[G.ps.steps.length-1];if(st)h+='<br>Pace: <b style="color:'+paceCol(st.pace)+'">'+Math.round(st.pace*100)+'%</b> of the standard payment ('+paceWord(st.pace)+')'}
+  else{for(const l of[...G.fu.lines].sort((a,b)=>a.j-b.j)){const v=at(l.pts,t);h+='<br>'+(l.j===0?'<b>Your plan</b>':money(l.amt)+'/'+FL[p.freq])+': '+(v==null?(l.off&&t>l.off.getTime()?'paid off':'–'):money(v))}
+    if(GH){const g=seriesAt(GH.ps,GH.mid,t);if(g!=null)h+='<br><span style="opacity:.75">Before your change: '+money(g)+'</span>'}}
   tip.innerHTML=h;tip.style.display='block';const tw=tip.offsetWidth;tip.style.left=Math.min(G.W-tw-4,Math.max(4,px+(px>G.W/2?-tw-14:14)))+'px';tip.style.top=Math.max(4,py-40)+'px'});
 fig.addEventListener('pointerleave',hide);
 new ResizeObserver(()=>{if(PS)draw(PS,FU)}).observe(fig);
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>draw(PS,FU))}catch(e){}
 window.addEventListener('themechange',()=>{if(PS)draw(PS,FU)});
 window.addEventListener('devicechange',()=>requestAnimationFrame(()=>draw(PS,FU)));
-window.Tracker={past,future,payDate,stdPay,regPay,state:()=>ST,PR};
+$('hMon').addEventListener('toggle',()=>{if($('hMon').open&&PS)months(PS)});
+/* ---------- offset account ---------- */
+function offUI(){const p=PR(),o=p.off||{},act=document.activeElement;
+  if(act!==$('pOffBal'))$('pOffBal').value=o.bal?grp(o.bal):'';if(act!==$('pOffTop'))$('pOffTop').value=o.top?grp(o.top):'';
+  $('offTopL').textContent='Added each '+({52:'week',26:'fortnight',12:'month',4:'quarter',1:'year'}[p.freq]||'payment');
+  const box=$('offRes');if(!offOn(p)){box.className='offRes';box.innerHTML='Money sitting in an offset account is taken off your balance before interest is worked out. Enter what’s in yours to see what it saves you by the time the loan is paid off.';return}
+  const a=life(p),b=life(p,{noOff:true}),dI=b.int-a.int,dM=a.off&&b.off?moBetween(a.off,b.off):null;
+  box.className='offRes on';box.innerHTML='<span>Your offset saves you</span><b>'+money(dI)+'</b><span>in interest by the time your loan is paid off'+(dM>0?', and you’re debt-free <b>'+ymo(dM)+' sooner</b>':'')+'.</span>'+(FU.mid.cover?'<small>Your offset is on track to match what you owe in <b>'+my(FU.mid.cover)+'</b>. From then you could pay the loan off in one go.</small>':'')}
+$('pOffBal').addEventListener('input',e=>{const v=num(e.target.value);change(p=>{p.off=p.off||{};p.off.bal=v&&v>0?v:0})});
+$('pOffTop').addEventListener('input',e=>{const v=num(e.target.value);change(p=>{p.off=p.off||{};p.off.top=v&&v>0?v:0})});
+['pOffBal','pOffTop'].forEach(id=>{$(id).addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur()});$(id).addEventListener('blur',offUI)});
+
+/* ---------- nodes on your line: padlock, magnetic ring, menu, editor ---------- */
+(function(){
+  const ov=$('ov'),chart=document.querySelector('.chart'),DAY=864e5,isPhone=()=>document.documentElement.dataset.device==='phone';
+  const lock=document.createElement('button');lock.id='trLock';lock.type='button';fig.appendChild(lock);
+  let unlocked=false,relockT=0,drag=false,raf=0,press=null,pressT=0;
+  const clr=()=>{const o=ov.getContext('2d');o.setTransform(1,0,0,1,0,0);o.clearRect(0,0,ov.width,ov.height)};
+  const arm=()=>{clearTimeout(relockT);if(unlocked)relockT=setTimeout(()=>{if(!drag&&ed.hidden&&menu.hidden){unlocked=false;paint()}else arm()},120000)};
+  function paint(){lock.classList.toggle('open',unlocked);lock.setAttribute('aria-pressed',unlocked);
+    lock.innerHTML=unlocked?'<span>🔓</span>'+(isPhone()?'Tap your line to add a node':'Click your line to add a node · drag elsewhere to set your payoff'):'<span>🔒</span>Unlock to add nodes';
+    fig.style.touchAction=unlocked?'none':'pan-y';fig.style.cursor='';if(!unlocked){clr();menu.hidden=true}}
+  lock.addEventListener('click',e=>{e.stopPropagation();unlocked=!unlocked;paint();arm()});
+  const pos=e=>{const r=fig.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+  const tAt=px=>G.t0+(px-G.L)/G.pw*(G.t1-G.t0);
+  const day=t=>{const d=new Date(t+12*3600e3);d.setHours(0,0,0,0);return d};
+  function lineAt(px){if(!G||px<G.L||px>G.L+G.pw)return null;const d=day(tAt(px)),t=+d;if(t<G.t0||t>G.t1)return null;
+    if(t>TODAY.getTime()&&FU.mid.off&&t>+FU.mid.off)return null;const v=seriesAt(PS,FU.mid,t);if(v==null)return null;return{t,d,x:G.X(t),y:G.Y(v),v}}
+  const reach=e=>e&&e.pointerType==='touch'?34:22;
+  const near=(px,py,e)=>{const h=lineAt(px);return h&&Math.abs(h.y-py)<=reach(e)?h:null};
+  function nodeHit(px,py,e){if(!G)return null;const r=e&&e.pointerType==='touch'?24:14;let best=null;for(const n of G.nodes){const d=Math.hypot(n.x-px,n.y-py);if(d<=r&&(!best||d<best.d))best={...n,d}}return best}
+  function ring(h,big){const d=window.devicePixelRatio||1,o=ov.getContext('2d');o.setTransform(d,0,0,d,0,0);const acc=getComputedStyle($('cAcc')).color;
+    o.beginPath();o.arc(h.x,h.y,big?14:11,0,7);o.lineWidth=2.5;o.strokeStyle=acc;o.stroke();o.globalAlpha=.18;o.fillStyle=acc;o.fill();o.globalAlpha=1}
+  const byId=id=>PR().log.find(e=>e.id===id);
+  fig.addEventListener('pointermove',e=>{if(!unlocked||drag||press||e.buttons||!G)return;const[px,py]=pos(e),nh=nodeHit(px,py,e),h=nh?null:near(px,py,e);
+    if(nh){ring(nh,true);const n=byId(nh.id);if(n){tip.innerHTML='<b>'+TY[n.type].i+' '+TY[n.type].n+'</b><br>'+nice(parse(n.date))+(amtTxt(n,PR())?': '+amtTxt(n,PR()):'')+'<br><small style="opacity:.75">Click to edit · right-click for more</small>';tip.style.display='block'}}
+    else if(h){ring(h);tip.innerHTML='<b>'+nice(h.d)+'</b><br>'+(h.t>TODAY.getTime()?'Click to plan something here':'Click to record something that happened')+'<br><small style="opacity:.75">You owe about '+money(h.v)+' here</small>';tip.style.display='block'}
+    fig.style.cursor=nh||h?'pointer':''});
+  /* what a new node starts with */
+  function termsAt(t){const p=PR(),s={B:0,O:0,rate:p.rate,pay:regPay(p),goal:null};for(const e of live(p))if(+parse(e.date)<=t&&e.type!=='balance'&&e.type!=='extra'&&e.type!=='redraw')applyEv(s,e);return s}
+  function defAmt(type,t){const s=termsAt(t),p=PR(),step=Math.max(10,p.step||100),v=seriesAt(PS,FU.mid,t)||0;
+    return{extra:5000,redraw:2000,offset:5000,balance:Math.round(v),pay:Math.round(s.pay+step),goal:Math.round(s.pay+step),rate:s.rate,note:0}[type]}
+  function addEntry(type,t){const d=new Date(t),fut=t>TODAY.getTime(),e={id:uid(),date:iso(d),type,amt:defAmt(type,t),note:'',added:Date.now()};
+    if(fut)e.plan=true;if(type==='goal'){const u=new Date(d);u.setFullYear(u.getFullYear()+1);e.until=iso(u)}
+    burstT=0;change(q=>q.log.push(e));return e}
+  /* menu: click your line, right-click, or press and hold */
+  const menu=document.createElement('div');menu.className='nodeMenu';menu.hidden=true;menu.setAttribute('role','menu');fig.appendChild(menu);
+  function openMenu(px,py,e,h0){const nh=h0?null:nodeHit(px,py,e),h=nh?null:(h0||near(px,py,e));if(!nh&&!h)return false;
+    if(nh){const n=byId(nh.id),pastD=parse(n.date)<=TODAY;
+      menu.innerHTML='<div class="nmHead">'+TY[n.type].i+' '+TY[n.type].n+' · '+nice(parse(n.date))+'</div><button type="button" data-m="edit">✎ Edit</button>'+
+        (pastD&&n.plan?(n.skip?'<button type="button" data-m="did">✓ It did happen</button>':(n.done?'':'<button type="button" data-m="did">✓ This happened</button>')+'<button type="button" data-m="skip">✕ This didn’t happen</button>'):'')+
+        '<button type="button" data-m="del">🗑 Delete</button>'}
+    else{const fut=h.t>TODAY.getTime();
+      menu.innerHTML='<div class="nmHead">'+(fut?'Plan for ':'What happened on ')+nice(h.d)+'</div>'+Object.entries(TY).filter(([k])=>!(fut&&k==='balance')).map(([k,v])=>'<button type="button" data-m="add" data-t="'+k+'"><i>'+v.i+'</i>'+v.m+'</button>').join('')}
+    menu.dataset.id=nh?nh.id:'';menu.dataset.t=h?h.t:'';menu.hidden=false;menuAt=Date.now();hide();if(h)ring(h);
+    const mw=menu.offsetWidth,mh=menu.offsetHeight;menu.style.left=Math.max(4,Math.min(G.W-mw-6,px+(px>G.W/2?-mw-10:10)))+'px';menu.style.top=Math.max(4,Math.min(fig.clientHeight-mh-4,py-mh/3))+'px';return true}
+  ['pointerdown','pointerup','pointermove'].forEach(t=>menu.addEventListener(t,e=>e.stopPropagation()));
+  let menuAt=0;
+  menu.addEventListener('click',e=>{e.stopPropagation();if(Date.now()-menuAt<400)return;const b=e.target.closest('[data-m]');if(!b)return;const m=b.dataset.m,id=menu.dataset.id;menu.hidden=true;clr();
+    if(m==='edit')openEd(id);else if(m==='del')delE(id);else if(m==='did')mark(id,true);else if(m==='skip')mark(id,false);
+    else if(m==='add'){const n=addEntry(b.dataset.t,+menu.dataset.t);openEd(n.id,true)}});
+  document.addEventListener('pointerdown',e=>{if(!menu.hidden&&!menu.contains(e.target)){menu.hidden=true;clr()}});
+  function mark(id,did){burstT=0;change(p=>{const e=p.log.find(q=>q.id===id);if(!e)return;if(did){e.done=true;e.skip=false}else{e.skip=true;e.done=false}})}
+  function delE(id){burstT=0;if(edId===id)closeEd(true);change(p=>p.log=p.log.filter(q=>q.id!==id));$('eMsg').textContent='Deleted. Undo brings it back.'}
+  /* editor */
+  const ed=document.createElement('div');ed.className='nodeEd';ed.hidden=true;ed.setAttribute('role','dialog');ed.setAttribute('aria-label','Edit node');chart.appendChild(ed);let edId=null,isNew=false;
+  function openEd(id,fresh){const e=byId(id);if(!e)return;edId=id;isNew=!!fresh;edSkip=id;burstT=0;menu.hidden=true;hide();
+    const hasA=e.type!=='note',pct=e.type==='rate';
+    ed.innerHTML='<div class="neHead"><b><span class="neIc"></span> <span class="neName"></span></b><button type="button" class="neX" aria-label="Close">✕</button></div>'+
+      '<label class="neLab">What is it?</label><select class="f neT">'+Object.entries(TY).map(([k,v])=>'<option value="'+k+'">'+v.i+' '+v.m+'</option>').join('')+'</select>'+
+      '<label class="neLab">Date</label><input type="date" class="f neD">'+
+      (hasA?'<label class="neLab neAL"></label><div class="neRow"><button type="button" class="neStep" data-d="-1" aria-label="Less">−</button><span class="unit '+(pct?'post':'pre')+'">'+(pct?'':'<i>'+loanRegion.sym+'</i>')+'<input class="f neA" inputmode="decimal" autocomplete="off">'+(pct?'<i>%</i>':'')+'</span><button type="button" class="neStep" data-d="1" aria-label="More">+</button><span class="neFreq"></span></div>':'')+
+      (e.type==='goal'?'<label class="neLab">Until</label><input type="date" class="f neU">':'')+
+      '<label class="neLab">Note (optional)</label><input class="f neNote" maxlength="80" placeholder="e.g. tax refund, pay rise, new job">'+
+      '<div class="neStat"></div><p class="neEff"></p><p class="neErr" hidden></p>'+
+      '<div class="neBtns"><button type="button" class="neDel">Delete</button><button type="button" class="neDone">Done</button></div>';
+    ed.hidden=false;ed.querySelector('.neNote').value=e.note||'';render();if(!isPhone()){const a=ed.querySelector('.neA');if(a){a.focus();a.select()}}}
+  const stepOf=e=>{const p=PR();return e.type==='rate'?.25:e.type==='pay'||e.type==='goal'?(p.freq>=52?10:p.freq>=12?50:100):1000};
+  function edRefresh(){if(ed.hidden||!edId)return;const e=byId(edId),p=PR();if(!e){closeEd(true);return}const fut=parse(e.date)>TODAY,ty=TY[e.type],act=document.activeElement;
+    ed.querySelector('.neIc').textContent=ty.i;ed.querySelector('.neName').textContent=(fut?'Plan: ':'')+ty.n;ed.querySelector('.neT').value=e.type;
+    const D=ed.querySelector('.neD');if(act!==D)D.value=e.date;D.min=p.start;
+    const A=ed.querySelector('.neA');if(A){ed.querySelector('.neAL').textContent=ty.a;if(act!==A)A.value=e.type==='rate'?e.amt:grp(e.amt);ed.querySelector('.neFreq').textContent=e.type==='pay'||e.type==='goal'?'/'+FL[p.freq]:''}
+    const U=ed.querySelector('.neU');if(U&&act!==U)U.value=e.until||e.date;
+    ed.querySelector('.neStat').innerHTML=fut?'<span class="st plan">Plan</span> When this date passes it counts as done, unless you mark it as didn’t happen.':
+      e.skip?'<span class="st miss">Didn’t happen</span> <button type="button" class="mini" data-k="did">It did happen</button>':
+      e.plan&&!e.done?'<span class="st ask">You planned this</span> Did it happen? <button type="button" class="mini" data-k="did">Yes</button> <button type="button" class="mini" data-k="skip">No</button>':
+      e.plan?'<span class="st kept">Plan kept ✓</span>':'<span class="st hist">History</span> Something that happened.';
+    let t;if(e.type==='note')t='Notes don’t change the numbers. They help you remember why.';
+    else if(e.type==='balance')t='A bank check resets your line to the real balance from this date.';
+    else{const g=GH;if(!g)t=e.skip?'Marked as didn’t happen, so it isn’t counted.':'No change to your interest yet.';
+      else t=(g.dInt>0?'💚 This saves you <b>'+money(g.dInt)+'</b>':'This costs <b>'+money(-g.dInt)+'</b> more')+' in interest by the time the loan is paid off'+(g.dMo?', and you’re debt-free <b>'+ymo(g.dMo)+(g.dMo>0?' sooner':' later')+'</b>':'')+'.'+(FU.mid.off?' Debt-free: '+my(FU.mid.off)+'.':' At this rate the loan is never paid off.')}
+    const ef=ed.querySelector('.neEff');ef.innerHTML=t;ef.classList.toggle('good',!!(GH&&GH.dInt>0));place2()}
+  function place2(){if(ed.hidden||!G)return;if(isPhone()){ed.style.left='';ed.style.top='';return}
+    const g=G.nodes.find(m=>m.id===edId),ch=chart.getBoundingClientRect(),fr=fig.getBoundingClientRect();
+    const gx=(g?g.x:G.L)+fr.left-ch.left,gy=(g?g.y:G.Tm)+fr.top-ch.top,w=ed.offsetWidth,h=ed.offsetHeight;
+    ed.style.left=Math.max(8,Math.min(ch.width-w-8,gx+(gx>ch.width/2?-w-24:24)))+'px';ed.style.top=Math.max(8,Math.min(ch.height-h-8,gy-h/2))+'px'}
+  function closeEd(quiet){const id=edId,was=isNew;ed.hidden=true;edId=null;edSkip=null;burstT=0;if(!quiet){render();if(was)savedNote(id)}}
+  window.__trNodeSync=()=>{if(!ed.hidden){if(!byId(edId))closeEd(true);else edRefresh()}};
+  const setE=o=>change(p=>{const e=p.log.find(q=>q.id===edId);if(e)Object.assign(e,o)});
+  const err=s=>{const n=ed.querySelector('.neErr');n.textContent=s||'';n.hidden=!s};
+  ed.addEventListener('input',ev=>{const e=byId(edId);if(!e)return;const tg=ev.target;err('');
+    if(tg.matches('.neA')){const v=num(tg.value);if(v===null)return;if(e.type==='rate'&&(v<0||v>25))return err('Rate must be between 0 and 25%.');if(e.type!=='offset'&&v<0)return;setE({amt:v})}
+    else if(tg.matches('.neNote'))setE({note:tg.value})});
+  ed.addEventListener('change',ev=>{const e=byId(edId),p=PR();if(!e)return;const tg=ev.target;err('');
+    if(tg.matches('.neD')){const v=tg.value;if(!v)return;const d=parse(v);if(d<parse(p.start))return err('That’s before your loan started ('+nice(parse(p.start))+').');
+      if(e.type==='balance'&&d>TODAY)return err('A bank check can only be in the past.');setE({date:v,plan:d>TODAY?true:e.plan})}
+    else if(tg.matches('.neU')){if(tg.value&&tg.value>e.date)setE({until:tg.value});else err('Pick a date after the start.')}
+    else if(tg.matches('.neT')){const ty=tg.value;if(ty==='balance'&&parse(e.date)>TODAY){tg.value=e.type;return err('A bank check can only be in the past.')}
+      const o={type:ty,amt:defAmt(ty,+parse(e.date))};if(ty==='goal'&&!e.until){const u=parse(e.date);u.setFullYear(u.getFullYear()+1);o.until=iso(u)}setE(o);openEd(edId,isNew)}});
+  ed.addEventListener('click',ev=>{const e=byId(edId);if(!e)return;
+    if(ev.target.closest('.neX,.neDone')){closeEd();return}
+    if(ev.target.closest('.neDel')){delE(edId);return}
+    const k=ev.target.closest('[data-k]');if(k){mark(edId,k.dataset.k==='did');return}
+    const st=ev.target.closest('.neStep');if(st){const s=stepOf(e),v=Math.round((e.amt+(+st.dataset.d)*s)*100)/100;if(e.type!=='offset'&&v<0)return;setE({amt:e.type==='rate'?Math.min(25,Math.max(0,v)):v})}});
+  ed.addEventListener('keydown',e=>{if(e.key==='Escape')closeEd();if(e.key==='Enter'&&e.target.matches('input'))e.target.blur()});
+  ['pointerdown','pointerup','pointermove','click'].forEach(t=>ed.addEventListener(t,e=>e.stopPropagation()));
+  window.addEventListener('themechange',()=>requestAnimationFrame(place2));
+  window.addEventListener('devicechange',()=>requestAnimationFrame(()=>{paint();place2()}));
+  /* drag away from your line: set a new regular payment from tomorrow so you're debt-free on that date */
+  function setTo(px,snap){if(!G)return;let t=tAt(px);if(snap&&G.years.length){let best=G.years[0];for(const y of G.years)if(Math.abs(y[1]-px)<Math.abs(best[1]-px))best=y;t=+new Date(best[0],0,1)}
+    const p=PR(),ps=PS;if(ps.paidOff||t<=TODAY.getTime()+45*DAY)return;
+    let e=p.log.find(q=>q.drag&&!q.skip&&parse(q.date)>TODAY);const nd=new Date(TODAY);nd.setDate(nd.getDate()+1);
+    const tmp={id:'__drag',date:e?e.date:iso(nd),type:'pay',amt:0,added:e?e.added:Date.now()};
+    const offFor=a=>{tmp.amt=a;const keep=p.log;p.log=[...keep.filter(q=>q!==e),tmp];const f=future(p,ps,{noFan:true});p.log=keep;return f.mid.off?+f.mid.off:Infinity};
+    const r=ps.s.rate/100/p.freq;let lo=Math.max(0,ps.B-ps.s.O)*r,hi=ps.B*(1+r)+1;
+    for(let i=0;i<44;i++){const m=(lo+hi)/2;if(offFor(m)>t)lo=m;else hi=m}
+    const amt=Math.round(hi*100)/100;
+    if(e)change(q=>{q.log.find(y=>y.id===e.id).amt=amt});
+    else{const n={...tmp,id:uid(),amt,plan:true,drag:true,note:'Set by dragging the line'};change(q=>q.log.push(n))}
+    const o=ov.getContext('2d'),d=window.devicePixelRatio||1;o.setTransform(d,0,0,d,0,0);const xx=G.X(t);o.strokeStyle=getComputedStyle($('cAcc')).color;o.lineWidth=2;o.setLineDash([4,4]);o.beginPath();o.moveTo(xx,G.Tm);o.lineTo(xx,G.Tm+G.ph);o.stroke();o.setLineDash([]);
+    tip.innerHTML='<b>Debt-free '+my(new Date(t))+'</b><br>Pay '+money(amt)+'/'+FL[p.freq]+' from tomorrow'+(GH?'<br>'+(GH.dInt>0?'Saves '+money(GH.dInt):'Costs '+money(-GH.dInt)+' more'):'');tip.style.display='block';
+    const tw=tip.offsetWidth;tip.style.left=Math.min(G.W-tw-4,Math.max(4,xx+(xx>G.W/2?-tw-14:14)))+'px';tip.style.top=(G.Tm+8)+'px'}
+  fig.addEventListener('contextmenu',e=>{if(!unlocked)return;e.preventDefault();const[px,py]=pos(e);openMenu(px,py,e)});
+  fig.addEventListener('pointerdown',e=>{if(!unlocked||e.target===lock||lock.contains(e.target)||menu.contains(e.target)||e.button===2||!G)return;const[px,py]=pos(e);if(px<G.L-10||px>G.L+G.pw+10)return;
+    e.preventDefault();e.stopImmediatePropagation();arm();
+    const nh=nodeHit(px,py,e),h=nh?null:near(px,py,e);
+    if(nh||h){press={px,py,nh,h,type:e.pointerType};clearTimeout(pressT);pressT=setTimeout(()=>{if(press&&openMenu(press.px,press.py,{pointerType:'touch'}))press.menu=true},550);return}
+    if(py>G.Tm+G.ph){setTo(px,true);return}
+    drag=true;burstT=0;try{fig.setPointerCapture(e.pointerId)}catch(_){}setTo(px)},true);
+  fig.addEventListener('pointermove',e=>{if(press){e.stopImmediatePropagation();const[px,py]=pos(e);
+      if(!press.menu&&!press.nh&&Math.hypot(px-press.px,py-press.py)>10){clearTimeout(pressT);press=null;drag=true;burstT=0;try{fig.setPointerCapture(e.pointerId)}catch(_){}setTo(px)}return}
+    if(!drag)return;e.stopImmediatePropagation();const[px]=pos(e);cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>setTo(px))},true);
+  const end=e=>{if(press){e.stopImmediatePropagation();clearTimeout(pressT);const p0=press;press=null;if(p0.menu||e.type==='pointercancel')return;
+      if(p0.nh)openEd(p0.nh.id);else openMenu(p0.px,p0.py,{pointerType:p0.type},p0.h);return}
+    if(!drag)return;e.stopImmediatePropagation();drag=false;burstT=0;arm()};
+  fig.addEventListener('pointerup',end,true);fig.addEventListener('pointercancel',end,true);
+  /* edit from the log table and the story panel */
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-ed],[data-conf],[data-skip]');if(!b||ed.contains(b))return;
+    if(b.dataset.ed){openEd(b.dataset.ed);if(isPhone())return;chart.scrollIntoView({behavior:'smooth',block:'center'})}else if(b.dataset.conf)mark(b.dataset.conf,true);else mark(b.dataset.skip,false)});
+  paint();
+  window.TrNodes={unlock:v=>{unlocked=v!==false;paint()},openEd,openMenu,addEntry,lineAt,setTo,closeEd,mark};
+})();
+
+window.Tracker={past,future,life,worth,sched,schedInt,milestones,payDate,stdPay,regPay,state:()=>ST,PR,score:()=>SC,ghost:()=>GH,G:()=>G};
 render();save();
 }
 </script>

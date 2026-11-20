@@ -559,7 +559,7 @@ function draw(){
 
 const PER=new Proxy({52:'week',26:'fortnight',12:'month',4:'quarter',2:'half-year',1:'year',365:'day'},{get:(o,k)=>o[k]||'payment period'});
 const pct=v=>parseFloat(v.toFixed(v<0.1?4:3))+'%';
-function rateSplit(){$('rateSplit').innerHTML='Periodic rate: <b>'+pct(S.rate/S.freq)+' a '+PER[S.freq]+'</b> (yearly rate ÷ '+S.freq+' payment'+(S.freq>1?'s':'')+' a year)<br>Daily rate: '+pct(S.rate/365)+' a day (yearly rate ÷ 365)'}
+function rateSplit(){const f=S.freq,known={52:1,26:1,12:1,4:1,2:1,1:1,365:1}[f];$('rateSplit').innerHTML=parseFloat(S.rate.toFixed(3))+'% ÷ '+f+' = <b>'+pct(S.rate/f)+' per '+(known?PER[f]:'payment')+'</b>'+(known?'':' ('+f+' a year)')}
 function stats(){rateSplit();
   const I=IO(),p=payFromS(S.s),f=FL[S.freq],R=run(p,true),EX=hasEx(),frozen=Math.abs(p-I)<=I*5e-4&&!EX;
   const put=(o,l,v)=>{$('sOut').textContent=o;$('sIntL').textContent=l;$('sInt').textContent=v};
